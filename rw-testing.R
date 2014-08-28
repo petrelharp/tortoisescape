@@ -17,8 +17,6 @@ while ( any( rowSums( adj ) == 0 ) || any( colSums( adj ) == 0 ) ) {
 }
 diag(adj) <- 0
 adj <- ( adj > 0 )
-# symmetrize
-adj[lower.tri(adj)] <- adj[upper.tri(adj)]
 
 nwalks <- 5000
 nsteps <- 200
