@@ -54,3 +54,75 @@ adj.to.gen <- function (adj) {
     diag(gen) <- (-1)*rowSums(gen)
     return(gen)
 }
+
+
+# mappings between index in a square matrix
+#   ZERO-BASED: (i,j) and column-oriented (k)
+#   ALLOW indices outside the grid
+#   grid height (number of rows) is n
+.ob <- function (ij,n){ ( ij[,1] >= 0 ) & ( ij[,1] < n ) & ( ij[,2] >= 0 ) & ( ij[,2] < n ) }
+ij.to.k <- function (ij,n) { ifelse( .ob(ij,n), ij[,1,drop=FALSE]+ij[,2,drop=FALSE]*n, NA ) }
+k.to.ij <- function (k,n) { cbind( k%%n, k%/%n ) }
+shift <- function (dij,k,n) { ij.to.k( sweep( k.to.ij(k,n), 2, as.integer(dij), "+" ), n ) }
+
+require(Matrix)
+
+grid.adjacency <- function (n) {
+    nn <- 0:(n^2-1)
+    adj <- data.frame(
+            i=rep(nn,5),
+            j=c( nn,
+                 shift(c(+1,0),nn,n),
+                 shift(c(-1,0),nn,n),
+                 shift(c(0,+1),nn,n),
+                 shift(c(0,-1),nn,n)
+                 ),
+            x=rep(1,5*length(nn))
+            )
+    boundary <- is.na(adj$j) | !.ob(k.to.ij(adj$j,n),n) | !.ob(k.to.ij(adj$i,n),n)
+    utri <- ( adj$i < adj$j )
+    A <- with( subset(adj,!boundary & utri ), sparseMatrix( i=i+1L, j=j+1L, x=x, dims=c(n^2,n^2), symmetric=TRUE ) )
+    # A <- as( with( subset(adj,!boundary), new( "dgTMatrix", i=i, j=j, x=x, Dim=as.integer(c(n^2,n^2)) ) ), "dgCMatrix" )
+    return(A)
+}
+
+grid.generator <- function (n,killing=0) {
+    # random generator for RW with killing on square 2D grid
+    A <- grid.adjacency(n)
+    A@x <- rexp(length(A@x))
+    A <- ( A + t(A) )
+    diag(A) <- (-1)*rowSums( A - Diagonal(nrow(A),diag(A)) ) - killing
+    return(A)
+}
+
+hitting.analytic <- function (locs,G) {
+    # compute analytical expected hitting times
+    hts <- sapply( locs, function (k) { 
+                z <- solve( G[-k,-k], rep(-1,nrow(G)-1L) ) 
+                return( c( z[1:(k-1)], 0, z[k:length(z)] ) )
+            } )
+    return(hts)
+}
+
+##
+# plotting whatnot
+
+colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), zero=FALSE, trim=0) {
+    require(colorspace)
+    if (is.numeric(x) & trim>0) {
+        x[ x<quantile(x,trim,na.rm=TRUE) ] <- quantile(x,trim,na.rm=TRUE)
+        x[ x>quantile(x,1-trim,na.rm=TRUE) ] <- quantile(x,1-trim,na.rm=TRUE)
+    }
+    if (is.numeric(x)) {
+        if (zero) {
+            breaks <- seq( (-1)*max(abs(x),na.rm=TRUE), max(abs(x),na.rm=TRUE), length.out=nc )
+        } else {
+            breaks <- seq( min(x,na.rm=TRUE), max(x,na.rm=TRUE), length.out=nc )
+        }
+        x <- cut(x,breaks=breaks,include.lowest=TRUE)
+    } else {
+        x <- factor(x)
+    }
+    return( colfn(nlevels(x))[as.numeric(x)] )
+}
+

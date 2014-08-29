@@ -40,9 +40,12 @@ system.time( aggregate(road,fact=10,fun=mean,na.rm=TRUE,filename="road_redux",ov
 # make a brick out of these?
 system.time( rpa.stack <- stack( list(road,precip,aspect) ) )
 # Oh, dear: Error in compareRaster(x) : different extent -- precip differs.
-precip.cropped <- crop( precip, road, filename="precip_cropped" )
-road.cropped <- crop( road, precip.cropped, filename="road_cropped" )
+precip.cropped <- crop( precip, road, filename="precip_cropped", snap="in",overwrite=TRUE )
+road.cropped <- crop( road, precip.cropped, filename="road_cropped", snap="in",overwrite=TRUE )
 compareRaster(road.cropped,precip.cropped)  # still don't match??!?!?!!
+
+precip.resample <- resample( precip.cropped, road.cropped, filename="precip_resample" )
+compareRaster( precip.resample, road.cropped )
 
 # ok, out of just two of them
 system.time( rpa.stack <- stack( list(road,aspect) ) )
