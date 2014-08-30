@@ -107,13 +107,12 @@ hitting.analytic <- function (locs,G) {
 ##
 # plotting whatnot
 
-colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), zero=FALSE, trim=0) {
-    require(colorspace)
+colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), zero=FALSE, trim=0, breaks, return.breaks=FALSE) {
     if (is.numeric(x) & trim>0) {
         x[ x<quantile(x,trim,na.rm=TRUE) ] <- quantile(x,trim,na.rm=TRUE)
         x[ x>quantile(x,1-trim,na.rm=TRUE) ] <- quantile(x,1-trim,na.rm=TRUE)
     }
-    if (is.numeric(x)) {
+    if (missing(breaks) & is.numeric(x)) {
         if (zero) {
             breaks <- seq( (-1)*max(abs(x),na.rm=TRUE), max(abs(x),na.rm=TRUE), length.out=nc )
         } else {
@@ -123,6 +122,9 @@ colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), ze
     } else {
         x <- factor(x)
     }
-    return( colfn(nlevels(x))[as.numeric(x)] )
+    if (return.breaks) {
+        return(breaks)
+    } else {
+        return( colfn(nlevels(x))[as.numeric(x)] )
+    }
 }
-
