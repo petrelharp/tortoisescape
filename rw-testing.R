@@ -20,7 +20,7 @@ adj <- ( adj > 0 )
 
 nwalks <- 5000
 nsteps <- 200
-xt <- simrw(x0=sample.int(nlocs,size=nwalks,replace=TRUE),t=nsteps,adj=adj)
+xt <- simrw(x0=sample.int(nlocs,size=nwalks,replace=TRUE),t=nsteps,adj=adj)  # sloooow
 
 # hitting times
 htimes <- hitting(xt,locs=1:nlocs)
@@ -36,3 +36,7 @@ onesq <- sapply( 1:nlocs, function (k) { (-1) * gen[-k,-k] %*% hmeans[-k,k] } )
 
 # these are close to 1!
 onesq
+
+# check our analytic function
+a.hmeans <- hitting.analytic( 1:nlocs, gen )
+# YUP!

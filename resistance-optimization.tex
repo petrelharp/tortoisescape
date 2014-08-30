@@ -1,0 +1,77 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\bone}{\mathbf{1}}
+
+\begin{document}
+
+Suppose that 
+\begin{align}
+  G = \sum_k \alpha_k A_k,
+\end{align}
+where $\alpha \in \R^n$
+and each $A_k$ is a generator matrix,
+i.e.\ $(A_k)_{xy} > 0$ for $x\neq y$ and $A_k \bone = 0$ for each $k$.
+
+Consider a random walk driven by $G$, and let
+\begin{align}
+  H_{xy} = \E^x[\tau_y] = \text{ ( mean hitting time of $y$ from $x$ ) } .
+\end{align}
+Then  $H_{xy} \ge 0$ and
+\begin{align}
+  \sum_x G_{zx} H_{xy} &= -1 \quad \text{ for each } z \neq y \\
+        H_{yy} = 0 .
+\end{align}
+
+Now suppose we are given the $A_k$ and $H_{xy_i}$ for all $x$ and some set of $\{y_i\}_{i=1}^m$.
+We could find $\alpha$ to minimize
+\begin{align}
+  F(\alpha) = \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_k \alpha_k \sum_x (A_k)_{zx} H_{xy_i} + 1 \right)^2 .
+\end{align}
+Differentiating this with respect to $\alpha_j$,
+we get
+\begin{align}
+  \partial_{\alpha_j} F(\alpha) = 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x (A_j)_{zx} H_{xy_i} \right) \left( \sum_k \alpha_k \sum_x (A_k)_{zx} H_{xy_i} + 1 \right) .
+\end{align}
+For each $i$ and $j$ let $B^{ij}$ be the vector
+\begin{align}
+  B^{ij}_z = \sum_x (A_j)_{zx} H_{xy_i} ,
+\end{align}
+and let $B^{ij} \cdot B^{ik} = \sum_{z \neq y_i} B^{ij}_z B^{ik}_z$, etcetera.
+The derivative above is then
+\begin{align}
+  \partial_{\alpha_j} F(\alpha) = 2 \sum_{i=1}^m \left( \sum_k \alpha_k B^{ij} \cdot B^{ik} + B^{ij} \cdot \bone \right) .
+\end{align}
+Setting these to zero for each $j$ results in the system of linear equations
+\begin{align}
+  Q \alpha = b
+\end{align}
+where
+\begin{align}
+    Q_{jk} &= \sum_{i=1}^m  B^{ij} \cdot B^{ik} \\
+    b_j &= - \sum_{i=1}^m  B^{ij} \cdot \bone .
+\end{align}
+
+For computation, we could compute the matrix
+\begin{align}
+  B^j = A_j H ,
+\end{align}
+indexed by $z$ and $i$,
+and then set
+\begin{align}
+  B^j_{y_i i} := 0 \quad \text{for each } i ,
+\end{align}
+and then $C^j = B^j \bone$, i.e.
+\begin{align}
+  C^j_z = \sum_{i=1}^m B^j_{z i} .
+\end{align}
+Then we would have
+\begin{align}
+    Q_{jk} &= C_j \cdot C_k \\
+    b_j &= C_j \cdot \bone' .
+\end{align}
+
+
+\end{document}

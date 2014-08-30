@@ -61,7 +61,7 @@ adj.to.gen <- function (adj) {
 #   ALLOW indices outside the grid
 #   grid height (number of rows) is n
 .ob <- function (ij,n){ ( ij[,1] >= 0 ) & ( ij[,1] < n ) & ( ij[,2] >= 0 ) & ( ij[,2] < n ) }
-ij.to.k <- function (ij,n) { ifelse( .ob(ij,n), ij[,1,drop=FALSE]+ij[,2,drop=FALSE]*n, NA ) }
+ij.to.k <- function (ij,n) { ij <- as.matrix(ij); ifelse( .ob(ij,n), ij[,1,drop=FALSE]+ij[,2,drop=FALSE]*n, NA ) }
 k.to.ij <- function (k,n) { cbind( k%%n, k%/%n ) }
 shift <- function (dij,k,n) { ij.to.k( sweep( k.to.ij(k,n), 2, as.integer(dij), "+" ), n ) }
 
@@ -99,7 +99,7 @@ hitting.analytic <- function (locs,G) {
     # compute analytical expected hitting times
     hts <- sapply( locs, function (k) { 
                 z <- solve( G[-k,-k], rep(-1,nrow(G)-1L) ) 
-                return( c( z[1:(k-1)], 0, z[k:length(z)] ) )
+                return( c( z[seq(1,length.out=k-1)], 0, z[seq(k,length.out=length(z)-k+1)] ) )
             } )
     return(hts)
 }
