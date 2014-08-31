@@ -142,16 +142,16 @@ To that end, suppose that we are given $G$ and $T$ and estimate $H$ by:
 \end{align}
 where the $v{ik}$ are given, and we want to choose $\lambda_{ik}$ to minimize
 \begin{align}
-  I(\lambda) &= \sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_z G_{xz} \tilde H_{z y_i} + 1 \right)^2  + \gamma \sum_{ij} ( \tilde H(y_i,y_j) - T_{ij} )^2\\
+  I(\lambda) &= \sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_z G_{xz} \tilde H_{z y_i} + 1 \right)^2  + \gamma \sum_{ji} ( \tilde H(y_j,y_i) - T_{ji} )^2\\
   &=\sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_k \lambda_{ik} (Gv_{ik})_{x y_i}  + 1 \right)^2  
-  + \gamma \sum_{ij} ( \sum_k \lambda_{jk} \left(Gv_{ik})_{y_i y_j} - T_{ij} \right)^2,
+  + \gamma \sum_{ji} ( \sum_k \lambda_{ik} \left(Gv_{ik})_{y_j y_i} - T_{ji} \right)^2,
 \end{align}
 where $\gamma$ should be strong.
 As before,
 \begin{align}
   \partial_{\lambda_{uv}} I(\lambda)  &=
-  2 \sum_{x \neq y_v} ( G v_{uv} )_{x y_u} \left( \sum_u \lambda_{vu} (Gv_{vu})_{x y_v}  + 1 \right)  
-  + 2 \gamma \sum_{j} (Gv_{iv})_{y_i y_u} \left( \sum_k \lambda_{jk} (Gv_{ik})_{y_i y_j} - T_{ij} \right)
+  2 \sum_{x \neq y_u} ( G v_{uv} )_{x y_u} \left( \sum_k \lambda_{uk} (Gv_{uk})_{x y_u}  + 1 \right)  
+  + 2 \gamma \sum_{j} (G v_{uv})_{y_v y_u} \left( \sum_k \lambda_{uk} (Gv_{uk})_{y_j y_u} - T_{ju} \right)
 \end{align}
 
 
