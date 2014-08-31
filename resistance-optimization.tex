@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{amsmath,amssymb}
+\usepackage{fullpage}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
 \renewcommand{\P}{\mathbb{P}}
@@ -25,53 +26,135 @@ Then  $H_{xy} \ge 0$ and
         H_{yy} = 0 .
 \end{align}
 
+%%%%%%%%% %%%%%%%%%%
+\subsection*{Gradient Ascent}
+
+Now suppose that we are only given $T_{ij} = H_{y_i y_j}$,
+and would like to find $\alpha$ to minimize the mean squared discrepancy to these.
+Under a given set of $\alpha$, the vector
+\begin{align}
+  \hat H(\alpha)_{x y} = - \delta_x (G(\alpha)^{-y})^{-1} \bone ,
+\end{align}
+where $\delta_x$ is the unit vector with a $1$ in the $x$ position,
+$G(\alpha) = \sum_k \alpha_k A_k$ 
+and $X^{-y}$ denotes the matrix $X$ with the rows and columns corresponding to $y$ removed.
+Then, we'd like to minimize
+\begin{align}
+  L(\alpha) = \sum_{ij} | \hat H(\alpha)_{y_i y_j} - T_{ij} |^2 .
+\end{align}
+
+Since $\partial_a X^{-1} = X^{-1} (\partial_a X )X^{-1}$,
+\begin{align}
+  \partial_{\alpha_k} \hat H(\alpha)_{xy} &= - \sum_z \partial_{\alpha_k} (G(\alpha)^{-y})^{-1}_{xz}  \\
+  &= - \sum_z \left( (G(\alpha)^{-y})^{-1} \left( \partial_{\alpha_k} G(\alpha)^{-y} \right) (G(\alpha)^{-y})^{-1} \right)_{xz} \\
+  &= - \sum_z \left( (G(\alpha)^{-y})^{-1} (A_k)^{-y} (G(\alpha)^{-y})^{-1} \right)_{xz} \\
+  &= - \delta_x (G(\alpha)^{-y})^{-1} (A_k)^{-y} (G(\alpha)^{-y})^{-1} \bone
+\end{align}
+the gradient of $L$ is
+\begin{align}
+  \partial_{\alpha_k} L(\alpha) &= \sum_{ij} 2 \left( \partial_{\alpha_k} \hat H(\alpha)_{y_i y_j} \right) \left( \hat H(\alpha)_{y_i y_j} - T_{ij} \right) \\
+  &= \sum_{ij} 2 \left( \partial_{\alpha_k} \hat H(\alpha)_{y_i y_j} \right) \left( \hat H(\alpha)_{y_i y_j} - T_{ij} \right) \\
+  &= -2 \sum_{ij} \left( \delta_{y_i} (G(\alpha)^{-y_j})^{-1} (A_k)^{-y_j} (G(\alpha)^{-y_j})^{-1} \bone \right) \left( \hat H(\alpha)_{y_i y_j} - T_{ij} \right)
+\end{align}
+If we let
+\begin{align}
+  D(\alpha)_{ij} = - \left( \delta_{y_i} (G(\alpha)^{-y_j})^{-1} (A_k)^{-y_j} (G(\alpha)^{-y_j})^{-1} \bone \right)
+\end{align}
+and abuse notation to treat $\hat H(\alpha)_{ij}$ as an $m \times m$ matrix, then this is
+\begin{align}
+  \partial_{\alpha_k} L(\alpha) &= \sum_{ij} ( \hat H(\alpha)_{ij} - T_{ij} ) D(\alpha)_{ij}
+\end{align}
+
+\paragraph{Note:}
+The expensive part of all this is inversion of $G(\alpha)^{-y_j}$ for each $j$;
+but given this, we obtain both the objective function $L$ and its gradient.
+So, we are constrained by number of sampling locations, not number of GIS layers.
+Nothing requires us to use the full square, symmetric matrix of $H$;
+we could use a rectangular subset of it, reducing the number of inversions that need to be done.
+
+
+%%%%%% %%%%%%%%
+\subsection*{Given full data}
+
 Now suppose we are given the $A_k$ and $H_{xy_i}$ for all $x$ and some set of $\{y_i\}_{i=1}^m$.
+(Not what we actually have, but carry on.)
 We could find $\alpha$ to minimize
 \begin{align}
   F(\alpha) = \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_k \alpha_k \sum_x (A_k)_{zx} H_{xy_i} + 1 \right)^2 .
 \end{align}
-Differentiating this with respect to $\alpha_j$,
+Differentiating this with respect to $\alpha_\ell$,
 we get
 \begin{align}
-  \partial_{\alpha_j} F(\alpha) = 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x (A_j)_{zx} H_{xy_i} \right) \left( \sum_k \alpha_k \sum_x (A_k)_{zx} H_{xy_i} + 1 \right) .
+  \partial_{\alpha_\ell} F(\alpha) = 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x (A_\ell)_{zx} H_{xy_i} \right) \left( \sum_k \alpha_k \sum_x (A_k)_{zx} H_{xy_i} + 1 \right) .
 \end{align}
-For each $i$ and $j$ let $B^{ij}$ be the vector
+For each $i$ and $\ell$ let $B^{i\ell}$ be the vector
 \begin{align}
-  B^{ij}_z = \sum_x (A_j)_{zx} H_{xy_i} ,
+  B^{i\ell}_z = \sum_x (A_\ell)_{zx} H_{xy_i} ,
 \end{align}
-and let $B^{ij} \cdot B^{ik} = \sum_{z \neq y_i} B^{ij}_z B^{ik}_z$, etcetera.
+and let $B^{i\ell} \cdot B^{ik} = \sum_{z \neq y_i} B^{i\ell}_z B^{ik}_z$, etcetera.
 The derivative above is then
 \begin{align}
-  \partial_{\alpha_j} F(\alpha) = 2 \sum_{i=1}^m \left( \sum_k \alpha_k B^{ij} \cdot B^{ik} + B^{ij} \cdot \bone \right) .
+  \partial_{\alpha_\ell} F(\alpha) = 2 \sum_{i=1}^m \left( \sum_k \alpha_k B^{i\ell} \cdot B^{ik} + B^{i\ell} \cdot \bone \right) .
 \end{align}
-Setting these to zero for each $j$ results in the system of linear equations
+Setting these to zero for each $\ell$ results in the system of linear equations
 \begin{align}
   Q \alpha = b
 \end{align}
 where
 \begin{align}
-    Q_{jk} &= \sum_{i=1}^m  B^{ij} \cdot B^{ik} \\
-    b_j &= - \sum_{i=1}^m  B^{ij} \cdot \bone .
+    Q_{jk} &= \sum_{i=1}^m  B^{i\ell} \cdot B^{ik} \\
+    b_\ell  &= - \sum_{i=1}^m  B^{i\ell } \cdot \bone .
 \end{align}
 
 For computation, we could compute the matrix
 \begin{align}
-  B^j = A_j H ,
+  B^\ell  = A_\ell  H ,
 \end{align}
 indexed by $z$ and $i$,
 and then set
 \begin{align}
-  B^j_{y_i i} := 0 \quad \text{for each } i ,
+  B^\ell _{y_i i} := 0 \quad \text{for each } i ,
 \end{align}
-and then $C^j = B^j \bone$, i.e.
+and then $C^\ell  = B^\ell  \bone$, i.e.
 \begin{align}
-  C^j_z = \sum_{i=1}^m B^j_{z i} .
+  C^\ell _z = \sum_{i=1}^m B^\ell_{z i} .
 \end{align}
 Then we would have
 \begin{align}
-    Q_{jk} &= C_j \cdot C_k \\
-    b_j &= C_j \cdot \bone' .
+    Q_{\ell k} &= C_\ell \cdot C_k \\
+    b_\ell &= C_\ell \cdot \bone' .
 \end{align}
+
+
+%%%%%%%% %%%%%%%%%
+\subsection{Interpolation}
+
+Of course, we only have $T$, not $H$.
+One approach would be to interpolate $T$ to get an approximation of $H$,
+then proceed as above, pretending we have the correct $H$.
+Then, given estimates of $\alpha$, we could possibly improve our interpolation,
+and iterate.
+
+To that end, suppose that we are given $G$ and $T$ and estimate $H$ by:
+\begin{align}
+  \tilde H_{x,y_i} &= \sum_k \lambda_{ik} v_{k}(x-y_i) \\
+  &= \sum_k \lambda_{ik} v_{ik}(x) ,
+\end{align}
+where the $v{ik}$ are given, and we want to choose $\lambda_{ik}$ to minimize
+\begin{align}
+  I(\lambda) &= \sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_z G_{xz} \tilde H_{z y_i} + 1 \right)^2  + \gamma \sum_{ij} ( \tilde H(y_i,y_j) - T_{ij} )^2\\
+  &=\sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_k \lambda_{ik} (Gv_{ik})_{x y_i}  + 1 \right)^2  
+  + \gamma \sum_{ij} ( \sum_k \lambda_{jk} \left(Gv_{ik})_{y_i y_j} - T_{ij} \right)^2,
+\end{align}
+where $\gamma$ should be strong.
+As before,
+\begin{align}
+  \partial_{\lambda_{uv}} I(\lambda)  &=
+  2 \sum_{x \neq y_v} ( G v_{uv} )_{x y_u} \left( \sum_u \lambda_{vu} (Gv_{vu})_{x y_v}  + 1 \right)  
+  + 2 \gamma \sum_{j} (Gv_{iv})_{y_i y_u} \left( \sum_k \lambda_{jk} (Gv_{ik})_{y_i y_j} - T_{ij} \right)
+\end{align}
+
+
 
 
 \end{document}

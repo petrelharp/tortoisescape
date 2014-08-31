@@ -33,17 +33,21 @@ points( locs.ij[,1], locs.ij[,2], pch="+", cex=1 )
 # Observed hitting times
 pairwise.hts <- true.hts[locs,]
 
-# interpolate these, allowing for extrapolation
+# look at IBD:
+pairwise.dists <- grid.dist( locs.ij )
+plot( as.vector( pairwise.dists ), as.vector( pairwise.hts ), col=rainbow(n*1.2)[row(pairwise.dists)] )
+
+# interpolate these. (note: gets NAs, which is fine... see 'all.zeros' below.)
 interp.loess <- lapply( seq_along(locs), function (kk) {
             z <- log1p( pairwise.hts[,kk] )
-            loess( z ~ i * j, data=locs.ij, control = loess.control(surface = "direct") )
+            loess( z ~ i * j, data=locs.ij )
         } )
 interp.hts <- sapply( interp.loess, function (interp) {
             expm1( predict( interp, newdata=all.locs ) )
         } )
 
 # only a few percent error:
-mean( (interp.hts-true.hts)/(true.hts+5) )
+mean( (interp.hts-true.hts)/(true.hts+5), na.rm=TRUE )
 
 # how's this do?
 layout(matrix(1:40,nrow=8))
@@ -51,7 +55,7 @@ par(mar=c(0,0,0,0))
 colorbreaks <- colorize( c(unlist(true.hts),unlist(interp.hts)), return.breaks=TRUE )
 invisible( lapply(1:20, function (kk) { 
                     plot( j~i, col=colorize(true.hts[,kk],breaks=colorbreaks), data=all.locs, xlab='', ylab='', xaxt='n', yaxt='n' )
-                    plot( j~i, col=colorize(interp.hts[,kk],breaks=colorbreaks), data=all.locs, xlab='', ylab='', xaxt='n', yaxt='n' )
+                    plot( j~i, col=colorize(interp.surf.hts[,kk],breaks=colorbreaks), data=all.locs, xlab='', ylab='', xaxt='n', yaxt='n' )
                 } ) )
 
 
@@ -67,16 +71,22 @@ ones <- (-1) * G %*% true.hts
 range(ones[-zeros]) # yup
 ones[zeros]  # huh, these are big though
 
+# and how is interp doing
+i.ones <- (-1) * G %*% interp.hts
+hist(i.ones[-zeros],breaks=100) # whoa, not so great
+i.ones[zeros]  # huh, these are big though
+
 ##
 # ok, estimation
 # think about scaling these things down
+
+all.zeros <- unique( sort( c( zeros, which( is.na(i.ones) ) ) ) )
 
 estimate.aa <- function (hts) {
     # ok, math now
     # here are the B^j, the C^j, Q, and b
     BB <- lapply( AA, "%*%", hts )
-    # BB <- lapply( AA, "%*%", interp.hts )
-    CC <- lapply( BB, function (B) { B[zeros] <- 0; rowSums(B) } )
+    CC <- lapply( BB, function (B) { B[all.zeros] <- 0; rowSums(B) } )
     Q <- matrix( 0, nrow=length(CC), ncol=length(CC) )
     b <- numeric(length(CC))
     for (j in 1:length(CC)) {
@@ -96,7 +106,7 @@ check.aa <- function (aa,hts) {
         G <- G + aa[k] * AA[[k]]
     }
     ones <- (-1) * G %*% hts
-    range(ones[-zeros])
+    range(ones[-all.zeros])
 }
 
 # check this works with truth

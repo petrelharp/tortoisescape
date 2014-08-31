@@ -67,6 +67,11 @@ shift <- function (dij,k,n) { ij.to.k( sweep( k.to.ij(k,n), 2, as.integer(dij), 
 
 require(Matrix)
 
+grid.dist <- function (ij) {
+    # return matrix of pairwise as-the-crow-flies distances
+    sqrt( outer(ij[,1],ij[,1],"-")^2 + outer(ij[,2],ij[,2],"-")^2 )
+}
+
 grid.adjacency <- function (n) {
     nn <- 0:(n^2-1)
     adj <- data.frame(
