@@ -103,11 +103,13 @@ grid.generator <- function (n,killing=0) {
 hitting.analytic <- function (locs,G) {
     # compute analytical expected hitting times
     hts <- sapply( locs, function (k) { 
-                z <- solve( G[-k,-k], rep(-1,nrow(G)-1L) ) 
-                return( c( z[seq(1,length.out=k-1)], 0, z[seq(k,length.out=length(z)-k+1)] ) )
+                z <- solve( G[-k,-k], rep.int(-1.0,nrow(G)-1L) ) 
+                return( c( z[seq.int(1,length.out=k-1)], 0, z[seq.int(k,length.out=length(z)-k+1)] ) )
             } )
     return(hts)
 }
+
+
 
 ##
 # plotting whatnot
