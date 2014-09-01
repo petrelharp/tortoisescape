@@ -25,6 +25,7 @@ Then  $H_{xy} \ge 0$ and
   \sum_x G_{zx} H_{xy} &= -1 \quad \text{ for each } z \neq y \\
         H_{yy} = 0 .
 \end{align}
+Note that $\sum_x G_{yx} H_{xy} \ge 0$.
 
 %%%%%%%%% %%%%%%%%%%
 \subsection*{Gradient Ascent}
@@ -48,13 +49,15 @@ Since $\partial_a X^{-1} = X^{-1} (\partial_a X )X^{-1}$,
   \partial_{\alpha_k} \hat H(\alpha)_{xy} &= - \sum_z \partial_{\alpha_k} (G(\alpha)^{-y})^{-1}_{xz}  \\
   &= - \sum_z \left( (G(\alpha)^{-y})^{-1} \left( \partial_{\alpha_k} G(\alpha)^{-y} \right) (G(\alpha)^{-y})^{-1} \right)_{xz} \\
   &= - \sum_z \left( (G(\alpha)^{-y})^{-1} (A_k)^{-y} (G(\alpha)^{-y})^{-1} \right)_{xz} \\
-  &= - \delta_x (G(\alpha)^{-y})^{-1} (A_k)^{-y} (G(\alpha)^{-y})^{-1} \bone
+  &= - \delta_x (G(\alpha)^{-y})^{-1} (A_k)^{-y} (G(\alpha)^{-y})^{-1} \bone \\
+  &= \delta_x (G(\alpha)^{-y})^{-1} (A_k)^{-y} \hat H(\alpha)_{\cdot y_j},
 \end{align}
-the gradient of $L$ is
+where $X_{\cdot y_j}$ is the $y_j$ column of $X$,
+and so the gradient of $L$ is
 \begin{align}
   \partial_{\alpha_k} L(\alpha) &= \sum_{ij} 2 \left( \partial_{\alpha_k} \hat H(\alpha)_{y_i y_j} \right) \left( \hat H(\alpha)_{y_i y_j} - T_{ij} \right) \\
   &= \sum_{ij} 2 \left( \partial_{\alpha_k} \hat H(\alpha)_{y_i y_j} \right) \left( \hat H(\alpha)_{y_i y_j} - T_{ij} \right) \\
-  &= -2 \sum_{ij} \left( \delta_{y_i} (G(\alpha)^{-y_j})^{-1} (A_k)^{-y_j} (G(\alpha)^{-y_j})^{-1} \bone \right) \left( \hat H(\alpha)_{y_i y_j} - T_{ij} \right)
+  &= -2 \sum_{ij} \left( \delta_{y_i} (G(\alpha)^{-y_j})^{-1} (A_k)^{-y_j} \hat H(\alpha)_{\cdot y_j} \right) \left( \hat H(\alpha)_{y_i y_j} - T_{ij} \right)
 \end{align}
 If we let
 \begin{align}
@@ -66,10 +69,10 @@ and abuse notation to treat $\hat H(\alpha)_{ij}$ as an $m \times m$ matrix, the
 \end{align}
 
 \paragraph{Note:}
-The expensive part of all this is inversion of $G(\alpha)^{-y_j}$ for each $j$;
-but given this, we obtain both the objective function $L$ and its gradient.
-So, we are constrained by number of sampling locations, not number of GIS layers.
-Nothing requires us to use the full square, symmetric matrix of $H$;
+In computing the gradient, we can re-use computation of $\hat H$,
+but still have to solve another linear equation involving $G(\alpha)$,
+for each layer.
+Also note: requires us to use the full square, symmetric matrix of $H$;
 we could use a rectangular subset of it, reducing the number of inversions that need to be done.
 
 
