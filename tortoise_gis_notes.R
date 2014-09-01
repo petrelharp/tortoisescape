@@ -5,6 +5,9 @@
 ################################################################
 require(raster)
 
+setwd("/Volumes/BBURD/tortTestGIS")
+
+if(!any(grepl("resampled_cropped_road",list.files()))){
 # this put the temp stuff in my temp directory, and filled up that partition:
 rasterOptions(tmpdir=".")
 
@@ -22,6 +25,169 @@ rasterOptions(tmpdir=".")
 road <- raster("tortTestGIS/road_30.tif")
 precip <- raster("tortTestGIS/annual_precip.tif")
 aspect <- raster("tortTestGIS/aspect_30.tif")
+lat <- raster("~/Downloads/tortTestGIS/lat_30_utm_tif/lat_gcs_30.tif")
+long <- raster("~/Downloads/tortTestGIS/lat_30_utm_tif/lon_gcs_30.tif")
+
+extent(road)
+extent(precip)
+extent(aspect)
+extent(lat)
+extent(long)
+
+# lat and long and precip have the same extent
+# road and aspect have the same extent
+# So, in the next lines of code, we want to get all these 5 rasters to the same extent
+road@extent@xmin	#-2154584
+lat@extent@xmin		#-2154993	#lat goes farther west
+
+road@extent@xmax	#-1497096	#lat goes farther east
+lat@extent@xmax		#-1475779
+
+road@extent@ymin	#-627324.3	#they both go equally south
+lat@extent@ymin		#-627324.3
+
+road@extent@ymax	#33770.03	#lat goes farther north
+lat@extent@ymax		#41742.17
+
+
+#	so, we first crop lat, long, and precip to road
+writeRaster(
+			crop(lat,
+				extent(
+					max(road@extent@xmin,
+							lat@extent@xmin),
+					min(road@extent@xmax,
+							lat@extent@xmax),
+					max(road@extent@ymin,
+							lat@extent@ymin),
+					min(road@extent@ymax,
+							lat@extent@ymax))),
+				filename="crop_lat",overwrite=TRUE)
+
+writeRaster(
+			crop(long,
+				extent(
+					max(road@extent@xmin,
+							lat@extent@xmin),
+					min(road@extent@xmax,
+							lat@extent@xmax),
+					max(road@extent@ymin,
+							lat@extent@ymin),
+					min(road@extent@ymax,
+							lat@extent@ymax))),
+				filename="crop_long",overwrite=TRUE)				
+
+writeRaster(
+			crop(precip,
+				extent(
+					max(road@extent@xmin,
+							lat@extent@xmin),
+					min(road@extent@xmax,
+							lat@extent@xmax),
+					max(road@extent@ymin,
+							lat@extent@ymin),
+					min(road@extent@ymax,
+							lat@extent@ymax))),
+				filename="crop_precip",overwrite=TRUE)
+
+cropped_lat <- raster("crop_lat.grd")
+cropped_long <- raster("crop_long.grd")
+cropped_aspect <- raster("crop_precip.grd")
+
+#	then we crop road to the cropped lat (because, for whatever reason, crop() overshoots it a bit
+writeRaster(
+			crop(road,
+				extent(
+					max(road@extent@xmin,
+							cropped_lat@extent@xmin),
+					min(road@extent@xmax,
+							cropped_lat@extent@xmax),
+					max(road@extent@ymin,
+							cropped_lat@extent@ymin),
+					min(road@extent@ymax,
+							cropped_lat@extent@ymax))),
+				filename="crop_road",overwrite=TRUE)
+
+writeRaster(
+			crop(aspect,
+				extent(
+					max(road@extent@xmin,
+							cropped_lat@extent@xmin),
+					min(road@extent@xmax,
+							cropped_lat@extent@xmax),
+					max(road@extent@ymin,
+							cropped_lat@extent@ymin),
+					min(road@extent@ymax,
+							cropped_lat@extent@ymax))),
+				filename="crop_aspect",overwrite=TRUE)
+
+cropped_aspect <- raster("crop_aspect.grd")
+cropped_road <- raster("crop_road.grd")
+
+#	Then we resample road and aspect to lat
+resample(cropped_road,cropped_lat,filename="resampled_cropped_road",overwrite=TRUE)
+resample(cropped_aspect,cropped_lat,filename="resampled_cropped_aspect",overwrite=TRUE)
+
+resampled_cropped_road <- raster("resampled_cropped_road")
+resampled_cropped_aspect <- raster("resampled_cropped_aspect")
+
+#	and now:
+compareRaster(resampled_cropped_road,cropped_lat)
+compareRaster(resampled_cropped_aspect,cropped_lat)
+}
+
+#mapping tortoise:
+require(rgdal)
+require(maps)
+require(maptools)
+require(sp)
+
+resampled_cropped_road <- raster("resampled_cropped_road")
+resampled_cropped_aspect <- raster("resampled_cropped_aspect")
+cropped_lat <- raster("crop_lat.grd")
+cropped_long <- raster("crop_long.grd")
+cropped_precip <- raster("crop_precip.grd")
+
+tort.coords <- read.csv("1st_180_torts.csv")
+utm.coords <- cbind(tort.coords$Easting,tort.coords$Northing)
+utm.coords <- SpatialPoints(utm.coords,proj4string=CRS("+proj=utm +zone=11"))
+latlong.coords <- spTransform(utm.coords,CRS("+proj=longlat +init:epsg:2955"))
+proj.latlong.coords <- spTransform(utm.coords,cropped_lat@crs)
+
+
+mojave.outlines <- map("county",c("california","nevada","arizona"),xlim=c(-120,-113),ylim=c(31,37))
+mojave.outlines.sp <- map2SpatialLines(mojave.outlines,proj4string=CRS("+proj=longlat"))
+mojave.outlines.sp2 <- spTransform(mojave.outlines.sp,cropped_lat@crs)
+
+png(file="road_layer.png",res=150,width=7*150,height=7*150)
+	plot(resampled_cropped_road,main="Distance from a Road")
+	lines(mojave.outlines.sp2)
+	points(proj.latlong.coords,pch=8)
+dev.off()
+
+usa.outlines <- map("usa")
+IDs <- sapply(strsplit(usa.outlines$names, ":"), function(x) x[1])
+usa.outlines.sp <- map2SpatialPolygons(usa.outlines,IDs=IDs,proj4string=CRS("+proj=longlat"))
+usa.outlines.sp2 <- spTransform(usa.outlines.sp,cropped_lat@crs)
+
+masked_resampled_cropped_road <- mask(resampled_cropped_road,usa.outlines.sp2,filename="masked_resampled_cropped_road")
+masked_resampled_cropped_aspect <- mask(resampled_cropped_aspect,usa.outlines.sp2,filename="masked_resampled_cropped_aspect")
+masked_cropped_precip <- mask(cropped_precip,usa.outlines.sp2,filename="masked_cropped_precip")
+masked_cropped_lat <- mask(cropped_lat,usa.outlines.sp2,filename="masked_cropped_lat")
+masked_cropped_long <- mask(cropped_long,usa.outlines.sp2,filename="masked_cropped_long")
+
+png(file="masked_road_layer.png",res=150,width=7*150,height=7*150)
+	plot(masked_resampled_cropped_road,main="Distance from a Road")
+	lines(mojave.outlines.sp2)
+	points(proj.latlong.coords,pch=8)
+dev.off()
+
+png(file="masked_aspect_layer.png",res=150,width=7*150,height=7*150)
+	plot(masked_resampled_cropped_aspect,main="Distance from a Road")
+	lines(mojave.outlines.sp2)
+	points(proj.latlong.coords,pch=8)
+dev.off()
+
 
 # check out what a raster is all about
 str(road)
