@@ -127,7 +127,7 @@ Then we would have
 
 
 %%%%%%%% %%%%%%%%%
-\subsection{Interpolation}
+\subsection*{Interpolation}
 
 Of course, we only have $T$, not $H$.
 One approach would be to interpolate $T$ to get an approximation of $H$,
@@ -137,23 +137,30 @@ and iterate.
 
 To that end, suppose that we are given $G$ and $T$ and estimate $H$ by:
 \begin{align}
-  \tilde H_{x,y_i} &= \sum_k \lambda_{ik} v_{k}(x-y_i) \\
-  &= \sum_k \lambda_{ik} v_{ik}(x) ,
+  \tilde H_{x,y_i} &= \sum_{k=1}^K \lambda_{ik} v_{k}(x-y_i) \\
+  &= \sum_{k=1}^K \lambda_{ik} v_{ik}(x) ,
 \end{align}
-where the $v{ik}$ are given, and we want to choose $\lambda_{ik}$ to minimize
+where the $v_{ik}$ are given, and we want to choose $\lambda_{ik}$ to minimize
 \begin{align}
   I(\lambda) &= \sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_z G_{xz} \tilde H_{z y_i} + 1 \right)^2  + \gamma \sum_{ji} ( \tilde H(y_j,y_i) - T_{ji} )^2\\
-  &=\sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_k \lambda_{ik} (Gv_{ik})_{x y_i}  + 1 \right)^2  
-  + \gamma \sum_{ji} ( \sum_k \lambda_{ik} \left(Gv_{ik})_{y_j y_i} - T_{ji} \right)^2,
+  &=\sum_{i=1}^m \sum_{x \neq y_i} \left( \sum_{k=1}^K \lambda_{ik} (Gv_{ik})_{x y_i}  + 1 \right)^2  
+  + \gamma \sum_{ji} ( \sum_{k=1}^K \lambda_{ik} \left(Gv_{ik})_{y_j y_i} - T_{ji} \right)^2,
 \end{align}
-where $\gamma$ should be strong.
-As before,
+where $\gamma$ should be strong enough that $\tilde H_{y_j,y_i}$ is close to $T_{ji}$.
+Then
 \begin{align}
   \partial_{\lambda_{uv}} I(\lambda)  &=
-  2 \sum_{x \neq y_u} ( G v_{uv} )_{x y_u} \left( \sum_k \lambda_{uk} (Gv_{uk})_{x y_u}  + 1 \right)  
-  + 2 \gamma \sum_{j} (G v_{uv})_{y_v y_u} \left( \sum_k \lambda_{uk} (Gv_{uk})_{y_j y_u} - T_{ju} \right)
+  2 \sum_{x \neq y_u} ( G v_{uv} )_{x y_u} \left( \sum_{k=1}^K \lambda_{uk} (Gv_{uk})_{x y_u}  + 1 \right)  
+  + 2 \gamma \sum_{j} (G v_{uv})_{y_v y_u} \left( \sum_{k=1}^K \lambda_{uk} (Gv_{uk})_{y_j y_u} - T_{ju} \right)  \\
+  &= 2 \sum_{k=1}^K \lambda_{uk} \left\{ 
+  \sum_{x \neq y_u} ( G v_{uv} )_{x y_u} (Gv_{uk})_{x y_u}   
+  + \gamma \sum_{j} (G v_{uv})_{y_v y_u} (Gv_{uk})_{y_j y_u}  \right\} \\
+  & \qquad {}
+  + 2 \sum_{x \neq y_u} ( G v_{uv} )_{x y_u} - 2 \gamma \sum_{j} (G v_{uv})_{y_v y_u} T_{ju} 
 \end{align}
-
+Note that the equations that $\lambda$ solve decouple across $u$, 
+so there are $m$ systems of $K$ linear equations that need to be solved.
+Also note that if we precompute the $A_\ell v_{ik}$ then we can work directly with the $\alpha$ and $\lambda$.
 
 
 
