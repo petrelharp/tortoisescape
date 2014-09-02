@@ -1,7 +1,6 @@
 #!/usr/bin/Rscript
 
-source("rw-testing-fns.R")
-source("basis-fns.R")
+source("resistance-fns.R")
 
 # width of square grid
 n <- 100
@@ -30,49 +29,38 @@ true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s fo
 pairwise.hts <- true.hts[locs,]
 
 # now try to interpolate just one of these
-kk <- 1
+kk <- 3
 obs.hts <- pairwise.hts[,kk]
 
 
-# first-order radial smooth
-all.rads <- rowSums( sweep((all.locs),2,locs.ij[kk,],"-")^2 )
-rads <- all.rads[locs]
-trads <- rads^(1/4)
-ht.smooth <- loess( obs.hts ~ trads, span=.5, control=loess.control(surface='direct') )
-hts.interp.0 <- pmax(0, predict( ht.smooth, newdata=data.frame(trads=all.rads^(1/4)) ) )
+###########
+# quadratic program
+
+gamma <- 1
+Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
+PtP <- gamma * crossprod(Pmat)
+GtG <- crossprod( G[-locs[kk],] )
+bvec <- gamma * crossprod(Pmat,obs.hts) - crossprod( G[-locs[kk],], rep(1.0,nrow(G)-1) )
+# bvec <- gamma * crossprod(Pmat,obs.hts) + rexp(length(bvec))
+# bvec <- rexp(length(bvec))
+
+interp.hts <- solve( PtP+GtG, bvec )
 
 layout(matrix(c(1,2,1,3),nrow=2))
-plot( true.hts[,kk], hts.interp.0, col=ifelse(1:nrow(true.hts) %in% locs, 'red','black'), pch=20 )
-abline(0,1)
+plot( interp.hts, true.hts[,kk] )
 tmp <- true.hts[,kk]; dim(tmp) <- c(n,n); image(tmp)
-tmp <- hts.interp.0; dim(tmp) <- c(n,n); image(tmp)
+tmp <- as.numeric(interp.hts); dim(tmp) <- c(n,n); image(tmp)
 
+###
+# all of them
+all.interp.hts <- interp.hitting( G, locs, pairwise.hts )
 
-# build the basis
-xy <- as.matrix(all.locs)/n
-fbasis <- fbbasis(xy,mmax=30,x0=xy[locs[kk],])
-fbasis.gram <- crossprod(fbasis)
+range( all.interp.hts - true.hts )
 
-# check
-for (ii in 1:ncol(fbasis)) {
-    tmp <- matrix( fbasis[,ii],nrow=n,ncol=n )
-    plot( image(Matrix(tmp)) )
-    # plot( j ~ i, data=all.locs, bg=adjustcolor(ifelse(fbasis[,ii]>0,"blue","red"),.25), pch=21, cex=scale(abs(fbasis[,ii]))*3 )
+for (kk in seq_along(locs)) {
+    layout(matrix(c(1,2,1,3),nrow=2))
+    plot( all.interp.hts[,kk], true.hts[,kk] )
+    tmp <- true.hts[,kk]; dim(tmp) <- c(n,n); image(tmp)
+    tmp <- as.numeric(all.interp.hts[,kk]); dim(tmp) <- c(n,n); image(tmp)
     readline("next?")
 }
-
-# orthogonal-ish?
-image(Matrix(crossprod(cbind( hts.interp.0/sqrt(sum(hts.interp.0^2)),fbasis))))
-
-# project into these coords
-require(MASS)
-resid.hts <- (obs.hts - hts.interp.0)
-resid.hts.proj <- rowSums( sweep( fbasis, 2, ginv(fbasis.gram) %*% crossprod(fbasis,resid.hts), "*" ) )
-
-hts.interp <- hts.interp.0 + resid.hts.proj
-
-plot( true.hts[,kk], hts.interp )
-
-layout(t(1:2))
-tmp <- hts.interp; dim(tmp) <- c(n,n); image(tmp)
-tmp <- true.hts[,kk]; dim(tmp) <- c(n,n); image(tmp)

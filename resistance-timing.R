@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 
 require(Matrix)
-source("rw-testing-fns.R")
+source("resistance-fns.R")
 
 n <- 100
 

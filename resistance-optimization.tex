@@ -166,5 +166,25 @@ so there are $m$ systems of $K$ linear equations that need to be solved.
 Also note that if we precompute the $A_\ell v_{ik}$ then we can work directly with the $\alpha$ and $\lambda$.
 
 
+\paragraph{Even simpler,}
+we could solve the following problem:
+define $P$ to be the projection matrix so that $T = PH$.
+Then for each $i$ we want to solve the following problem:
+\begin{align}
+    \text{minimize } & \| Q^{-y_i} z + \bone \|^2 + \gamma \| Pz - H_{\cdot y_i} \|^2 \\
+    \text{subject to } &  z \ge 0 .
+\end{align}
+
+This works ridiculously well.
+
+In some cases, so does solving:
+\begin{align}
+    \text{minimize } & \| Q^{-y_i} z \|^2 + \gamma \| Pz - H_{\cdot y_i} \|^2 \\
+    \text{subject to } &  z \ge 0 .
+\end{align}
+This is because the function that is harmonic off of $\{y_j\}$
+and equal to the mean hitting time of $y_i$ at those locations
+is very nearly the minimal solution to this problem.
+This only underestimates the truth by the mean time to first hit one of the $\{y_j\}$.
 
 \end{document}
