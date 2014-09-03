@@ -1,4 +1,6 @@
 #!/usr/bin/Rscript
+##
+# Build the map of which sets of alpha parameters map to each other
 
 source("resistance-fns.R")
 require(parallel)
@@ -32,7 +34,8 @@ pairwise.hts <- true.hts[locs,]
 ###
 # get grid of where parameters map to:
 # TAKES A LONG TIME
-agrid <- as.matrix( expand.grid( a0=seq(.01,10,length.out=40), a1=seq(.01,10,length.out=40) ) )
+avals <- (seq(.01,sqrt(5),length.out=40))^2
+agrid <- as.matrix( expand.grid( a0=avals, a1=avals ) )
 bgrid <- mclapply( 1:nrow(agrid), function (k) {
         a0 <- agrid[k,]
         iterate.aa(a0,pairwise.hts,locs,AA) }, mc.cores=16 )
