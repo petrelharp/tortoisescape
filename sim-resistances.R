@@ -18,7 +18,7 @@ for (k in 2:n.layers) {
 
 # sampling locations
 nsamps <- 100
-locs.ij <- data.frame( i=sample.int(n,nsamps)-1L, j=sample.int(n,nsamps)-1L )
+locs.ij <- cbind( i=sample.int(n,nsamps)-1L, j=sample.int(n,nsamps)-1L )
 locs <- ij.to.k(locs.ij,n)
 
 # analytical mean hitting times
@@ -86,15 +86,9 @@ estimate.aa <- function (hts) {
     # ok, math now
     # here are the B^j, the C^j, Q, and b
     BB <- lapply( AA, "%*%", hts )
-    CC <- lapply( BB, function (B) { B[all.zeros] <- 0; rowSums(B) } )
-    Q <- matrix( 0, nrow=length(CC), ncol=length(CC) )
-    b <- numeric(length(CC))
-    for (j in 1:length(CC)) {
-        b[j] <- (-1) * sum(CC[[j]]) * ncol(hts) # WHY DOES IT NEED THIS FACTOR OF m ?????
-        for (k in j:length(CC)) {
-            Q[j,k] <- Q[k,j] <- sum( CC[[j]] * CC[[k]] )
-        }
-    }
+    CC <- sapply( BB, function (B) { B[all.zeros] <- 0; rowSums(B) } )
+    b <- (-1) * colSums(CC) * ncol(hts)
+    Q <- crossprod(CC)
     # estimates of aa!!
     return( solve( Q, b ) )
 }

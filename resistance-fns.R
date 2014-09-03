@@ -49,7 +49,7 @@ hitting.analytic <- function (locs,G) {
     # compute analytical expected hitting times
     hts <- sapply( locs, function (k) { 
                 z <- solve( G[-k,-k], rep.int(-1.0,nrow(G)-1L) ) 
-                return( c( z[seq.int(1,length.out=k-1)], 0, z[seq.int(k,length.out=length(z)-k+1)] ) )
+                return( c( z[seq.int(1,length.out=k-1L)], 0, z[seq.int(k,length.out=length(z)-k+1L)] ) )
             } )
     return(hts)
 }
@@ -72,10 +72,47 @@ interp.hitting <- function ( G, locs, obs.hts, gamma=1 ) {
     } )
 }
 
+make.G <- function (aa,AA) {
+    G <- aa[1] * AA[[1]]
+    if (length(AA)>1) for (k in 2:length(AA)) {
+        G <- G + aa[k] * AA[[k]]
+    }
+    return(G)
+}
 
+estimate.aa <- function (hts,locs,AA) {
+    # Estimate alphas given full hitting times
+    # don't count these cells:
+    zeros <- locs + (0:(length(locs)-1))*nrow(hts)
+    # here are the B^j, the C^j, Q, and b
+    BB <- lapply( AA, "%*%", hts )
+    CC <- sapply( BB, function (B) { B[zeros] <- 0; rowSums(B) } )
+    b <- (-1) * colSums(CC) * ncol(hts)  # WHY THIS EXTRA FACTOR OF m?
+    Q <- crossprod(CC)
+    return( solve( Q, b ) )
+}
+
+iterate.aa <- function (aa,hts,locs,AA) {
+    G <- make.G(aa,AA)
+    # interpolate hitting times
+    interp.hts <- interp.hitting( G, locs, hts )
+    # infer aa from these
+    estimate.aa(interp.hts,locs,AA)
+}
 
 ##
 # plotting whatnot
+
+plot.ht <- function (ht,dims=c(sqrt(length(ht)),sqrt(length(ht)))) {
+    dim(ht) <- dims; image(ht)
+}
+
+plot.hts <- function (hts,dims=c(sqrt(nrow(hts)),sqrt(nrow(hts)))) {
+    for (k in 1:ncol(hts)) {
+        plot.ht(hts[,k],dims=dims)
+        readline("next?")
+    }
+}
 
 colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), zero=FALSE, trim=0, breaks, return.breaks=FALSE) {
     if (is.numeric(x) & trim>0) {
