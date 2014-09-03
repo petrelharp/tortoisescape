@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 source("resistance-fns.R")
+require(parallel)
 
 # width of square grid
 n <- 100
@@ -31,12 +32,15 @@ pairwise.hts <- true.hts[locs,]
 ###
 # get grid of where parameters map to:
 # TAKES A LONG TIME
-agrid <- expand.grid( a0=seq(.01,10,length.out=2), a1=seq(.01,10,length.out=2) )
-bgrid <- apply(agrid,1,function(a0) { iterate.aa(a0,pairwise.hts,locs,AA) } )
+agrid <- as.matrix( expand.grid( a0=seq(.01,10,length.out=40), a1=seq(.01,10,length.out=40) ) )
+bgrid <- mclapply( 1:nrow(agrid), function (k) {
+        a0 <- agrid[k,]
+        iterate.aa(a0,pairwise.hts,locs,AA) }, mc.cores=16 )
+bgrid <- do.call( rbind, bgrid )
 colnames(bgrid) <- c("b0","b1")
 
 pdf(file="abmap.pdf",pointsize=10,width=10,height=10)
-plot( 0, 0, xlim=range(agrid$a0), ylim=range(agrid$a1), type='n', xlab='', ylab='' )
+plot( 0, 0, xlim=range(agrid[,1]), ylim=range(agrid[,2]), type='n', xlab='', ylab='' )
 arrows( x0=agrid[,1], y0=agrid[,2], x1=bgrid[,1], y1=bgrid[,2], length=0.1 )
 points( aa[1], aa[2], pch="*", col="red", cex=2 )
 dev.off()

@@ -56,8 +56,15 @@ while( !is.null(locator(n=1)) ) {
 
 ###
 # get grid of where parameters map to:
+if (FALSE) {
 # TAKES A LONG TIME
 agrid <- expand.grid( a0=seq(.01,10,length.out=40), a1=seq(.01,10,length.out=40) )
-bgrid <- apply(agrid,1,function(a0) { iterate.aa(a0,pairwise.hts,locs,AA) } )
+bgrid <- t( apply(agrid,1,function(a0) { iterate.aa(a0,pairwise.hts,locs,AA) } ) )
+colnames(bgrid) <- c("b0","b1")
 
+plot( 0, 0, xlim=range(agrid$a0), ylim=range(agrid$a1), type='n', xlab='', ylab='' )
+arrows( x0=agrid[,1], y0=agrid[,2], x1=bgrid[,1], y1=bgrid[,2], length=0.1 )
+points( aa[1], aa[2], pch="*", col="red", cex=2 )
 
+write.table( cbind(agrid,bgrid), file="abgrid.csv", sep=",", row.names=FALSE )
+}
