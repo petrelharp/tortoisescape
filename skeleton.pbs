@@ -9,6 +9,8 @@
 # #PBS -o qsub-logs
 
 # USAGE:
+#    qsub -vARGS="stuff to pass to Rscript" skeleton.pbs
+# e.g.
 #    qsub -vARGS="bcells-inference.R -u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2" skeleton.pbs
 
 source /usr/usc/R/3.1.0/setup.sh
