@@ -2,7 +2,7 @@
 require(Matrix)
 source("jacobi.R")
 
-nn <- ceiling(exp(log(10)/4 * 1:5))
+nn <- ceiling(exp(log(10)/4 * 1:17))
 nreps <- floor(max(nn)/nn)
 nn.times <- rep(1,length(nn))
 
@@ -24,6 +24,8 @@ for(i in seq_along(nn)){
   downii <- downii[-(1+n*(0:(n-1)))]
   downjj <- downii - 1
   
+  gc()
+  
   R <- sparseMatrix(i = c(rightii,upii,leftii,downii),
                     j = c(rightjj,upjj,leftjj,downjj),
                     x = rnorm(4*n*(n-1),0,1))
@@ -40,12 +42,16 @@ for(i in seq_along(nn)){
   D_1b <- (D_1)%*%b
   
   # free memory again
-  #rm("G_d","D")
-  #gc()
+  rm("R","D_1")
+  gc()
   
-  t <- system.time(for(k in 1:nreps[i]) jacobi(D_R,D_1b))
+  t <- system.time(for(k in 1:nreps[i]) x <- jacobi(D_R,D_1b))
 
   nn.times[i] <- t["user.self"]/nreps[i]
+  
+  # once more, with feeling
+  rm("D_R",D_1b)
+  gc()
   
 }
 
