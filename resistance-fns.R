@@ -1,14 +1,13 @@
 #!/usr/bin/Rscript
 
 
-# mappings between index in a square matrix
+# mappings between index in a matrix of height (in rows) n
 #   ZERO-BASED: (i,j) and column-oriented (k)
 #   ALLOW indices outside the grid
-#   grid height (number of rows) is n
-.ob <- function (ij,n){ ( ij[,1] >= 0 ) & ( ij[,1] < n ) & ( ij[,2] >= 0 ) & ( ij[,2] < n ) }
-ij.to.k <- function (ij,n) { if (is.null(dim(ij))) { dim(ij) <- c(1,length(ij)) }; ifelse( .ob(ij,n), ij[,1,drop=FALSE]+ij[,2,drop=FALSE]*n, NA ) }
+.ob <- function (ij,n,m){ ( ij[,1] >= 0 ) & ( ij[,1] < n ) & ( ij[,2] >= 0 ) & ( ij[,2] < m ) }
+ij.to.k <- function (ij,n,m) { if (is.null(dim(ij))) { dim(ij) <- c(1,length(ij)) }; ifelse( .ob(ij,n,m), ij[,1,drop=FALSE]+ij[,2,drop=FALSE]*n, NA ) }
 k.to.ij <- function (k,n) { cbind( k%%n, k%/%n ) }
-shift <- function (dij,k,n) { ij.to.k( sweep( k.to.ij(k,n), 2, as.integer(dij), "+" ), n ) }
+shift <- function (dij,k,n,m) { ij.to.k( sweep( k.to.ij(k,n), 2, as.integer(dij), "+" ), n, m ) }
 
 require(Matrix)
 
@@ -17,22 +16,25 @@ grid.dist <- function (ij) {
     sqrt( outer(ij[,1],ij[,1],"-")^2 + outer(ij[,2],ij[,2],"-")^2 )
 }
 
-grid.adjacency <- function (n) {
-    nn <- 0:(n^2-1)
+grid.adjacency <- function (n,m=n,diag=TRUE,symmetric=TRUE) {
+    # for a grid of height n and width m
+    nn <- 0:(n*m-1)
+    nreps <- if(diag){5}else{4}
     adj <- data.frame(
-            i=rep(nn,5),
-            j=c( nn,
-                 shift(c(+1,0),nn,n),
-                 shift(c(-1,0),nn,n),
-                 shift(c(0,+1),nn,n),
-                 shift(c(0,-1),nn,n)
+            i=rep(nn, nreps),
+            j=c( if(diag){nn}else{NULL},
+                 shift(c(+1,0),nn,n,m),
+                 shift(c(-1,0),nn,n,m),
+                 shift(c(0,+1),nn,n,m),
+                 shift(c(0,-1),nn,n,m)
                  ),
-            x=rep(1,5*length(nn))
+            x=rep(1,nreps*length(nn))
             )
-    boundary <- is.na(adj$j) | !.ob(k.to.ij(adj$j,n),n) | !.ob(k.to.ij(adj$i,n),n)
-    utri <- ( adj$i < adj$j )
-    A <- with( subset(adj,!boundary & utri ), sparseMatrix( i=i+1L, j=j+1L, x=x, dims=c(n^2,n^2), symmetric=TRUE ) )
-    # A <- as( with( subset(adj,!boundary), new( "dgTMatrix", i=i, j=j, x=x, Dim=as.integer(c(n^2,n^2)) ) ), "dgCMatrix" )
+    # on the boundary?
+    usethese <- ! ( is.na(adj$j) | !.ob(k.to.ij(adj$j,n),n,m) | !.ob(k.to.ij(adj$i,n),n,m) )
+    if (symmetric) { usethese <- ( usethese & ( adj$i < adj$j ) ) }
+    # add 1 since we worked 0-based above; sparseMatrix (unlike underlying representation) is 1-based.
+    A <- with( subset(adj, usethese ), sparseMatrix( i=i+1L, j=j+1L, x=x, dims=c(n*m,n*m), symmetric=symmetric ) )
     return(A)
 }
 
