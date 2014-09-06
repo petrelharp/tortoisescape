@@ -22,11 +22,11 @@ rasterOptions(tmpdir=".")
 # create a raster of one of the .tifs.  this creates a link
 #	between R and the specific file, from which it will dynamically
 #	pull info required of it.
-road <- raster("tortTestGIS/road_30.tif")
-precip <- raster("tortTestGIS/annual_precip.tif")
-aspect <- raster("tortTestGIS/aspect_30.tif")
-lat <- raster("~/Downloads/tortTestGIS/lat_30_utm_tif/lat_gcs_30.tif")
-long <- raster("~/Downloads/tortTestGIS/lat_30_utm_tif/lon_gcs_30.tif")
+road <- raster("geolayers/TIFF/road_30.tif")
+precip <- raster("geolayers/TIFF/annual_precip.tif")
+aspect <- raster("geolayers/TIFF/aspect_30.tif")
+lat <- raster("geolayers/TIFF/lat_gcs_30.tif")
+long <- raster("geolayers/TIFF/lon_gcs_30.tif")
 
 extent(road)
 extent(precip)

@@ -34,7 +34,8 @@ pairwise.hts <- true.hts[locs,]
 ### 0)
 # guess, wildly
 a0 <- c(20,20)
-a1 <- iterate.aa(a0,pairwise.hts,locs,AA)
+# the following is equivalent to
+# a1 <- iterate.aa(a0,pairwise.hts,locs,AA)
 
 G.est <- make.G(a0,AA)
 

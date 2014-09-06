@@ -2,8 +2,7 @@
 # Modified from pracma to allow sparse matrices
 
 
-gmres <- function (A, b, x0 = rep(0, length(b)), errtol = 1e-06, kmax = length(b) + 
-    1, reorth = 1) 
+gmres <- function (A, b, x0 = rep(0, length(b)), errtol = 1e-06, kmax = length(b) + 1, reorth = 1) 
 {
     b <- as.matrix(b)
     n <- length(b)

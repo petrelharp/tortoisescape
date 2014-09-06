@@ -12,6 +12,8 @@ Files
 
 `resistance-optimization.tex`: calculations.
 
+`interp-inference.R`: does the interpolation-estimation method; tested in `test-interp-inference.R`
+
 `resistance-fns.R`: functions for estimating hitting time distributions, creating generator matrices for random walks on a grid, and computing mean hitting times analytically
 
 `sim-resistances.R`: computes analytic mean hitting times on a grid, plots these, and some forays into estimation
