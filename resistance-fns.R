@@ -32,7 +32,7 @@ grid.adjacency <- function (n,m=n,diag=TRUE,symmetric=TRUE) {
             )
     # on the boundary?
     usethese <- ! ( is.na(adj$j) | !.ob(k.to.ij(adj$j,n),n,m) | !.ob(k.to.ij(adj$i,n),n,m) )
-    if (symmetric) { usethese <- ( usethese & ( adj$i < adj$j ) ) }
+    if (symmetric) { usethese <- ( usethese & ( adj$i <= adj$j ) ) }
     # add 1 since we worked 0-based above; sparseMatrix (unlike underlying representation) is 1-based.
     A <- with( subset(adj, usethese ), sparseMatrix( i=i+1L, j=j+1L, x=x, dims=c(n*m,n*m), symmetric=symmetric ) )
     return(A)
