@@ -6,8 +6,10 @@
 
 require(raster)
 rasterOptions(tmpdir=".")
-options(error=recover)
+options(error=dump.frames)
 source("crop_mask_rasters.R")
+
+setwd("geolayers/TIFF")
 dir.create("masked")
 dir.create("10x")
 dir.create("100x")
