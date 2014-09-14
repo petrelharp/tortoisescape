@@ -1,6 +1,8 @@
 ################################################################
 ################################################################
-#	go through all GIS layers
+#	go through all GIS layers to:
+# -  make .pngs of them,
+# - 
 ################################################################
 ################################################################
 
@@ -22,7 +24,7 @@ for(i in 1:length(raster.tifs)){
 	raster.extents[[i]] <- extent(current.raster)
 		names(raster.extents)[i] <- raster.name
 	tryCatch({
-	png(file=paste(raster.name,".png",sep=""),res=50,width=7*50,height=7*50)
+	png(file=paste(raster.name,".png",sep=""),res=120,width=10*120,height=10*120)
 		par('plt' = c(0.1171429, 0.9400000, 0.1457143, 0.8828571))
 		plot(current.raster,main=raster.name)
 		lines(county_lines)
