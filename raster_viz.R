@@ -12,7 +12,9 @@ require(maps)
 require(maptools)
 require(sp)
 rasterOptions(tmpdir=".")
-load("county_tortoise_plotting_info.Robj")
+load("county_tortoise_plotting_info.Robj")  # @gbradburd: how was this produced?
+
+if (file.exists("geolayers/TIFF")) { setwd("geolayers/TIFF") }
 
 raster.tifs <- list.files()[grepl(".tif$",list.files())]
 raster.extents <- vector(mode="list",length=length(raster.tifs))
