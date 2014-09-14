@@ -31,7 +31,7 @@ for(i in 1:length(raster.tifs)){
 		plot(current.raster,main=raster.name)
 		lines(county_lines)
 		points(tortoise_locations,pch=8)
-	dev.off()},error= function(e){cat("problem with ",raster.name,"\n")})
+	dev.off()},error= function(e){print(e);cat("problem with ",raster.name,"\n")})
 	gc()
 }
 
