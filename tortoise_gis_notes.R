@@ -4,13 +4,21 @@
 ################################################################
 ################################################################
 require(raster)
-
-setwd("/Volumes/BBURD/tortTestGIS")
-
-if(!any(grepl("resampled_cropped_road",list.files()))){
 # this put the temp stuff in my temp directory, and filled up that partition:
 rasterOptions(tmpdir=".")
 
+# on gideon's computer, which is too small to 
+#	have the raster tifs on HD
+if(file.exists("/Volumes/BBURD/tortTestGIS")){
+	setwd("/Volumes/BBURD/tortTestGIS")
+}
+
+# everything below in the if(FALSE) statement
+#	was exploratory code I made for working
+#	with rasters.  Doesn't have to be run
+#	for anything now, but good to keep old notes around
+
+if(FALSE){
 # raster is clever about what it chooses to read into working
 #	memory.  this is great for big data files, especially
 #	compared to the raw readGDAL() function.  raster also has
@@ -136,25 +144,47 @@ compareRaster(resampled_cropped_road,cropped_lat)
 compareRaster(resampled_cropped_aspect,cropped_lat)
 }
 
-#mapping tortoise:
+
+# the code below explores how
+#	to get the tortoise coordinates
+#	into the coordinate space of rasters
+#	we have from jannet
 require(rgdal)
 require(maps)
 require(maptools)
 require(sp)
 
+#	read in some sample rasters
 resampled_cropped_road <- raster("resampled_cropped_road")
 resampled_cropped_aspect <- raster("resampled_cropped_aspect")
 cropped_lat <- raster("crop_lat.grd")
 cropped_long <- raster("crop_long.grd")
 cropped_precip <- raster("crop_precip.grd")
 
+#	read in the tortoise metadata for the first
+#		180 sequenced tortoises
 tort.coords <- read.csv("1st_180_torts.csv")
+
+#	grab their lat/long, which are in UTM
 utm.coords <- cbind(tort.coords$Easting,tort.coords$Northing)
+
+#	make those into an object of class SpatialPoints,
+#		using the proj4string for utm coords in zone 11 (where they are)
 utm.coords <- SpatialPoints(utm.coords,proj4string=CRS("+proj=utm +zone=11"))
+
+#	project those UTM coordinates into lat and long
+#		(just for easy plotting, and as a sanity check)
 latlong.coords <- spTransform(utm.coords,CRS("+proj=longlat +init:epsg:2955"))
+
+#	project those UTM coordinates into the reference
+#		system of the rasters from Jannet.
+#	note that it seems we can do this just pulling out the proj4string
+#		from the raster object.
 proj.latlong.coords <- spTransform(utm.coords,cropped_lat@crs)
 
 
+#	get some reference geo info to put into the plot of 
+#		tortoise coords.  this step is mostly just a sanity check
 mojave.outlines <- map("county",c("california","nevada","arizona"),xlim=c(-120,-113),ylim=c(31,37))
 mojave.outlines.sp <- map2SpatialLines(mojave.outlines,proj4string=CRS("+proj=longlat"))
 mojave.outlines.sp2 <- spTransform(mojave.outlines.sp,cropped_lat@crs)
@@ -165,11 +195,26 @@ png(file="road_layer.png",res=150,width=7*150,height=7*150)
 	points(proj.latlong.coords,pch=8)
 dev.off()
 
+################################
+#	learning how to mask
+################################
+
+#	here, I'm figuring out how to mask a raster
+#		by a given polygon.  that is, I want to take a raster
+#		and a polygon that fits over some part of that raster
+#		and I want to make all the frid cells in that raster that 
+#		are outside of the polygon take the value 'NA'
+
+#	first, I get the outline of the USA
+#		and make it into a spatial polygon
+#		in the same coordinate reference system as the rasters
 usa.outlines <- map("usa")
 IDs <- sapply(strsplit(usa.outlines$names, ":"), function(x) x[1])
 usa.outlines.sp <- map2SpatialPolygons(usa.outlines,IDs=IDs,proj4string=CRS("+proj=longlat"))
 usa.outlines.sp2 <- spTransform(usa.outlines.sp,cropped_lat@crs)
 
+#	then, I mask the rasters by the polygon of the usa border, 
+#		and check to see if it worked with some plotting
 masked_resampled_cropped_road <- mask(resampled_cropped_road,usa.outlines.sp2,filename="masked_resampled_cropped_road")
 masked_resampled_cropped_aspect <- mask(resampled_cropped_aspect,usa.outlines.sp2,filename="masked_resampled_cropped_aspect")
 masked_cropped_precip <- mask(cropped_precip,usa.outlines.sp2,filename="masked_cropped_precip")
@@ -188,6 +233,13 @@ png(file="masked_aspect_layer.png",res=150,width=7*150,height=7*150)
 	points(proj.latlong.coords,pch=8)
 dev.off()
 
+################################
+#	some earlier notes
+################################
+
+# this is a combination of stuff that Peter
+#	and Gideon worked out about how rasters work
+#	and how much memory they take
 
 # check out what a raster is all about
 str(road)
