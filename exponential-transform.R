@@ -122,17 +122,24 @@ dL(c(gamma,delta))
 L(c(gamma,delta)+.01)
 dL(c(gamma,delta)+.01)
 
-results <- optim( par=c(gamma,delta)+.1*runif(length(gamma)+length(delta),min=-1,max=1), fn=L, gr=dL, control=list(parscale=abs(c(gamma,delta))/200,trace=5), method="CG" )
+initpar <- c(gamma,delta)+.1*runif(length(gamma)+length(delta),min=-1,max=1)
+parscale <- rep(0.1,length(initpar))
+results <- optim( par=initpar, fn=L, gr=dL, control=list(parscale=parscale, trace=5), method="BFGS" )
+# results <- optim( par=initpar, fn=L, gr=dL, control=list(parscale=rep(.01,length(gamma)+length(delta)), trace=5), method="CG" ) # this does MUCH WORSE for some reason
+if (results$convergence != 0) {
+    results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=rep(.01,length(gamma)+length(delta)),trace=5), method="BFGS" )
+}
 
 G.est <- update.G(results$par)
 est.hts <- hitting.analytic(locs,G.est)
 
 range( (G.est%*%true.hts)[-zeros] )
-range( est.hts - true.hts )
+range( (est.hts - true.hts)/true.hts )
+range( (est.hts - true.hts)/mean(true.hts) )
 
 
 if (FALSE) {
-    # look at these
+    # look at results
     layout(1:2)
     for (kk in 1:ncol(true.hts)) {
         plot.ht( true.hts[,kk], dims=c(n,m) )
@@ -142,7 +149,7 @@ if (FALSE) {
 }
 
 ##
-# check things
+# testing
 if (FALSE) {
 
     # check the gradient
