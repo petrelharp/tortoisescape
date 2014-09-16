@@ -197,34 +197,34 @@ We probably don't want migration rates to be proportional to the landscape layer
 at least in all cases.
 Here's a general model:
 Letting $L$ be the landscape layers,
-suppose that we have scalars $\gamma$ and $\delta$, a positive function $\pi$, and a nonnegative symmetric function $g$ such that
+suppose that we have scalars $\gamma$ and $\delta$, a positive function $\rho$, and a nonnegative symmetric function $g$ such that
 \begin{align}
   \gamma L_x &:= \gamma_1 L^1_x \cdots + \gamma_m L^m_x  \\
   \delta L_x &:= \delta_1 L^1_x \cdots + \delta_m L^m_x  \\
-  G_{xy} &= \pi( \gamma L_x ) g( \delta L_x, \delta L_y ) \quad \text{for $x \sim y$} \\
-  G_{xx} &= - \sum_{y \sim x} \pi( \gamma L_x ) g( \delta L_x, \delta L_y ) ,
+  G_{xy} &= \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) \quad \text{for $x \sim y$} \\
+  G_{xx} &= - \sum_{y \sim x} \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) ,
 \end{align}
 where $x \sim y$ denotes that $x$ and $y$ are adjacent (and not equal).
-Note that this chain is reversible with stationary distribution proportional to $\pi$,
+Note that this chain is reversible with stationary distribution proportional to $1/\rho$,
 and that
 \begin{align}
-  J_{xy} = \frac{1}{\sqrt{\pi(\gamma L_x)}} G_{xy} \sqrt{ \pi(\gamma L_y) }
+  J_{xy} = \frac{1}{\sqrt{\rho(\gamma L_x)}} G_{xy} \sqrt{ \rho(\gamma L_y) }
 \end{align}
 is symmetric, and hence more numerically tractable (should be used in the interpolation problem above, for instance).
 
 Recall, that here we are modeling the movement of lineages both forwards and backwards through time.
 (Somehow, their average?)
 Therefore, we should probably use a reversible model.
-The stationary distribution $\pi$ is proportional to the goodness of the habitat
+The stationary distribution $\rho$ is proportional to the goodness of the habitat
 (measured by long-term fitness)
 and the edge weights $g$ say how good the habitat is to move through.
 
 Note that
 \begin{align}
-  \partial_\gamma G_{xy} &= L_x \pi'( \gamma L_x ) g( \delta L_x, \delta L_y ) \\
-  \partial_\delta G_{xy} &= \pi( \gamma L_x ) \left( L_x g'( \delta L_x, \delta L_y )  + L_y g'( \delta L_x, \delta L_y ) \right ) 
+  \partial_\gamma G_{xy} &= L_x \rho'( \gamma L_x ) g( \delta L_x, \delta L_y ) \\
+  \partial_\delta G_{xy} &= \rho( \gamma L_x ) \left( L_x g'( \delta L_x, \delta L_y )  + L_y g'( \delta L_x, \delta L_y ) \right ) 
       \quad \text{for } x \neq y \\
-      \partial_\delta G_{xx} &=  - \pi( \gamma L_x ) \left( L_x \sum_{y \sim x} g'(\delta L_x, \delta L_y) + \sum_{y \sim x} L_y g'( \delta L_x, \delta L_y ) \right) \quad \text{for } x \neq y \\
+      \partial_\delta G_{xx} &=  - \rho( \gamma L_x ) \left( L_x \sum_{y \sim x} g'(\delta L_x, \delta L_y) + \sum_{y \sim x} L_y g'( \delta L_x, \delta L_y ) \right) \quad \text{for } x \neq y \\
       &= - \sum_{y \sim x} \partial_\delta G_{xy} 
 \end{align}
 
@@ -234,16 +234,16 @@ Then, again with
 \end{align}
 and
 \begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z \pi'(\gamma L_z) \sum_{x \neq z} g(\delta L_z, \delta L_x) (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z \rho'(\gamma L_z) \sum_{x \neq z} g(\delta L_z, \delta L_x) (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
 \end{align}
 and
 \begin{align}
   \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} 
     \left( \sum_x G_{zx} H_{xy} + 1 \right) 
-  \left( \pi(\gamma L_z) 
+  \left( \rho(\gamma L_z) 
     \sum_{x \neq z} (L^k_z + L^k_x) g'(\delta L_z, \delta L_x) ( H_{xy} - H_{zy} ) 
   \right) 
-  % \pi(\gamma L_z) \left( 
+  % \rho(\gamma L_z) \left( 
   %   \sum_{x \neq z} (L^k_z + L^k_x) g'(\delta L_z, \delta L_x) H_{xy}
   %   \right. \\ & \qquad \qquad \left.
   %   - \left(L^k_z \sum_{w \sim z} g'(\delta L_z, \delta L_w) 
@@ -256,7 +256,7 @@ and
 
 Now suppose that
 \begin{align}
-  \pi(u) &= e^{u} \\
+  \rho(u) &= e^{u} \\
   g(u,v) &= e^{u+v} .
 \end{align}
 This is probably the simplest case, but because the exponential gets very steep,
@@ -285,20 +285,20 @@ and
 
 Now suppose that
 \begin{align}
-  \pi(u) &= \frac{1}{1+e^{-u}}  \\
-  g(u,v) &= \frac{1}{1+e^{-(u+v)}} = \pi(u+v) .
+  \rho(u) &= \frac{1}{1+e^{-u}}  \\
+  g(u,v) &= \frac{1}{1+e^{-(u+v)}} = \rho(u+v) .
 \end{align}
 This flattens out, which means that it might be insensitive to some of the $\gamma$ or $\delta$,
-but even so, what we care about more is $\pi$ and $g$, which will be well-determined.
+but even so, what we care about more is $\rho$ and $g$, which will be well-determined.
 
-Note that $\pi'(u) = \pi(u) (1-\pi(u))$,
+Note that $\rho'(u) = \rho(u) (1-\rho(u))$,
 so that
 \begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z (1-\pi(\gamma L_z)) G_{zx} H_{xy}\right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z (1-\rho(\gamma L_z)) G_{zx} H_{xy}\right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
 \end{align}
 and
 \begin{align}
-  \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_{x \neq z} (L^k_z + L^k_x) (1-\pi(\delta(L_z+L_x))) G_{zx} (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
+  \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_{x \neq z} (L^k_z + L^k_x) (1-\rho(\delta(L_z+L_x))) G_{zx} (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
 \end{align}
 
 \end{document}

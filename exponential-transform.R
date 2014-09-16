@@ -4,10 +4,10 @@ source("resistance-fns.R")
 require(raster)
 
 layer.prefix <- c("geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
-# layers <- c("annual_precip","barren_30","bd_ss2_st_30","eastness_30","lat_gcs_30","lon_gcs_30","slope30")
-layer.names <- selfname( c("annual_precip","barren_30","lat_gcs_30") )
-gamma <- c(.8, .001, .01)
-delta <- c(.005,.4,.03)
+layer.names <- c("annual_precip","barren_30","bd_ss2_st_30","eastness_30","lat_gcs_30","lon_gcs_30")
+# layer.names <- selfname( c("annual_precip","barren_30","lat_gcs_30") )
+gamma <- rnorm( length(layer.names) )/10
+delta <- rnorm( length(layer.names) )/10
 
 # get info out of one layer
 onelayer <- raster(paste(layer.prefix,layer.names[1],sep=''))
