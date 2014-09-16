@@ -235,8 +235,8 @@ and
 
 Now suppose that
 \begin{align}
-  \pi(u) &= e^{-u} \\
-  g(u,v) &= e^{-(u+v)} .
+  \pi(u) &= e^{u} \\
+  g(u,v) &= e^{u+v} .
 \end{align}
 This is probably the simplest case, but because the exponential gets very steep,
 might run into numerical difficulties.
@@ -244,14 +244,14 @@ might run into numerical difficulties.
 Then
 \begin{align}
   \partial_{\gamma_k} F(\gamma) &= 
-    - 2 \sum_{i=1}^m \sum_{z \neq y_i} 
+    2 \sum_{i=1}^m \sum_{z \neq y_i} 
     \left( L^k_z \sum_x G_{zx} H_{xy}\right) 
     \left( \sum_x G_{zx} H_{xy} + 1 \right)  
 \end{align}
 and
 \begin{align}
   \partial_{\delta_k} F(\gamma) &= 
-    - 2 \sum_{i=1}^m \sum_{z \neq y_i} 
+    2 \sum_{i=1}^m \sum_{z \neq y_i} 
     \left( L^k_z \sum_x G_{zx} H_{xy}
       + \sum_x G_{zx} L^k_x H_{xy}\right) 
     \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
@@ -277,5 +277,19 @@ and
 \begin{align}
   \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x (L^k_z + L^k_x) (1-\pi(\delta(L_z+L_x))) G_{zx} H_{xy}\right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
 \end{align}
+
+
+%%%%%%%%%%% %%%%%%%%%%%%
+\subsection*{Scaling}
+
+We are trying to minimize
+\begin{align}
+  F = \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x G_{zx} H_{xy} + 1 \right)^2  .
+\end{align}
+This can run into numerical difficulties that can be helped if we scale things properly first.
+
+First, note that since rows of $G$ sum to zero,
+if we subtract off column means of $H$,
+we will not affect the final result (but will make things easier, numerically).
 
 \end{document}

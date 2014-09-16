@@ -20,7 +20,7 @@ for (k in 2:n.layers) {
 # sampling locations
 nsamps <- 100
 locs.ij <- cbind( i=sample.int(n,nsamps)-1L, j=sample.int(n,nsamps)-1L )
-locs <- ij.to.k(locs.ij,n)
+locs <- ij.to.k(locs.ij,n,n)
 
 # analytical mean hitting times
 true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
