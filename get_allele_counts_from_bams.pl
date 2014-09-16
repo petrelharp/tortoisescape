@@ -14,6 +14,8 @@ my $mafsFile;
 my $minMAF;
 my $numLoci;
 my $bedFile;
+my $bamFile;
+my $refGenome = "/mnt/Data4/genomes/Galapagos.fasta"; # Default value for our server
 
 GetOptions  ("in=s"       => \$inFile,
              "out=s"      => \$outDir,
@@ -21,16 +23,20 @@ GetOptions  ("in=s"       => \$inFile,
              "minfreq=s"  => \$minMAF,
              "loci=i"     => \$numLoci,
              "bed=s"      => \$bedFile,
+             "reference=s"=> \$refGenome,
+             "bam=s"      => \$bamFile,
              "help|man"   => \$help) || die "Trouble getting options with Getopt::Long...\n";
 
-if (!$inFile or !$outDir or !$mafsFile or !$minMAF or !$numLoci or !$bedFile or $help) {
-    die "Check arguments passed in...\nMust use --in <meaningless> --out <outputDir> --mafs <mafsFile> --minfreq <0.xx) --loci <numLoci> and --bed <outputBedFile>";
+if (!$inFile or !$outDir or !$mafsFile or !$minMAF or !$numLoci or !$bedFile or !$bamFile or $help) {
+    die "Check arguments passed in...\nMust use --in <meaningless> --out <outputDir> --mafs <mafsFile> --minfreq <0.xx) --loci <numLoci> and --bed <outputBedFile> --bam <inputBamFile--merged.bam>";
 }
 
+print "Warning: if the reference genome you used for alignment contains scaffolds longer than 10 million bp, do NOT use this! It'll be bad.\n";
+print "Notice: The output file columns for non-reference bases correspond to the sum of all non-reference allele read depths (not necessarily a two-allele model)\n";
 
-### This is the pipeline used for extracting the
-###
-
+unless (-d $outDir) {
+    mkdir $outDir;
+}
 
 
 ### Now that those are ready, I'll make a list of our loci of interest. We only want to investigate variable loci. We'll infer these from one of our ANGSD runs that we've
@@ -92,6 +98,53 @@ close($bedFH);
 
 
 ### Now all that remains is pulling out the read piles for those sites for all individuals in a way that makes sense
+if (-e "$outDir/readInfo.txt") {
+    die "$outDir/readInfo.txt already exists. Exiting to avoid clobbering it!";
+}
+my $outFile = $outDir . "/readInfo.txt";
+
+system("~/bin/bam-readcount/build/bin/bam-readcount -f /mnt/Data4/genomes/Galapagos.fasta -p -l ../test.bed $bamFile > $outFile");
+
+
+
+### bam-readcount outputs data in the following format:
+###
+###scaffold_0      3629    T       200     etort-10        {       =:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  A:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  C:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  G:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  T:1:60.00:39.00:0.00:0:1:0.66:0.08:274.00:0:0.00:100.00:0.33    N:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  }       etort-103       {       =:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  A:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  C:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  G:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  T:1:60.00:35.00:60.00:0:1:0.92:0.07:337.00:0:0.00:193.00:0.54   N:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  }       etort-105       {       =:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  A:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  C:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  G:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  T:1:60.00:41.00:0.00:0:1:0.33:0.06:192.00:0:0.00:99.00:0.84     N:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  }       etort-106       {       =:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  A:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  C:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  G:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  T:2:60.00:35.00:0.00:1:1:0.47:0.06:197.50:1:0.03:100.00:0.22    N:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  }       etort-109       {       =:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  A:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  C:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  G:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  T:2:60.00:38.50:30.00:1:1:0.78:0.07:310.00:1:0.27:138.50:0.38   N:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  }       etort-110       {       =:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  A:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  C:1:60.00:33.00:0.00:0:1:0.12:0.11:246.00:0:0.00:100.00:0.06    G:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  T:2:47.50:30.50:17.50:0:2:0.60:0.08:163.50:0:0.00:79.50:0.71    N:0:0.00:0.00:0.00:0:0:0.00:0.00:0.00:0:0.00:0.00:0.00  }       
+
+### Next up is parsing this info into something usable to create a covariance matrix.
+### Each row is already a locus, which is good. The data for every individual is encapsulated in {}--also handy. If an individual does not contain reads for a locus, it
+### is NOT included--need to keep that in mind.
+
+#If "any format I want" is an option, how about a tab-separated file
+#with one row per SNP and two columns for each individual, giving the
+#number of reads that are reference / alternate (and above some
+#reasonable quality, etc)?
+
+### I want to parse this into a file where every row is a SNP, and every individual has two columns (first column = number of reference allele reads, second column= number of non-reference allele reads).
+###
+### Cavaets--the second columns will contain the total number of non-reference alleles. If the reference is A, then it will be the sum of T, C, and G reads.
+
+my %readDepthHash;
+open(my $bamReadCountFH, "<", "$outDir/readInfo.txt") or die "Couldn't open $outDir/readInfo.txt for reading: $!\n";
+
+# Need to change this when we add more samples
+my @etortNumbers = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,102,103,104,105,106,107,108,109,110,111,112,113,115,116,117,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,161,162,163,164,166,167,168,169,170,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187);
+
+
+
+while (my $line = <$bamReadCountFH>) {
+    my @fields = split(/\t/, $line);
+    splice(@fields, 0, 2); # Remove the first two fields in the line, which correspond to scaffold number and position
+    my $refBase = shift(@fields); # Third column is the reference base
+    
+}
+
+
+
+
+
+
+
 
 
 
