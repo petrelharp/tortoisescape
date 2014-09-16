@@ -24,22 +24,14 @@ layers <- sapply(layer.names, function (ll) {
             vrast[is.na(vrast)] <- 0
             return(vrast)
         } )
-gc()
-edges <- rBind( 
-        grid.sum(n,m,direction=c(+1,0)) %*% layers, # rights
-        grid.sum(n,m,direction=c(-1,0)) %*% layers, # lefts
-        grid.sum(n,m,direction=c(0,+1)) %*% layers, # downs
-        grid.sum(n,m,direction=c(0,-1)) %*% layers  # ups
-    )
 
 transfn <- exp
-valfn <- function (gamma) { ( rowSums( sweep( layers, 2, gamma, "*" ), na.rm=TRUE ) ) }
+valfn <- function (gamma) { ( rowSums( layers * gamma[col(layers)], na.rm=TRUE ) ) }
 
 update.G <- function(params) {
     gamma <- params[1:length(delta)]
     delta <- params[length(delta)+(1:length(gamma))]
     G <- grid.adjacency(n,m,diag=FALSE,symmetric=FALSE)
-    stopifnot( length(G@x) == nrow(edges) )
     dp <- diff(G@p)
     jj <- rep(seq_along(dp),dp)
     G@x <- transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[jj] )
@@ -73,15 +65,13 @@ if (FALSE) {
 
 ###
 # inference
-g0 <- runif(length(gamma))/10
-d0 <- runif(length(delta))/10
 
 hts <- true.hts
 zeros <- locs + (0:(length(locs)-1))*nrow(hts)
 
 # Massage the numerics.
 scaling <- sqrt(nrow(G) * nsamps)
-sc.hts <- sweep(hts,2,colMeans(hts)*(nrow(hts)/(nrow(hts)-1)),"-")/scaling
+sc.hts <- hts/scaling
 sc.hts[zeros] <- 0
 sc.one <- 1/scaling
 
@@ -107,12 +97,16 @@ dL <- function (params) {
         GH[zeros] <- 0
         assign("GH", GH, parent.env(environment()) )
     }
-    ggrads <- sapply( 1:length(gamma), function (kk) {
+    ggrads <- sapply( 1:ncol(layers), function (kk) {
             2 * sum( layers[,kk] * GH * (GH+sc.one) )
         } )
-    dgrads <- ggrads + sapply( 1:length(delta), function (kk) {
-            GLH <- G %*% ( layers[,kk] * sc.hts )
-            2 * sum( GLH * (GH+sc.one)  )
+    dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
+            GL <- G
+            GL@x <- G@x * layers[p.to.j(G@p),kk]
+            GL@x[ GL@i+1L == p.to.j(GL@p) ] <- (-1)*rowSums(GL) + diag(GL)
+            GLH <- GL %*% sc.hts
+            GLH[zeros] <- 0
+            return( 2 * sum( GLH * (GH+sc.one)  ) )
         } )
     return( c(ggrads, dgrads) )
 }

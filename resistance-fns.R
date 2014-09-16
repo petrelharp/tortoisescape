@@ -1,5 +1,7 @@
 #!/usr/bin/Rscript
 
+# move @p to @j in dgCMatrix
+p.to.j <- function (p) { rep( seq.int( length(p)-1 ), diff(p) ) }
 
 # mappings between index in a matrix of height (in rows) n
 #   ZERO-BASED: (i,j) and column-oriented (k)
