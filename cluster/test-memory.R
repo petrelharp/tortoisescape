@@ -81,6 +81,29 @@ system.time( G@x <- G@x * layer[jj] )
 #   n     m         user  system elapsed 
 # 17500 17500      6.420   1.585   8.003 
 
+system.time( diag(G) <- (-1) * rowSums(G) )
+#   n     m         user  system elapsed 
+# 17500 17500   434.485  87.158 521.414 
+
+system.time( x <- rowSums(G) )
+#   n     m         user  system elapsed 
+# 17500 17500     34.138  12.832  46.950 
+
+system.time( diag(G) <- x )
+#   n     m         user  system elapsed 
+# 17500 17500   384.679  92.587 477.062 
+
+# Grrr. alternative?
+
+system.time( x.diag <- which( (1L+G@i) == jj ) )
+#   n     m         user  system elapsed 
+# 17500 17500     3.744   1.259   4.999 
+
+system.time( G@x[x.diag] <- x )
+#   n     m         user  system elapsed 
+# 17500 17500   
+
+
 # how many layers can we fit in memory?
 128000/2336.5
 # 54.78279
