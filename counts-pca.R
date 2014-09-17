@@ -30,6 +30,24 @@ fout <- if (outfile=="-") { stdout() } else { file(file=outfile,open="r") }
 write.table( w.covmat, file=fout, quote=FALSE, row.names=FALSE, col.names=FALSE )
 close(fout)
 
+# also do another version
+if (outfile != "-") {
+    outfile.norm <- paste(outfile,".norm")
+
+    n.covmat <- matrix( NA, nrow=ninds, ncol=ninds )
+    p <- colSums(majors) / colSums(totals)
+    for (ii in 1:ninds) for (jj in ii:ninds) {
+        pi <- (majors/totals)[ii,] - p
+        pj <- (majors/totals)[jj,] - p
+        w <- sqrt( totals[ii,] * totals[jj,] )
+        n.covmat[jj,ii] <- n.covmat[ii,jj] <- weighted.mean( pi * pj, w=w ) - weighted.mean( pi, w=w ) * weighted.mean( pj, w=w )
+    }
+
+    fout <- file(file=outfile.norm,open="r")
+    write.table( n.covmat, file=fout, quote=FALSE, row.names=FALSE, col.names=FALSE )
+    close(fout)
+}
+
 
 if (FALSE) {
 
