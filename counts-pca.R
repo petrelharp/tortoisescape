@@ -1,11 +1,15 @@
 #!/usr/bin/Rscript
 
+options(error=dump.frames)
+
 if (length(commandArgs(TRUE)) < 2) {
     cat("Usage: \n Rscript counts-pca.R infile outfile \n\n")
 }
 
-infile <- commandArgs(TRUE)[1]
-outfile <- commandArgs(TRUE)[2]
+# infile <- commandArgs(TRUE)[1]
+# outfile <- commandArgs(TRUE)[2]
+infile <- "exampleOutput/alleleCounts100k.txt"
+outfile <- "exampleOutput/alleleCounts100k-covmat.txt"
 
 fin <- if (infile=="-") { stdin() } else { file(infile,open="r") }
 c1 <- scan(fin,nlines=1)
@@ -26,7 +30,7 @@ for (ii in 1:ninds) for (jj in ii:ninds) {
     w.covmat[jj,ii] <- w.covmat[ii,jj] <- weighted.mean( fi * fj, w=w ) - weighted.mean( fi, w=w ) * weighted.mean( fj, w=w )
 }
 
-fout <- if (outfile=="-") { stdout() } else { file(file=outfile,open="r") }
+fout <- if (outfile=="-") { stdout() } else { file(outfile,open="r") }
 write.table( w.covmat, file=fout, quote=FALSE, row.names=FALSE, col.names=FALSE )
 close(fout)
 
@@ -43,7 +47,7 @@ if (outfile != "-") {
         n.covmat[jj,ii] <- n.covmat[ii,jj] <- weighted.mean( pi * pj, w=w ) - weighted.mean( pi, w=w ) * weighted.mean( pj, w=w )
     }
 
-    fout <- file(file=outfile.norm,open="r")
+    fout <- file(outfile.norm,open="r")
     write.table( n.covmat, file=fout, quote=FALSE, row.names=FALSE, col.names=FALSE )
     close(fout)
 }
