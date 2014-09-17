@@ -52,11 +52,11 @@ etort-1 etort-52 255976.2792
 etort-1 etort-53 218362.6816
 etort-1 etort-54 251458.2685
 etort-1 etort-55 216977.1224
-etort-1 etort-56 (sheared2) 176328.0122
+etort-1 etort-56 176328.0122
 etort-1 etort-57 385608.55
 etort-1 etort-58 148341.1477
 etort-1 etort-59 207004.2873
-etort-1 etort-60 (sheared2) 264408.84
+etort-1 etort-60 264408.84
 etort-1 etort-61 370683.3086
 etort-1 etort-62 195382.7564
 etort-1 etort-63 331260.309
@@ -230,11 +230,11 @@ etort-2 etort-52 154387.9291
 etort-2 etort-53 325025.4907
 etort-2 etort-54 162116.5451
 etort-2 etort-55 191315.5479
-etort-2 etort-56 (sheared2) 199026.2287
+etort-2 etort-56 199026.2287
 etort-2 etort-57 111672.9506
 etort-2 etort-58 400566.7756
 etort-2 etort-59 255928.7839
-etort-2 etort-60 (sheared2) 67635.74962
+etort-2 etort-60 67635.74962
 etort-2 etort-61 85428.29155
 etort-2 etort-62 282460.6264
 etort-2 etort-63 93171.12954
@@ -407,11 +407,11 @@ etort-3 etort-52 88307.27164
 etort-3 etort-53 262867.208
 etort-3 etort-54 96457.30069
 etort-3 etort-55 131657.9155
-etort-3 etort-56 (sheared2) 150948.2133
+etort-3 etort-56 150948.2133
 etort-3 etort-57 78864.54191
 etort-3 etort-58 353756.4473
 etort-3 etort-59 194660.807
-etort-3 etort-60 (sheared2) 86125.2158
+etort-3 etort-60 86125.2158
 etort-3 etort-61 61480.97078
 etort-3 etort-62 222917.4047
 etort-3 etort-63 30423.78979
@@ -583,11 +583,11 @@ etort-4 etort-52 74225.61394
 etort-4 etort-53 247975.7714
 etort-4 etort-54 82309.25871
 etort-4 etort-55 120504.9013
-etort-4 etort-56 (sheared2) 145710.4026
+etort-4 etort-56 145710.4026
 etort-4 etort-57 74280.28413
 etort-4 etort-58 345843.6841
 etort-4 etort-59 181018.5044
-etort-4 etort-60 (sheared2) 106796.5273
+etort-4 etort-60 106796.5273
 etort-4 etort-61 64650.55966
 etort-4 etort-62 209909.2891
 etort-4 etort-63 19945.97315
@@ -758,11 +758,11 @@ etort-5 etort-52 37364.49027
 etort-5 etort-53 211635.9942
 etort-5 etort-54 45426.20822
 etort-5 etort-55 80818.65953
-etort-5 etort-56 (sheared2) 104757.492
+etort-5 etort-56 104757.492
 etort-5 etort-57 114654.5668
 etort-5 etort-58 305136.174
 etort-5 etort-59 143391.8764
-etort-5 etort-60 (sheared2) 102820.1649
+etort-5 etort-60 102820.1649
 etort-5 etort-61 105444.197
 etort-5 etort-62 171725.2953
 etort-5 etort-63 60845.95041
@@ -932,11 +932,11 @@ etort-6 etort-52 70503.94556
 etort-6 etort-53 122454.5426
 etort-6 etort-54 64007.79253
 etort-6 etort-55 61965.81822
-etort-6 etort-56 (sheared2) 101228.9465
+etort-6 etort-56 101228.9465
 etort-6 etort-57 188953.9191
 etort-6 etort-58 244316.9685
 etort-6 etort-59 69139.45156
-etort-6 etort-60 (sheared2) 201097.305
+etort-6 etort-60 201097.305
 etort-6 etort-61 191994.5045
 etort-6 etort-62 96001.85832
 etort-6 etort-63 148321.565
@@ -1105,11 +1105,11 @@ etort-7 etort-52 85988.80208
 etort-7 etort-53 97034.33106
 etort-7 etort-54 78360.86411
 etort-7 etort-55 61833.15049
-etort-7 etort-56 (sheared2) 94011.77566
+etort-7 etort-56 94011.77566
 etort-7 etort-57 213345.987
 etort-7 etort-58 219134.4656
 etort-7 etort-59 45514.61587
-etort-7 etort-60 (sheared2) 212264.4261
+etort-7 etort-60 212264.4261
 etort-7 etort-61 215098.3955
 etort-7 etort-62 70813.79437
 etort-7 etort-63 170609.8884
@@ -1277,11 +1277,11 @@ etort-8 etort-52 68076.49547
 etort-8 etort-53 106695.6525
 etort-8 etort-54 59925.976
 etort-8 etort-55 34885.61887
-etort-8 etort-56 (sheared2) 67022.17909
+etort-8 etort-56 67022.17909
 etort-8 etort-57 205649.4806
 etort-8 etort-58 215421.6192
 etort-8 etort-59 40866.96869
-etort-8 etort-60 (sheared2) 188005.8009
+etort-8 etort-60 188005.8009
 etort-8 etort-61 204138.8143
 etort-8 etort-62 70168.61752
 etort-8 etort-63 158642.049
@@ -1448,11 +1448,11 @@ etort-9 etort-52 100570.8066
 etort-9 etort-53 221728.8982
 etort-9 etort-54 103078.872
 etort-9 etort-55 135898.55
-etort-9 etort-56 (sheared2) 176616.4548
+etort-9 etort-56 176616.4548
 etort-9 etort-57 110083.0685
 etort-9 etort-58 345688.5764
 etort-9 etort-59 169911.3158
-etort-9 etort-60 (sheared2) 201060.3626
+etort-9 etort-60 201060.3626
 etort-9 etort-61 124701.4233
 etort-9 etort-62 197493.3738
 etort-9 etort-63 96778.26265
@@ -1618,11 +1618,11 @@ etort-10 etort-52 193255.0544
 etort-10 etort-53 325183.1078
 etort-10 etort-54 197776.3464
 etort-10 etort-55 205427.1391
-etort-10 etort-56 (sheared2) 187791.7406
+etort-10 etort-56 187791.7406
 etort-10 etort-57 223493.2291
 etort-10 etort-58 359199.5141
 etort-10 etort-59 261555.7312
-etort-10 etort-60 (sheared2) 70474.21575
+etort-10 etort-60 70474.21575
 etort-10 etort-61 198268.198
 etort-10 etort-62 280172.2782
 etort-10 etort-63 186432.4158
@@ -1787,11 +1787,11 @@ etort-11 etort-52 118125.7208
 etort-11 etort-53 247011.2182
 etort-11 etort-54 121435.4491
 etort-11 etort-55 125496.2289
-etort-11 etort-56 (sheared2) 109363.639
+etort-11 etort-56 109363.639
 etort-11 etort-57 189254.4529
 etort-11 etort-58 295418.593
 etort-11 etort-59 182040.2487
-etort-11 etort-60 (sheared2) 50528.28531
+etort-11 etort-60 50528.28531
 etort-11 etort-61 168530.1496
 etort-11 etort-62 201922.9824
 etort-11 etort-63 140022.3668
@@ -1955,11 +1955,11 @@ etort-12 etort-52 75620.29808
 etort-12 etort-53 140748.0624
 etort-12 etort-54 70643.9341
 etort-12 etort-55 38827.98976
-etort-12 etort-56 (sheared2) 5323.198756
+etort-12 etort-56 5323.198756
 etort-12 etort-57 213956.2397
 etort-12 etort-58 208614.2222
 etort-12 etort-59 76658.92215
-etort-12 etort-60 (sheared2) 145287.043
+etort-12 etort-60 145287.043
 etort-12 etort-61 204306.3813
 etort-12 etort-62 95679.39491
 etort-12 etort-63 160277.3764
@@ -2122,11 +2122,11 @@ etort-13 etort-52 122588.4088
 etort-13 etort-53 294070.3607
 etort-13 etort-54 130487.7738
 etort-13 etort-55 169478.3697
-etort-13 etort-56 (sheared2) 195091.131
+etort-13 etort-56 195091.131
 etort-13 etort-57 29180.52373
 etort-13 etort-58 395204.5775
 etort-13 etort-59 228446.6931
-etort-13 etort-60 (sheared2) 128625.7365
+etort-13 etort-60 128625.7365
 etort-13 etort-61 16153.78237
 etort-13 etort-62 257591.7294
 etort-13 etort-63 30015.27428
@@ -2288,11 +2288,11 @@ etort-14 etort-52 145226.9509
 etort-14 etort-53 317438.5952
 etort-14 etort-54 153215.2354
 etort-14 etort-55 191786.2855
-etort-14 etort-56 (sheared2) 215714.4773
+etort-14 etort-56 215714.4773
 etort-14 etort-57 29463.30852
 etort-14 etort-58 416994.8218
 etort-14 etort-59 251513.011
-etort-14 etort-60 (sheared2) 134557.5948
+etort-14 etort-60 134557.5948
 etort-14 etort-61 7503.01706
 etort-14 etort-62 280592.4653
 etort-14 etort-63 52709.26668
@@ -2453,11 +2453,11 @@ etort-15 etort-52 192179.8769
 etort-15 etort-53 21002.88249
 etort-15 etort-54 184009.236
 etort-15 etort-55 149499.0007
-etort-15 etort-56 (sheared2) 148702.6816
+etort-15 etort-56 148702.6816
 etort-15 etort-57 329259.4663
 etort-15 etort-58 117442.352
 etort-15 etort-59 85404.80361
-etort-15 etort-60 (sheared2) 297233.2194
+etort-15 etort-60 297233.2194
 etort-15 etort-61 328805.0504
 etort-15 etort-62 58093.50736
 etort-15 etort-63 283366.2858
@@ -2617,11 +2617,11 @@ etort-16 etort-52 48910.94619
 etort-16 etort-53 209081.3051
 etort-16 etort-54 54298.88456
 etort-16 etort-55 75496.21578
-etort-16 etort-56 (sheared2) 86026.58906
+etort-16 etort-56 86026.58906
 etort-16 etort-57 140280.2249
 etort-16 etort-58 289456.3372
 etort-16 etort-59 140011.8562
-etort-16 etort-60 (sheared2) 82953.48574
+etort-16 etort-60 82953.48574
 etort-16 etort-61 126686.0674
 etort-16 etort-62 166175.1291
 etort-16 etort-63 85939.8051
@@ -2780,11 +2780,11 @@ etort-17 etort-52 258005.0878
 etort-17 etort-53 83486.49937
 etort-17 etort-54 249829.1665
 etort-17 etort-55 215918.392
-etort-17 etort-56 (sheared2) 213791.7728
+etort-17 etort-56 213791.7728
 etort-17 etort-57 392797.0738
 etort-17 etort-58 110026.6514
 etort-17 etort-59 151625.5183
-etort-17 etort-60 (sheared2) 362893.4691
+etort-17 etort-60 362893.4691
 etort-17 etort-61 393593.5958
 etort-17 etort-62 124524.8904
 etort-17 etort-63 348403.774
@@ -2942,11 +2942,11 @@ etort-18 etort-52 133559.9057
 etort-18 etort-53 269981.5983
 etort-18 etort-54 137850.0947
 etort-18 etort-55 146143.6221
-etort-18 etort-56 (sheared2) 132450.1194
+etort-18 etort-56 132450.1194
 etort-18 etort-57 185685.9316
 etort-18 etort-58 318214.9778
 etort-18 etort-59 204389.7867
-etort-18 etort-60 (sheared2) 33498.15232
+etort-18 etort-60 33498.15232
 etort-18 etort-61 163036.7717
 etort-18 etort-62 224909.6174
 etort-18 etort-63 140320.8267
@@ -3103,11 +3103,11 @@ etort-19 etort-52 96252.09286
 etort-19 etort-53 267173.3519
 etort-19 etort-54 104045.6161
 etort-19 etort-55 143379.0854
-etort-19 etort-56 (sheared2) 170741.9403
+etort-19 etort-56 170741.9403
 etort-19 etort-57 48615.7503
 etort-19 etort-58 369401.9262
 etort-19 etort-59 201672.1
-etort-19 etort-60 (sheared2) 123627.3419
+etort-19 etort-60 123627.3419
 etort-19 etort-61 43033.04875
 etort-19 etort-62 230852.2175
 etort-19 etort-63 7416.05569
@@ -3263,11 +3263,11 @@ etort-20 etort-52 98859.78467
 etort-20 etort-53 271653.7819
 etort-20 etort-54 106861.5432
 etort-20 etort-55 145459.5551
-etort-20 etort-56 (sheared2) 170625.0157
+etort-20 etort-56 170625.0157
 etort-20 etort-57 50921.17241
 etort-20 etort-58 370941.5297
 etort-20 etort-59 205296.5046
-etort-20 etort-60 (sheared2) 114563.0006
+etort-20 etort-60 114563.0006
 etort-20 etort-61 39587.76106
 etort-20 etort-62 234321.0714
 etort-20 etort-63 7110.170532
@@ -3422,11 +3422,11 @@ etort-21 etort-52 177556.4811
 etort-21 etort-53 300171.0112
 etort-21 etort-54 181205.5541
 etort-21 etort-55 184536.0981
-etort-21 etort-56 (sheared2) 163522.4793
+etort-21 etort-56 163522.4793
 etort-21 etort-57 226212.8062
 etort-21 etort-58 331109.3086
 etort-21 etort-59 237996.3651
-etort-21 etort-60 (sheared2) 69065.12139
+etort-21 etort-60 69065.12139
 etort-21 etort-61 202160.4483
 etort-21 etort-62 255326.7543
 etort-21 etort-63 184015.2047
@@ -3580,11 +3580,11 @@ etort-22 etort-52 173458.3557
 etort-22 etort-53 304584.9593
 etort-22 etort-54 177747.8623
 etort-22 etort-55 184622.3084
-etort-22 etort-56 (sheared2) 167092.9591
+etort-22 etort-56 167092.9591
 etort-22 etort-57 212791.746
 etort-22 etort-58 341533.1587
 etort-22 etort-59 240732.38
-etort-22 etort-60 (sheared2) 56241.09498
+etort-22 etort-60 56241.09498
 etort-22 etort-61 188304.8776
 etort-22 etort-62 259547.1433
 etort-22 etort-63 172480.4225
@@ -3737,11 +3737,11 @@ etort-23 etort-52 93512.84842
 etort-23 etort-53 222635.1757
 etort-23 etort-54 96199.55967
 etort-23 etort-55 99125.94835
-etort-23 etort-56 (sheared2) 85524.39073
+etort-23 etort-56 85524.39073
 etort-23 etort-57 181031.7059
 etort-23 etort-58 278740.6593
 etort-23 etort-59 156684.1136
-etort-23 etort-60 (sheared2) 65330.63214
+etort-23 etort-60 65330.63214
 etort-23 etort-61 162865.3747
 etort-23 etort-62 177615.2917
 etort-23 etort-63 128787.7692
@@ -3893,11 +3893,11 @@ etort-24 etort-52 134024.2697
 etort-24 etort-53 240839.593
 etort-24 etort-54 135707.4692
 etort-24 etort-55 130752.8497
-etort-24 etort-56 (sheared2) 105107.565
+etort-24 etort-56 105107.565
 etort-24 etort-57 218833.8095
 etort-24 etort-58 275697.5271
 etort-24 etort-59 179924.9483
-etort-24 etort-60 (sheared2) 78704.47147
+etort-24 etort-60 78704.47147
 etort-24 etort-61 198654.1005
 etort-24 etort-62 196127.4817
 etort-24 etort-63 168427.2961
@@ -4048,11 +4048,11 @@ etort-25 etort-52 118807.8906
 etort-25 etort-53 236733.1015
 etort-25 etort-54 121100.1697
 etort-25 etort-55 120047.7928
-etort-25 etort-56 (sheared2) 99295.75872
+etort-25 etort-56 99295.75872
 etort-25 etort-57 201297.4749
 etort-25 etort-58 280638.767
 etort-25 etort-59 173327.768
-etort-25 etort-60 (sheared2) 66401.88155
+etort-25 etort-60 66401.88155
 etort-25 etort-61 181456.3729
 etort-25 etort-62 191697.8423
 etort-25 etort-63 150640.5175
@@ -4202,11 +4202,11 @@ etort-26 etort-52 117358.9656
 etort-26 etort-53 232807.0527
 etort-26 etort-54 119815.1962
 etort-26 etort-55 152109.8315
-etort-26 etort-56 (sheared2) 193072.7021
+etort-26 etort-56 193072.7021
 etort-26 etort-57 112769.5755
 etort-26 etort-58 358993.8656
 etort-26 etort-59 183630.9668
-etort-26 etort-60 (sheared2) 215173.6354
+etort-26 etort-60 215173.6354
 etort-26 etort-61 130222.0802
 etort-26 etort-62 210649.1877
 etort-26 etort-63 107195.2592
@@ -4355,11 +4355,11 @@ etort-27 etort-52 204135.2981
 etort-27 etort-53 307770.3313
 etort-27 etort-54 206654.0281
 etort-27 etort-55 203448.3812
-etort-27 etort-56 (sheared2) 175731.6803
+etort-27 etort-56 175731.6803
 etort-27 etort-57 264233.7707
 etort-27 etort-58 322161.2011
 etort-27 etort-59 250313.3707
-etort-27 etort-60 (sheared2) 107232.5983
+etort-27 etort-60 107232.5983
 etort-27 etort-61 240479.9852
 etort-27 etort-62 263964.2846
 etort-27 etort-63 220510.4165
@@ -4507,11 +4507,11 @@ etort-28 etort-52 213994.4843
 etort-28 etort-53 309602.6324
 etort-28 etort-54 216061.3845
 etort-28 etort-55 210362.3543
-etort-28 etort-56 (sheared2) 180352.1104
+etort-28 etort-56 180352.1104
 etort-28 etort-57 278858.8099
 etort-28 etort-58 317323.3614
 etort-28 etort-59 254319.1406
-etort-28 etort-60 (sheared2) 122092.812
+etort-28 etort-60 122092.812
 etort-28 etort-61 255311.7538
 etort-28 etort-62 266430.9188
 etort-28 etort-63 234369.5407
@@ -4658,11 +4658,11 @@ etort-30 etort-52 88465.24707
 etort-30 etort-53 87457.41035
 etort-30 etort-54 80386.55216
 etort-30 etort-55 55017.78858
-etort-30 etort-56 (sheared2) 80924.93876
+etort-30 etort-56 80924.93876
 etort-30 etort-57 222865.4147
 etort-30 etort-58 203637.5324
 etort-30 etort-59 28312.61602
-etort-30 etort-60 (sheared2) 208903.4673
+etort-30 etort-60 208903.4673
 etort-30 etort-61 222733.0488
 etort-30 etort-62 55558.21845
 etort-30 etort-63 177524.0318
@@ -4808,11 +4808,11 @@ etort-31 etort-52 234167.1102
 etort-31 etort-53 60348.07125
 etort-31 etort-54 225993.0795
 etort-31 etort-55 191556.3948
-etort-31 etort-56 (sheared2) 189042.7794
+etort-31 etort-56 189042.7794
 etort-31 etort-57 370254.0116
 etort-31 etort-58 104674.7083
 etort-31 etort-59 127481.7648
-etort-31 etort-60 (sheared2) 338134.0584
+etort-31 etort-60 338134.0584
 etort-31 etort-61 370400.1053
 etort-31 etort-62 99999.912
 etort-31 etort-63 325061.3745
@@ -4957,11 +4957,11 @@ etort-32 etort-52 75078.26608
 etort-32 etort-53 104047.8172
 etort-32 etort-54 67289.38033
 etort-32 etort-55 50195.98248
-etort-32 etort-56 (sheared2) 84065.28371
+etort-32 etort-56 84065.28371
 etort-32 etort-57 205875.9346
 etort-32 etort-58 221329.4356
 etort-32 etort-59 45582.09522
-etort-32 etort-60 (sheared2) 200456.6386
+etort-32 etort-60 200456.6386
 etort-32 etort-61 206535.0251
 etort-32 etort-62 73379.11768
 etort-32 etort-63 161638.2269
@@ -5105,11 +5105,11 @@ etort-33 etort-52 46996.50159
 etort-33 etort-53 167460.0532
 etort-33 etort-54 45578.0213
 etort-33 etort-55 71919.8004
-etort-33 etort-56 (sheared2) 113529.4337
+etort-33 etort-56 113529.4337
 etort-33 etort-57 143311.1788
 etort-33 etort-58 284132.2057
 etort-33 etort-59 108523.8652
-etort-33 etort-60 (sheared2) 173675.7721
+etort-33 etort-60 173675.7721
 etort-33 etort-61 146952.162
 etort-33 etort-62 137264.3042
 etort-33 etort-63 104281.3811
@@ -5252,11 +5252,11 @@ etort-34 etort-52 93188.07892
 etort-34 etort-53 207431.793
 etort-34 etort-54 94722.41991
 etort-34 etort-55 125237.7761
-etort-34 etort-56 (sheared2) 166588.6552
+etort-34 etort-56 166588.6552
 etort-34 etort-57 121603.259
 etort-34 etort-58 332016.3673
 etort-34 etort-59 156410.8936
-etort-34 etort-60 (sheared2) 201592.8565
+etort-34 etort-60 201592.8565
 etort-34 etort-61 134466.3755
 etort-34 etort-62 183728.6504
 etort-34 etort-63 102909.9308
@@ -5398,11 +5398,11 @@ etort-35 etort-52 80348.91813
 etort-35 etort-53 94303.7833
 etort-35 etort-54 72175.33279
 etort-35 etort-55 42926.37068
-etort-35 etort-56 (sheared2) 67849.07046
+etort-35 etort-56 67849.07046
 etort-35 etort-57 218484.6187
 etort-35 etort-58 203212.7661
 etort-35 etort-59 28078.45398
-etort-35 etort-60 (sheared2) 197156.622
+etort-35 etort-60 197156.622
 etort-35 etort-61 216899.5249
 etort-35 etort-62 57359.20304
 etort-35 etort-63 171368.3592
@@ -5543,11 +5543,11 @@ etort-36 etort-52 148004.0677
 etort-36 etort-53 153073.8062
 etort-36 etort-54 143390.3251
 etort-36 etort-55 109612.3667
-etort-36 etort-56 (sheared2) 68339.60422
+etort-36 etort-56 68339.60422
 etort-36 etort-57 281364.3614
 etort-36 etort-58 165135.8356
 etort-36 etort-59 114186.1617
-etort-36 etort-60 (sheared2) 180611.9757
+etort-36 etort-60 180611.9757
 etort-36 etort-61 268659.5131
 etort-36 etort-62 114680.5418
 etort-36 etort-63 226958.7541
@@ -5687,11 +5687,11 @@ etort-37 etort-52 228661.8557
 etort-37 etort-53 195631.3301
 etort-37 etort-54 224018.3655
 etort-37 etort-55 189281.8122
-etort-37 etort-56 (sheared2) 148783.4262
+etort-37 etort-56 148783.4262
 etort-37 etort-57 359778.9537
 etort-37 etort-58 141689.0406
 etort-37 etort-59 180266.3248
-etort-37 etort-60 (sheared2) 243358.8377
+etort-37 etort-60 243358.8377
 etort-37 etort-61 345503.4337
 etort-37 etort-62 169991.9224
 etort-37 etort-63 305361.2272
@@ -5830,11 +5830,11 @@ etort-38 etort-52 180131.7827
 etort-38 etort-53 48331.42966
 etort-38 etort-54 172209.2035
 etort-38 etort-55 133872.1175
-etort-38 etort-56 (sheared2) 122632.9011
+etort-38 etort-56 122632.9011
 etort-38 etort-57 322104.2434
 etort-38 etort-58 100102.6817
 etort-38 etort-59 76893.14209
-etort-38 etort-60 (sheared2) 271709.5364
+etort-38 etort-60 271709.5364
 etort-38 etort-61 318459.6299
 etort-38 etort-62 48436.89975
 etort-38 etort-63 272766.477
@@ -5972,11 +5972,11 @@ etort-39 etort-52 96504.91155
 etort-39 etort-53 201592.0319
 etort-39 etort-54 97273.19278
 etort-39 etort-55 125465.2098
-etort-39 etort-56 (sheared2) 167259.3496
+etort-39 etort-56 167259.3496
 etort-39 etort-57 130957.0931
 etort-39 etort-58 327854.138
 etort-39 etort-59 152775.1968
-etort-39 etort-60 (sheared2) 208860.8355
+etort-39 etort-60 208860.8355
 etort-39 etort-61 143961.44
 etort-39 etort-62 179508.877
 etort-39 etort-63 112061.4151
@@ -6113,11 +6113,11 @@ etort-40 etort-52 73143.61616
 etort-40 etort-53 184012.9402
 etort-40 etort-54 73188.06838
 etort-40 etort-55 100589.6076
-etort-40 etort-56 (sheared2) 142363.3173
+etort-40 etort-56 142363.3173
 etort-40 etort-57 134960.2232
 etort-40 etort-58 306752.5905
 etort-40 etort-59 130966.5661
-etort-40 etort-60 (sheared2) 192122.664
+etort-40 etort-60 192122.664
 etort-40 etort-61 143678.4258
 etort-40 etort-62 158601.2382
 etort-40 etort-63 105975.4326
@@ -6253,11 +6253,11 @@ etort-41 etort-52 56375.10803
 etort-41 etort-53 145702.7841
 etort-41 etort-54 51788.03739
 etort-41 etort-55 64722.05758
-etort-41 etort-56 (sheared2) 106705.6178
+etort-41 etort-56 106705.6178
 etort-41 etort-57 165599.7909
 etort-41 etort-58 265204.1692
 etort-41 etort-59 89304.98448
-etort-41 etort-60 (sheared2) 187371.5659
+etort-41 etort-60 187371.5659
 etort-41 etort-61 169140.9865
 etort-41 etort-62 117361.0211
 etort-41 etort-63 126029.5085
@@ -6392,11 +6392,11 @@ etort-42 etort-52 61802.68287
 etort-42 etort-53 129012.134
 etort-42 etort-54 55453.92316
 etort-42 etort-55 56726.89149
-etort-42 etort-56 (sheared2) 97301.69037
+etort-42 etort-56 97301.69037
 etort-42 etort-57 181517.5433
 etort-42 etort-58 248321.426
 etort-42 etort-59 72492.38399
-etort-42 etort-60 (sheared2) 192608.3405
+etort-42 etort-60 192608.3405
 etort-42 etort-61 183967.4828
 etort-42 etort-62 100348.3191
 etort-42 etort-63 140029.4153
@@ -6530,11 +6530,11 @@ etort-43 etort-52 3339.29813
 etort-43 etort-53 172631.9973
 etort-43 etort-54 6771.472218
 etort-43 etort-55 46738.61145
-etort-43 etort-56 (sheared2) 81345.00143
+etort-43 etort-56 81345.00143
 etort-43 etort-57 143991.9187
 etort-43 etort-58 272710.2694
 etort-43 etort-59 105226.9705
-etort-43 etort-60 (sheared2) 134595.493
+etort-43 etort-60 134595.493
 etort-43 etort-61 139625.6956
 etort-43 etort-62 134122.7077
 etort-43 etort-63 93921.00946
@@ -6667,11 +6667,11 @@ etort-44 etort-52 5062.054919
 etort-44 etort-53 170298.1855
 etort-44 etort-54 4706.894093
 etort-44 etort-55 44683.90037
-etort-44 etort-56 (sheared2) 79868.94937
+etort-44 etort-56 79868.94937
 etort-44 etort-57 146153.9792
 etort-44 etort-58 270568.3654
 etort-44 etort-59 102901.7769
-etort-44 etort-60 (sheared2) 136220.3719
+etort-44 etort-60 136220.3719
 etort-44 etort-61 141911.1661
 etort-44 etort-62 131808.1573
 etort-44 etort-63 96207.45091
@@ -6803,11 +6803,11 @@ etort-45 etort-52 17150.75033
 etort-45 etort-53 178208.5626
 etort-45 etort-54 20337.27565
 etort-45 etort-55 58872.30066
-etort-45 etort-56 (sheared2) 95714.02004
+etort-45 etort-56 95714.02004
 etort-45 etort-57 134136.8395
 etort-45 etort-58 283413.5518
 etort-45 etort-59 112624.5371
-etort-45 etort-60 (sheared2) 141718.3623
+etort-45 etort-60 141718.3623
 etort-45 etort-61 132098.9523
 etort-45 etort-62 141878.0508
 etort-45 etort-63 86733.60141
@@ -6938,11 +6938,11 @@ etort-46 etort-52 43683.49997
 etort-46 etort-53 137931.0723
 etort-46 etort-54 36595.29983
 etort-46 etort-55 4228.913099
-etort-46 etort-56 (sheared2) 42976.44401
+etort-46 etort-56 42976.44401
 etort-46 etort-57 186920.7403
 etort-46 etort-58 229852.7793
 etort-46 etort-59 68831.20339
-etort-46 etort-60 (sheared2) 150359.0751
+etort-46 etort-60 150359.0751
 etort-46 etort-61 181123.2266
 etort-46 etort-62 95919.68918
 etort-46 etort-63 135589.8088
@@ -7072,11 +7072,11 @@ etort-47 etort-52 44326.56185
 etort-47 etort-53 136357.9629
 etort-47 etort-54 37061.48682
 etort-47 etort-55 2995.376604
-etort-47 etort-56 (sheared2) 43804.5464
+etort-47 etort-56 43804.5464
 etort-47 etort-57 187601.7636
 etort-47 etort-58 229114.8611
 etort-47 etort-59 67267.38604
-etort-47 etort-60 (sheared2) 152196.7425
+etort-47 etort-60 152196.7425
 etort-47 etort-61 182043.8867
 etort-47 etort-62 94518.00007
 etort-47 etort-63 136470.8921
@@ -7205,11 +7205,11 @@ etort-48 etort-52 46543.31231
 etort-48 etort-53 135035.6552
 etort-48 etort-54 39344.45101
 etort-48 etort-55 1421.938466
-etort-48 etort-56 (sheared2) 41708.80369
+etort-48 etort-56 41708.80369
 etort-48 etort-57 189807.8622
 etort-48 etort-58 226933.4752
 etort-48 etort-59 65934.62766
-etort-48 etort-60 (sheared2) 152819.6603
+etort-48 etort-60 152819.6603
 etort-48 etort-61 184111.5555
 etort-48 etort-62 92924.24662
 etort-48 etort-63 138564.3155
@@ -7337,11 +7337,11 @@ etort-49 etort-52 27384.26243
 etort-49 etort-53 168797.3959
 etort-49 etort-54 25995.09002
 etort-49 etort-55 35079.67778
-etort-49 etort-56 (sheared2) 56401.6886
+etort-49 etort-56 56401.6886
 etort-49 etort-57 163091.3571
 etort-49 etort-58 256021.6962
 etort-49 etort-59 99696.1553
-etort-49 etort-60 (sheared2) 121349.1009
+etort-49 etort-60 121349.1009
 etort-49 etort-61 154661.8768
 etort-49 etort-62 126488.4263
 etort-49 etort-63 109887.9521
@@ -7468,11 +7468,11 @@ etort-50 etort-52 24647.33438
 etort-50 etort-53 168796.3646
 etort-50 etort-54 23264.16128
 etort-50 etort-55 35157.96541
-etort-50 etort-56 (sheared2) 58476.33068
+etort-50 etort-56 58476.33068
 etort-50 etort-57 161271.3413
 etort-50 etort-58 257367.4535
 etort-50 etort-59 99713.22926
-etort-50 etort-60 (sheared2) 122488.74
+etort-50 etort-60 122488.74
 etort-50 etort-61 153192.6199
 etort-50 etort-62 126789.7809
 etort-50 etort-63 108263.0743
@@ -7598,11 +7598,11 @@ etort-51 etort-52 23510.7459
 etort-51 etort-53 171344.512
 etort-51 etort-54 23017.83624
 etort-51 etort-55 37755.87987
-etort-51 etort-56 (sheared2) 60795.81569
+etort-51 etort-56 60795.81569
 etort-51 etort-57 158789.6286
 etort-51 etort-58 260002.3397
 etort-51 etort-59 102272.5729
-etort-51 etort-60 (sheared2) 120560.7651
+etort-51 etort-60 120560.7651
 etort-51 etort-61 150581.004
 etort-51 etort-62 129414.8655
 etort-51 etort-63 105697.5918
@@ -7727,11 +7727,11 @@ etort-51 etort-187 67943.85027
 etort-52 etort-53 174651.303
 etort-52 etort-54 8176.045254
 etort-52 etort-55 47302.44247
-etort-52 etort-56 (sheared2) 80557.87759
+etort-52 etort-56 80557.87759
 etort-52 etort-57 143276.164
 etort-52 etort-58 273425.3322
 etort-52 etort-59 106950.3888
-etort-52 etort-60 (sheared2) 131292.8394
+etort-52 etort-60 131292.8394
 etort-52 etort-61 138328.0969
 etort-52 etort-62 135718.7736
 etort-52 etort-63 92636.2476
@@ -7855,11 +7855,11 @@ etort-52 etort-186 85811.07782
 etort-52 etort-187 77855.82008
 etort-53 etort-54 166478.5209
 etort-53 etort-55 133717.8675
-etort-53 etort-56 (sheared2) 137671.2599
+etort-53 etort-56 137671.2599
 etort-53 etort-57 309908.8385
 etort-53 etort-58 136607.1769
 etort-53 etort-59 69101.32908
-etort-53 etort-60 (sheared2) 284373.5052
+etort-53 etort-60 284373.5052
 etort-53 etort-61 310190.1708
 etort-53 etort-62 45089.24209
 etort-53 etort-63 264941.7725
@@ -7982,11 +7982,11 @@ etort-53 etort-185 107359.8022
 etort-53 etort-186 100840.6235
 etort-53 etort-187 105836.7389
 etort-54 etort-55 39995.63781
-etort-54 etort-56 (sheared2) 75394.78662
+etort-54 etort-56 75394.78662
 etort-54 etort-57 150763.1875
 etort-54 etort-58 265939.1171
 etort-54 etort-59 98798.39376
-etort-54 etort-60 (sheared2) 137163.8773
+etort-54 etort-60 137163.8773
 etort-54 etort-61 146280.0314
 etort-54 etort-62 127605.5691
 etort-54 etort-63 100576.3971
@@ -8108,11 +8108,11 @@ etort-54 etort-184 71452.68998
 etort-54 etort-185 70156.49875
 etort-54 etort-186 78226.95751
 etort-54 etort-187 70205.5369
-etort-55 etort-56 (sheared2) 42140.65593
+etort-55 etort-56 42140.65593
 etort-55 etort-57 190578.6063
 etort-55 etort-58 226131.3635
 etort-55 etort-59 64616.7995
-etort-55 etort-60 (sheared2) 154238.0345
+etort-55 etort-60 154238.0345
 etort-55 etort-61 185038.2105
 etort-55 etort-62 91698.10747
 etort-55 etort-63 139466.2361
@@ -8234,134 +8234,134 @@ etort-55 etort-184 31863.17487
 etort-55 etort-185 30585.03093
 etort-55 etort-186 38699.40084
 etort-55 etort-187 30968.73378
-etort-56 (sheared2) etort-57 219252.6427
-etort-56 (sheared2) etort-58 203437.9747
-etort-56 (sheared2) etort-59 74835.69696
-etort-56 (sheared2) etort-60 (sheared2) 149319.0285
-etort-56 (sheared2) etort-61 209628.9815
-etort-56 (sheared2) etort-62 92583.34859
-etort-56 (sheared2) etort-63 165593.4519
-etort-56 (sheared2) etort-64 168991.3608
-etort-56 (sheared2) etort-65 192616.8966
-etort-56 (sheared2) etort-66 172194.9375
-etort-56 (sheared2) etort-67 176310.5681
-etort-56 (sheared2) etort-68 166879.0994
-etort-56 (sheared2) etort-69 115141.2058
-etort-56 (sheared2) etort-70 54980.26272
-etort-56 (sheared2) etort-71 212634.8243
-etort-56 (sheared2) etort-72 231946.3696
-etort-56 (sheared2) etort-73 164418.3891
-etort-56 (sheared2) etort-74 115240.0469
-etort-56 (sheared2) etort-75 54481.34551
-etort-56 (sheared2) etort-76 55371.14312
-etort-56 (sheared2) etort-77 97383.38867
-etort-56 (sheared2) etort-78 106159.3419
-etort-56 (sheared2) etort-79 41248.36003
-etort-56 (sheared2) etort-80 48547.70669
-etort-56 (sheared2) etort-81 37387.30898
-etort-56 (sheared2) etort-82 39616.27455
-etort-56 (sheared2) etort-83 39223.66144
-etort-56 (sheared2) etort-84 41037.09817
-etort-56 (sheared2) etort-85 39250.12134
-etort-56 (sheared2) etort-86 169877.21
-etort-56 (sheared2) etort-87 50286.54311
-etort-56 (sheared2) etort-88 52702.75752
-etort-56 (sheared2) etort-89 40633.31275
-etort-56 (sheared2) etort-90 40137.18945
-etort-56 (sheared2) etort-91 55236.80951
-etort-56 (sheared2) etort-92 20633.24255
-etort-56 (sheared2) etort-93 48335.74099
-etort-56 (sheared2) etort-94 5155.354692
-etort-56 (sheared2) etort-95 53438.64198
-etort-56 (sheared2) etort-96 101589.5616
-etort-56 (sheared2) etort-97 156465.8789
-etort-56 (sheared2) etort-98 133749.3553
-etort-56 (sheared2) etort-99 129498.3558
-etort-56 (sheared2) etort-100 174448.2981
-etort-56 (sheared2) etort-102 145906.1657
-etort-56 (sheared2) etort-103 115043.0866
-etort-56 (sheared2) etort-104 126546.1954
-etort-56 (sheared2) etort-105 142673.6947
-etort-56 (sheared2) etort-106 255690.2738
-etort-56 (sheared2) etort-107 259195.6174
-etort-56 (sheared2) etort-108 273831.0364
-etort-56 (sheared2) etort-109 230084.2194
-etort-56 (sheared2) etort-110 256646.4042
-etort-56 (sheared2) etort-111 244954.9347
-etort-56 (sheared2) etort-112 84697.88811
-etort-56 (sheared2) etort-113 63055.68159
-etort-56 (sheared2) etort-115 94756.15571
-etort-56 (sheared2) etort-116 103025.4871
-etort-56 (sheared2) etort-117 106531.1024
-etort-56 (sheared2) etort-119 191835.3268
-etort-56 (sheared2) etort-120 157715.19
-etort-56 (sheared2) etort-121 192602.6441
-etort-56 (sheared2) etort-122 192990.4054
-etort-56 (sheared2) etort-123 191197.467
-etort-56 (sheared2) etort-124 196386.6371
-etort-56 (sheared2) etort-125 188734.0424
-etort-56 (sheared2) etort-126 205017.0753
-etort-56 (sheared2) etort-127 202894.8347
-etort-56 (sheared2) etort-128 201909.6849
-etort-56 (sheared2) etort-129 206198.7497
-etort-56 (sheared2) etort-130 26809.11354
-etort-56 (sheared2) etort-131 31196.32292
-etort-56 (sheared2) etort-132 23577.06557
-etort-56 (sheared2) etort-133 30212.44043
-etort-56 (sheared2) etort-134 26320.73346
-etort-56 (sheared2) etort-135 28407.97404
-etort-56 (sheared2) etort-136 28211.61195
-etort-56 (sheared2) etort-137 29993.31702
-etort-56 (sheared2) etort-138 22434.62005
-etort-56 (sheared2) etort-139 24579.56655
-etort-56 (sheared2) etort-140 28167.10968
-etort-56 (sheared2) etort-141 22264.37482
-etort-56 (sheared2) etort-142 26315.20446
-etort-56 (sheared2) etort-143 25361.67289
-etort-56 (sheared2) etort-144 29089.69984
-etort-56 (sheared2) etort-145 24260.09029
-etort-56 (sheared2) etort-146 22216.15505
-etort-56 (sheared2) etort-147 29905.85235
-etort-56 (sheared2) etort-148 46797.45228
-etort-56 (sheared2) etort-149 40833.54407
-etort-56 (sheared2) etort-150 24904.32866
-etort-56 (sheared2) etort-151 45554.05054
-etort-56 (sheared2) etort-152 41258.32208
-etort-56 (sheared2) etort-153 38978.63611
-etort-56 (sheared2) etort-154 42509.19479
-etort-56 (sheared2) etort-155 39656.95375
-etort-56 (sheared2) etort-156 44667.5109
-etort-56 (sheared2) etort-157 27555.13927
-etort-56 (sheared2) etort-158 23709.81318
-etort-56 (sheared2) etort-159 32119.13394
-etort-56 (sheared2) etort-161 33531.22238
-etort-56 (sheared2) etort-162 30835.00318
-etort-56 (sheared2) etort-163 26419.54438
-etort-56 (sheared2) etort-164 25695.81853
-etort-56 (sheared2) etort-166 27519.49465
-etort-56 (sheared2) etort-167 29652.04216
-etort-56 (sheared2) etort-168 26922.8299
-etort-56 (sheared2) etort-169 29581.95511
-etort-56 (sheared2) etort-170 41297.6213
-etort-56 (sheared2) etort-172 41305.83351
-etort-56 (sheared2) etort-173 41409.75272
-etort-56 (sheared2) etort-174 39471.20515
-etort-56 (sheared2) etort-175 38839.72502
-etort-56 (sheared2) etort-176 38027.24346
-etort-56 (sheared2) etort-177 37566.40725
-etort-56 (sheared2) etort-178 37776.93795
-etort-56 (sheared2) etort-179 38220.2309
-etort-56 (sheared2) etort-180 37324.11608
-etort-56 (sheared2) etort-181 38282.25721
-etort-56 (sheared2) etort-182 35709.01815
-etort-56 (sheared2) etort-183 35656.55885
-etort-56 (sheared2) etort-184 37542.42183
-etort-56 (sheared2) etort-185 37431.11637
-etort-56 (sheared2) etort-186 40087.79576
-etort-56 (sheared2) etort-187 39719.15228
+etort-56 etort-57 219252.6427
+etort-56 etort-58 203437.9747
+etort-56 etort-59 74835.69696
+etort-56 etort-60 149319.0285
+etort-56 etort-61 209628.9815
+etort-56 etort-62 92583.34859
+etort-56 etort-63 165593.4519
+etort-56 etort-64 168991.3608
+etort-56 etort-65 192616.8966
+etort-56 etort-66 172194.9375
+etort-56 etort-67 176310.5681
+etort-56 etort-68 166879.0994
+etort-56 etort-69 115141.2058
+etort-56 etort-70 54980.26272
+etort-56 etort-71 212634.8243
+etort-56 etort-72 231946.3696
+etort-56 etort-73 164418.3891
+etort-56 etort-74 115240.0469
+etort-56 etort-75 54481.34551
+etort-56 etort-76 55371.14312
+etort-56 etort-77 97383.38867
+etort-56 etort-78 106159.3419
+etort-56 etort-79 41248.36003
+etort-56 etort-80 48547.70669
+etort-56 etort-81 37387.30898
+etort-56 etort-82 39616.27455
+etort-56 etort-83 39223.66144
+etort-56 etort-84 41037.09817
+etort-56 etort-85 39250.12134
+etort-56 etort-86 169877.21
+etort-56 etort-87 50286.54311
+etort-56 etort-88 52702.75752
+etort-56 etort-89 40633.31275
+etort-56 etort-90 40137.18945
+etort-56 etort-91 55236.80951
+etort-56 etort-92 20633.24255
+etort-56 etort-93 48335.74099
+etort-56 etort-94 5155.354692
+etort-56 etort-95 53438.64198
+etort-56 etort-96 101589.5616
+etort-56 etort-97 156465.8789
+etort-56 etort-98 133749.3553
+etort-56 etort-99 129498.3558
+etort-56 etort-100 174448.2981
+etort-56 etort-102 145906.1657
+etort-56 etort-103 115043.0866
+etort-56 etort-104 126546.1954
+etort-56 etort-105 142673.6947
+etort-56 etort-106 255690.2738
+etort-56 etort-107 259195.6174
+etort-56 etort-108 273831.0364
+etort-56 etort-109 230084.2194
+etort-56 etort-110 256646.4042
+etort-56 etort-111 244954.9347
+etort-56 etort-112 84697.88811
+etort-56 etort-113 63055.68159
+etort-56 etort-115 94756.15571
+etort-56 etort-116 103025.4871
+etort-56 etort-117 106531.1024
+etort-56 etort-119 191835.3268
+etort-56 etort-120 157715.19
+etort-56 etort-121 192602.6441
+etort-56 etort-122 192990.4054
+etort-56 etort-123 191197.467
+etort-56 etort-124 196386.6371
+etort-56 etort-125 188734.0424
+etort-56 etort-126 205017.0753
+etort-56 etort-127 202894.8347
+etort-56 etort-128 201909.6849
+etort-56 etort-129 206198.7497
+etort-56 etort-130 26809.11354
+etort-56 etort-131 31196.32292
+etort-56 etort-132 23577.06557
+etort-56 etort-133 30212.44043
+etort-56 etort-134 26320.73346
+etort-56 etort-135 28407.97404
+etort-56 etort-136 28211.61195
+etort-56 etort-137 29993.31702
+etort-56 etort-138 22434.62005
+etort-56 etort-139 24579.56655
+etort-56 etort-140 28167.10968
+etort-56 etort-141 22264.37482
+etort-56 etort-142 26315.20446
+etort-56 etort-143 25361.67289
+etort-56 etort-144 29089.69984
+etort-56 etort-145 24260.09029
+etort-56 etort-146 22216.15505
+etort-56 etort-147 29905.85235
+etort-56 etort-148 46797.45228
+etort-56 etort-149 40833.54407
+etort-56 etort-150 24904.32866
+etort-56 etort-151 45554.05054
+etort-56 etort-152 41258.32208
+etort-56 etort-153 38978.63611
+etort-56 etort-154 42509.19479
+etort-56 etort-155 39656.95375
+etort-56 etort-156 44667.5109
+etort-56 etort-157 27555.13927
+etort-56 etort-158 23709.81318
+etort-56 etort-159 32119.13394
+etort-56 etort-161 33531.22238
+etort-56 etort-162 30835.00318
+etort-56 etort-163 26419.54438
+etort-56 etort-164 25695.81853
+etort-56 etort-166 27519.49465
+etort-56 etort-167 29652.04216
+etort-56 etort-168 26922.8299
+etort-56 etort-169 29581.95511
+etort-56 etort-170 41297.6213
+etort-56 etort-172 41305.83351
+etort-56 etort-173 41409.75272
+etort-56 etort-174 39471.20515
+etort-56 etort-175 38839.72502
+etort-56 etort-176 38027.24346
+etort-56 etort-177 37566.40725
+etort-56 etort-178 37776.93795
+etort-56 etort-179 38220.2309
+etort-56 etort-180 37324.11608
+etort-56 etort-181 38282.25721
+etort-56 etort-182 35709.01815
+etort-56 etort-183 35656.55885
+etort-56 etort-184 37542.42183
+etort-56 etort-185 37431.11637
+etort-56 etort-186 40087.79576
+etort-56 etort-187 39719.15228
 etort-57 etort-58 416687.7107
 etort-57 etort-59 246463.0472
-etort-57 etort-60 (sheared2) 157148.9202
+etort-57 etort-60 157148.9202
 etort-57 etort-61 26246.33662
 etort-57 etort-62 275769.4999
 etort-57 etort-63 54441.09316
@@ -8484,7 +8484,7 @@ etort-57 etort-185 220916.8185
 etort-57 etort-186 228990.138
 etort-57 etort-187 220957.2775
 etort-58 etort-59 175911.4947
-etort-58 etort-60 (sheared2) 343643.941
+etort-58 etort-60 343643.941
 etort-58 etort-61 410485.3865
 etort-58 etort-62 148348.1679
 etort-58 etort-63 365214.2101
@@ -8606,7 +8606,7 @@ etort-58 etort-184 194487.907
 etort-58 etort-185 195784.6141
 etort-58 etort-186 187729.9958
 etort-58 etort-187 195807.1415
-etort-59 etort-60 (sheared2) 216550.0852
+etort-59 etort-60 216550.0852
 etort-59 etort-61 244430.6477
 etort-59 etort-62 29309.75505
 etort-59 etort-63 198806.2839
@@ -8728,127 +8728,127 @@ etort-59 etort-184 39121.42458
 etort-59 etort-185 39805.25826
 etort-59 etort-186 34901.25707
 etort-59 etort-187 37950.68445
-etort-60 (sheared2) etort-61 133248.7945
-etort-60 (sheared2) etort-62 239767.5787
-etort-60 (sheared2) etort-63 116420.7355
-etort-60 (sheared2) etort-64 88242.91707
-etort-60 (sheared2) etort-65 125955.6553
-etort-60 (sheared2) etort-66 72477.3413
-etort-60 (sheared2) etort-67 82250.06033
-etort-60 (sheared2) etort-68 77597.55961
-etort-60 (sheared2) etort-69 37046.89608
-etort-60 (sheared2) etort-70 124104.0745
-etort-60 (sheared2) etort-71 152221.6453
-etort-60 (sheared2) etort-72 156273.2803
-etort-60 (sheared2) etort-73 125900.3716
-etort-60 (sheared2) etort-74 34254.1831
-etort-60 (sheared2) etort-75 118511.8683
-etort-60 (sheared2) etort-76 119529.8825
-etort-60 (sheared2) etort-77 102146.8199
-etort-60 (sheared2) etort-78 238786.073
-etort-60 (sheared2) etort-79 185978.1533
-etort-60 (sheared2) etort-80 187851.1472
-etort-60 (sheared2) etort-81 159775.879
-etort-60 (sheared2) etort-82 160460.6092
-etort-60 (sheared2) etort-83 160790.3247
-etort-60 (sheared2) etort-84 159281.1513
-etort-60 (sheared2) etort-85 157848.1961
-etort-60 (sheared2) etort-86 316528.672
-etort-60 (sheared2) etort-87 195075.3415
-etort-60 (sheared2) etort-88 132407.7394
-etort-60 (sheared2) etort-89 161361.6028
-etort-60 (sheared2) etort-90 163939.0645
-etort-60 (sheared2) etort-91 129696.3069
-etort-60 (sheared2) etort-92 144623.566
-etort-60 (sheared2) etort-93 175834.4931
-etort-60 (sheared2) etort-94 154461.4295
-etort-60 (sheared2) etort-95 202749.5055
-etort-60 (sheared2) etort-96 120259.3906
-etort-60 (sheared2) etort-97 200693.5387
-etort-60 (sheared2) etort-98 165780.4821
-etort-60 (sheared2) etort-99 181381.6499
-etort-60 (sheared2) etort-100 209296.4047
-etort-60 (sheared2) etort-102 172734.0199
-etort-60 (sheared2) etort-103 125499.0135
-etort-60 (sheared2) etort-104 169863.8796
-etort-60 (sheared2) etort-105 185893.4594
-etort-60 (sheared2) etort-106 210957.0762
-etort-60 (sheared2) etort-107 209206.5526
-etort-60 (sheared2) etort-108 233266.5137
-etort-60 (sheared2) etort-109 171858.8934
-etort-60 (sheared2) etort-110 199548.068
-etort-60 (sheared2) etort-111 190775.9257
-etort-60 (sheared2) etort-112 224044.3032
-etort-60 (sheared2) etort-113 204476.4758
-etort-60 (sheared2) etort-115 163815.8074
-etort-60 (sheared2) etort-116 176392.6658
-etort-60 (sheared2) etort-117 192682.4365
-etort-60 (sheared2) etort-119 84943.05863
-etort-60 (sheared2) etort-120 84612.96414
-etort-60 (sheared2) etort-121 146464.7272
-etort-60 (sheared2) etort-122 149188.3155
-etort-60 (sheared2) etort-123 148009.0704
-etort-60 (sheared2) etort-124 151616.989
-etort-60 (sheared2) etort-125 146885.7116
-etort-60 (sheared2) etort-126 153625.3251
-etort-60 (sheared2) etort-127 152888.6694
-etort-60 (sheared2) etort-128 151996.7827
-etort-60 (sheared2) etort-129 155242.08
-etort-60 (sheared2) etort-130 165328.2487
-etort-60 (sheared2) etort-131 174593.4822
-etort-60 (sheared2) etort-132 164280.406
-etort-60 (sheared2) etort-133 167323.3798
-etort-60 (sheared2) etort-134 163115.0846
-etort-60 (sheared2) etort-135 163257.6103
-etort-60 (sheared2) etort-136 168035.3806
-etort-60 (sheared2) etort-137 164244.9278
-etort-60 (sheared2) etort-138 163210.6949
-etort-60 (sheared2) etort-139 167564.1228
-etort-60 (sheared2) etort-140 167126.0696
-etort-60 (sheared2) etort-141 165700.7746
-etort-60 (sheared2) etort-142 168020.4028
-etort-60 (sheared2) etort-143 160749.6588
-etort-60 (sheared2) etort-144 162519.1217
-etort-60 (sheared2) etort-145 162558.1424
-etort-60 (sheared2) etort-146 164430.4685
-etort-60 (sheared2) etort-147 172074.6706
-etort-60 (sheared2) etort-148 177064.3797
-etort-60 (sheared2) etort-149 175179.0837
-etort-60 (sheared2) etort-150 166969.1848
-etort-60 (sheared2) etort-151 174226.255
-etort-60 (sheared2) etort-152 174074.8676
-etort-60 (sheared2) etort-153 172794.3399
-etort-60 (sheared2) etort-154 173974.251
-etort-60 (sheared2) etort-155 173949.0068
-etort-60 (sheared2) etort-156 176183.5152
-etort-60 (sheared2) etort-157 169341.8408
-etort-60 (sheared2) etort-158 165803.8405
-etort-60 (sheared2) etort-159 164548.9183
-etort-60 (sheared2) etort-161 163854.9448
-etort-60 (sheared2) etort-162 162471.7121
-etort-60 (sheared2) etort-163 167060.4175
-etort-60 (sheared2) etort-164 165800.2181
-etort-60 (sheared2) etort-166 168313.3281
-etort-60 (sheared2) etort-167 169997.1177
-etort-60 (sheared2) etort-168 169532.1639
-etort-60 (sheared2) etort-169 172760.2411
-etort-60 (sheared2) etort-170 182224.7917
-etort-60 (sheared2) etort-172 180336.488
-etort-60 (sheared2) etort-173 181715.2648
-etort-60 (sheared2) etort-174 181164.8423
-etort-60 (sheared2) etort-175 180405.2605
-etort-60 (sheared2) etort-176 180010.4482
-etort-60 (sheared2) etort-177 178631.5994
-etort-60 (sheared2) etort-178 179301.0295
-etort-60 (sheared2) etort-179 178295.6592
-etort-60 (sheared2) etort-180 179907.8182
-etort-60 (sheared2) etort-181 181220.5599
-etort-60 (sheared2) etort-182 176424.9655
-etort-60 (sheared2) etort-183 175810.3468
-etort-60 (sheared2) etort-184 178017.9317
-etort-60 (sheared2) etort-185 177152.3638
-etort-60 (sheared2) etort-186 183536.0227
-etort-60 (sheared2) etort-187 178803.7918
+etort-60 etort-61 133248.7945
+etort-60 etort-62 239767.5787
+etort-60 etort-63 116420.7355
+etort-60 etort-64 88242.91707
+etort-60 etort-65 125955.6553
+etort-60 etort-66 72477.3413
+etort-60 etort-67 82250.06033
+etort-60 etort-68 77597.55961
+etort-60 etort-69 37046.89608
+etort-60 etort-70 124104.0745
+etort-60 etort-71 152221.6453
+etort-60 etort-72 156273.2803
+etort-60 etort-73 125900.3716
+etort-60 etort-74 34254.1831
+etort-60 etort-75 118511.8683
+etort-60 etort-76 119529.8825
+etort-60 etort-77 102146.8199
+etort-60 etort-78 238786.073
+etort-60 etort-79 185978.1533
+etort-60 etort-80 187851.1472
+etort-60 etort-81 159775.879
+etort-60 etort-82 160460.6092
+etort-60 etort-83 160790.3247
+etort-60 etort-84 159281.1513
+etort-60 etort-85 157848.1961
+etort-60 etort-86 316528.672
+etort-60 etort-87 195075.3415
+etort-60 etort-88 132407.7394
+etort-60 etort-89 161361.6028
+etort-60 etort-90 163939.0645
+etort-60 etort-91 129696.3069
+etort-60 etort-92 144623.566
+etort-60 etort-93 175834.4931
+etort-60 etort-94 154461.4295
+etort-60 etort-95 202749.5055
+etort-60 etort-96 120259.3906
+etort-60 etort-97 200693.5387
+etort-60 etort-98 165780.4821
+etort-60 etort-99 181381.6499
+etort-60 etort-100 209296.4047
+etort-60 etort-102 172734.0199
+etort-60 etort-103 125499.0135
+etort-60 etort-104 169863.8796
+etort-60 etort-105 185893.4594
+etort-60 etort-106 210957.0762
+etort-60 etort-107 209206.5526
+etort-60 etort-108 233266.5137
+etort-60 etort-109 171858.8934
+etort-60 etort-110 199548.068
+etort-60 etort-111 190775.9257
+etort-60 etort-112 224044.3032
+etort-60 etort-113 204476.4758
+etort-60 etort-115 163815.8074
+etort-60 etort-116 176392.6658
+etort-60 etort-117 192682.4365
+etort-60 etort-119 84943.05863
+etort-60 etort-120 84612.96414
+etort-60 etort-121 146464.7272
+etort-60 etort-122 149188.3155
+etort-60 etort-123 148009.0704
+etort-60 etort-124 151616.989
+etort-60 etort-125 146885.7116
+etort-60 etort-126 153625.3251
+etort-60 etort-127 152888.6694
+etort-60 etort-128 151996.7827
+etort-60 etort-129 155242.08
+etort-60 etort-130 165328.2487
+etort-60 etort-131 174593.4822
+etort-60 etort-132 164280.406
+etort-60 etort-133 167323.3798
+etort-60 etort-134 163115.0846
+etort-60 etort-135 163257.6103
+etort-60 etort-136 168035.3806
+etort-60 etort-137 164244.9278
+etort-60 etort-138 163210.6949
+etort-60 etort-139 167564.1228
+etort-60 etort-140 167126.0696
+etort-60 etort-141 165700.7746
+etort-60 etort-142 168020.4028
+etort-60 etort-143 160749.6588
+etort-60 etort-144 162519.1217
+etort-60 etort-145 162558.1424
+etort-60 etort-146 164430.4685
+etort-60 etort-147 172074.6706
+etort-60 etort-148 177064.3797
+etort-60 etort-149 175179.0837
+etort-60 etort-150 166969.1848
+etort-60 etort-151 174226.255
+etort-60 etort-152 174074.8676
+etort-60 etort-153 172794.3399
+etort-60 etort-154 173974.251
+etort-60 etort-155 173949.0068
+etort-60 etort-156 176183.5152
+etort-60 etort-157 169341.8408
+etort-60 etort-158 165803.8405
+etort-60 etort-159 164548.9183
+etort-60 etort-161 163854.9448
+etort-60 etort-162 162471.7121
+etort-60 etort-163 167060.4175
+etort-60 etort-164 165800.2181
+etort-60 etort-166 168313.3281
+etort-60 etort-167 169997.1177
+etort-60 etort-168 169532.1639
+etort-60 etort-169 172760.2411
+etort-60 etort-170 182224.7917
+etort-60 etort-172 180336.488
+etort-60 etort-173 181715.2648
+etort-60 etort-174 181164.8423
+etort-60 etort-175 180405.2605
+etort-60 etort-176 180010.4482
+etort-60 etort-177 178631.5994
+etort-60 etort-178 179301.0295
+etort-60 etort-179 178295.6592
+etort-60 etort-180 179907.8182
+etort-60 etort-181 181220.5599
+etort-60 etort-182 176424.9655
+etort-60 etort-183 175810.3468
+etort-60 etort-184 178017.9317
+etort-60 etort-185 177152.3638
+etort-60 etort-186 183536.0227
+etort-60 etort-187 178803.7918
 etort-61 etort-62 273544.0747
 etort-61 etort-63 45704.91156
 etort-61 etort-64 48069.4219

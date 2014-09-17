@@ -32,10 +32,21 @@ for (varname in c("Sex","Cleaned","Tissue.Box","Adapter11","Lib.prepped.","Sent.
     if (is.null(locator(1))) { break }
 }
 
+et110 <- which( torts$EM_Tort_ID == "etort-110" )
+et50 <- which( torts$EM_Tort_ID == "etort-50" )
+other11 <- which( torts$EM_Tort_ID != "etort-110" & ! torts$EM_Tort_ID == "etort-50" & torts$Adapter11 ) 
+
 plot( tort.dists[usethese], pimat[usethese], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5, col=var_col("Adapter11")[usethese], main=varname )
-ad11 <- with(torts,outer(adapter11,adapter11,"|"))
-abline( coef( lm( tort.dists[usethese & ad11], pimat[usethese & ad11], col='red', lwd=2 )
-abline( coef( lm( tort.dists[usethese & !ad11], pimat[usethese & ! ad11], lwd=2 )
+points( tort.dists[et110,], pimat[et110,], col='green' )
+points( tort.dists[et50,], pimat[et50,], col='purple' )
+points( tort.dists[other11,other11], pimat[other11,other11], col='blue' )
+ad11 <- with(torts,outer(Adapter11,Adapter11,"|"))
+xx <- tort.dists[ut & outer(hasdata,hasdata,"&") & ad11]
+yy <- pimat[ut & outer(hasdata,hasdata,"&") & ad11]
+abline( coef( lm( yy ~ xx ) ), col='red', lwd=2 )
+xx <- tort.dists[ut & outer(hasdata,hasdata,"&") & !ad11]
+yy <- pimat[ut & outer(hasdata,hasdata,"&") & !ad11]
+abline( coef( lm( yy ~ xx ) ), lwd=2 )
 
 pdf(file="pairwise-pi-first-100000.pdf",width=10, height=6, pointsize=10)
 
