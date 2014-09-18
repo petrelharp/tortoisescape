@@ -41,6 +41,18 @@ for (x in grep("PC",names(torts),value=TRUE,invert=TRUE)) {
     if (is.null(locator(1))) break
 }
 
+
+# Does PC1 correlate with coverage?
+coverages <- scan("alleleCounts500kLoci.colmeans.txt")
+dim(coverages) <- c(2,nrow(torts))
+torts$coverage <- colSums(coverages)
+torts$mean.major <- coverages[1,]
+
+plot( PC1 ~ coverage, data=torts )
+plot( PC1 ~ mean.major, data=torts )
+plot( PC1 ~ I(mean.major/coverage), data=torts )
+
+
 if (FALSE) {
 
     ###
