@@ -20,17 +20,22 @@ torts$PC2 <- eig.covmat$vectors[,2]
 torts$PC3 <- eig.covmat$vectors[,3]
 torts$PC4 <- eig.covmat$vectors[,4]
 
+pdf(file="PCs-and-position.pdf", width=10, height=8, pointsize=10)
 pairs( subset(torts,UTM_Zone!="12N")[c("PC1","PC2","PC3","PC4","Northing","Easting")] )
+dev.off()
 
-layout(t(1:2))
-plot( PC2 ~ PC1, data=torts, col=terrain_hcl(64)[cut(Northing,breaks=64)], main="Northing", subset=UTM_Zone!="12N", pch=20, cex=2 )
-plot( PC2 ~ PC1, data=torts, col=terrain_hcl(64)[cut(Easting,breaks=64)], main="Easting", subset=UTM_Zone!="12N", pch=20, cex=2 )
+if (FALSE) {
 
-layout(t(1:2))
-plot( Northing ~ Easting, data=torts, col=terrain_hcl(64)[cut(PC1,breaks=64)], main="PC1", subset=UTM_Zone!="12N", pch=20, cex=2 )
-plot( Northing ~ Easting, data=torts, col=terrain_hcl(64)[cut(PC2,breaks=64)], main="PC2", subset=UTM_Zone!="12N", pch=20, cex=2 )
+    layout(t(1:2))
+    plot( PC2 ~ PC1, data=torts, col=terrain_hcl(64)[cut(Northing,breaks=64)], main="Northing", subset=UTM_Zone!="12N", pch=20, cex=2 )
+    plot( PC2 ~ PC1, data=torts, col=terrain_hcl(64)[cut(Easting,breaks=64)], main="Easting", subset=UTM_Zone!="12N", pch=20, cex=2 )
 
-plot( Northing ~ Easting, data=torts, subset=UTM_Zone!="12N", pch=20, cex=2, col=Location_ID )
+    layout(t(1:2))
+    plot( Northing ~ Easting, data=torts, col=terrain_hcl(64)[cut(PC1,breaks=64)], main="PC1", subset=UTM_Zone!="12N", pch=20, cex=2 )
+    plot( Northing ~ Easting, data=torts, col=terrain_hcl(64)[cut(PC2,breaks=64)], main="PC2", subset=UTM_Zone!="12N", pch=20, cex=2 )
+
+    plot( Northing ~ Easting, data=torts, subset=UTM_Zone!="12N", pch=20, cex=2, col=Location_ID )
+}
 
 # check stuff for technical artifacts
 for (x in grep("PC",names(torts),value=TRUE,invert=TRUE)) {
