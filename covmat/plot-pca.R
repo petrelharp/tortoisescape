@@ -124,6 +124,18 @@ if (interactive()) {
 }
 
 
+# how about correlations in coverage?
+full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts100k-raw-covmat.txt",header=FALSE) )
+coverage.covmat <- full.coverage.covmat[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts))-1 ]
+minor.covmat <- full.coverage.covmat[ 2*(1:nrow(torts)), 2*(1:nrow(torts)) ]
+coverage.minor.cormat <- cov2cor(full.coverage.covmat)[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts)) ]
+
+pdf(file="coverage-and-covariance.pdf",width=8,height=8,pointsize=10)
+plot( as.vector(cov2cor(coverage.covmat)), as.vector(cov2cor(covmat)), col=adjustcolor(ifelse(row(covmat)==col(covmat),"red","black"),.5), pch=20 ,cex=.5, xlab="coverage correlation", ylab="allele frequency correlation" )
+plot( as.vector(cov2cor(minor.covmat)), as.vector(cov2cor(covmat)), col=adjustcolor(ifelse(row(covmat)==col(covmat),"red","black"),.5), pch=20 ,cex=.5, xlab="major allele coverage correlation", ylab="allele frequency correlation" )
+plot( as.vector(coverage.minor.cormat), as.vector(cov2cor(covmat)), col=adjustcolor(ifelse(row(covmat)==col(covmat),"red","black"),.5), pch=20 ,cex=.5, xlab="coverage-major allele cross-correlation", ylab="allele frequency correlation" )
+dev.off()
+
 if (FALSE) {
 
     ###
