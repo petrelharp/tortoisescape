@@ -3,6 +3,13 @@
 ################################
 
 
+if(file.exists("~/Desktop/Dropbox/tortoisescape")){
+    setwd("~/Desktop/Dropbox/tortoisescape")
+    tiffdir <- ""
+} else {
+    tiffdir <- "geolayers/TIFF/masked"
+}
+
 #	this function extracts the raster value
 #		from the matrix of locations provided
 require(raster)
@@ -19,8 +26,8 @@ get.raster.data.from.locations <- function(raster,locations){
 #		and apply this function to them.
 
 load("tort.coords.rasterGCS.Robj")
-raster.files <- list.files(pattern=".gri")
-raster.names <- unlist(strsplit(raster.files,"crop_resampled_masked_"))[seq(2,2*length(raster.files),2)]
+raster.files <- list.files(tiffdir,pattern=".gri",full.names=TRUE)
+raster.names <- gsub(".*crop_(resampled_)*masked_","",raster.files)
 raster.names <- gsub(".gri","",raster.names)
 raster.values.tort.locations.matrix <- matrix(0,
 										nrow=nrow(tort.coords.rasterGCS@coords),
@@ -37,4 +44,4 @@ for(i in 1:length(raster.files)){
 }
 
 save(raster.values.tort.locations.matrix,file="raster.values.tort.locations.matrix.Robj")
-write.table(raster.values.tort.locations.matrix,file="raster.values.tort.locations.matrix.csv")
+write.csv(raster.values.tort.locations.matrix,file="raster.values.tort.locations.matrix.csv")
