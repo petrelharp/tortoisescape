@@ -30,7 +30,7 @@ for (ii in 1:ninds) for (jj in ii:ninds) {
     w.covmat[jj,ii] <- w.covmat[ii,jj] <- weighted.mean( fi * fj, w=w ) - weighted.mean( fi, w=w ) * weighted.mean( fj, w=w )
 }
 
-fout <- if (outfile=="-") { stdout() } else { file(outfile,open="r") }
+fout <- if (outfile=="-") { stdout() } else { file(outfile,open="w") }
 write.table( w.covmat, file=fout, quote=FALSE, row.names=FALSE, col.names=FALSE )
 close(fout)
 
@@ -47,7 +47,7 @@ if (outfile != "-") {
         n.covmat[jj,ii] <- n.covmat[ii,jj] <- weighted.mean( pi * pj, w=w ) - weighted.mean( pi, w=w ) * weighted.mean( pj, w=w )
     }
 
-    fout <- file(outfile.norm,open="r")
+    fout <- file(outfile.norm,open="w")
     write.table( n.covmat, file=fout, quote=FALSE, row.names=FALSE, col.names=FALSE )
     close(fout)
 }
