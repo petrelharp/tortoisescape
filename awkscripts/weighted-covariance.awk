@@ -1,5 +1,5 @@
-# compute means of odd rows
-# weighted by even rows
+# compute covariances of odd rows
+# weighted by geometric mean of corresponding even rows
 
 NR == 1 { for ( N=1; N<=NF; N++ ) H[N] = $N }
 

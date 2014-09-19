@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-pimat.vals <- scan("100000.cov")  # has upper triangle of entries
+pimat.vals <- scan("100000.pwp")  # has upper triangle of entries
 nind <- 180
 
 pimat <- numeric(nind^2)

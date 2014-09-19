@@ -5,10 +5,10 @@ NR == 1 { srand(); for ( N=1; N<=NF; N++ ) H[N] = $N }
 
 NR > 1 { 
     for ( N=1; N<=(NF/2); N++ ) { 
-        if ( $(2*N-1) > 0 ) {
-            A[N] = rand() > $(2*N-1)/$(2*N) ? 1 : 0 ;  # pick a random allele
+        if ( $(2*N) > 0 ) {
+            A[N] = rand() < $(2*N-1)/$(2*N) ? 1 : 0 ;  # pick a random allele
             for ( M=1; M<=N; M++ ) {
-                # print N,M,$(2*N),$(2*M);
+                # print NR,":",N,M,$(2*N),$(2*M);
                 if ( $(2*M) > 0 ) {
                     W[N,M]++;  # number of sites where both have coverage
                     C[N,M] += A[N]*A[M];
