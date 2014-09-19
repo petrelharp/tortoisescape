@@ -28,64 +28,106 @@ dim(covmat) <- c(nrow(torts),nrow(torts))
 
 eig.covmat <- eigen(covmat)
 
+# proportion of variance explained
+eig.covmat$values / sum(eig.covmat$values)
+cat( paste(formatC( eig.covmat$values / sum(eig.covmat$values)*100, digits=3 )[1:8],"%",sep=''), "\n" )
+
 torts$PC1 <- eig.covmat$vectors[,1]
 torts$PC2 <- eig.covmat$vectors[,2]
 torts$PC3 <- eig.covmat$vectors[,3]
 torts$PC4 <- eig.covmat$vectors[,4]
+torts$PC5 <- eig.covmat$vectors[,5]
+torts$PC6 <- eig.covmat$vectors[,6]
+torts$PC7 <- eig.covmat$vectors[,7]
+torts$PC8 <- eig.covmat$vectors[,8]
 
 # get elevation raster
 elev.file <- "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri"
 elev <- raster(elev.file)
 # and tortoise locs
 load("../tort.coords.rasterGCS.Robj")
+stopifnot( all( row.names(tort.coords.rasterGCS) == torts$EM_Tort_ID ) )
 # and county lines
 load("../county_tortoise_plotting_info.Robj")  # @gbradburd: how was this produced?
 
-pdf(file="PCs-and-position.pdf", width=10, height=8, pointsize=10)
-pairs( subset(torts,UTM_Zone!="12N")[c("PC1","PC2","PC3","PC4","Northing","Easting")] )
+# and, coverages
+coverages <- scan("../tortGen/exampleOutput/alleleCounts500kLoci.colmeans.txt")
+dim(coverages) <- c(2,nrow(torts))
+torts$coverage <- coverages[1,]
+torts$mean.major.coverage <- coverages[2,]
+torts$mean.major <- coverages[2,]/coverages[1,]
+
+
+####
+# ok now plot stuff
+
+pdf(file="PCs-and-position.pdf", width=10, height=10, pointsize=10)
+pairs( subset(torts,UTM_Zone!="12N")[c("PC1","PC2","PC3","PC4","Northing","Easting","coverage","mean.major")] )
 dev.off()
 
+# plots of PCs against each other, colored by northing and easting
 pdf(file="PC-maps.pdf", width=10, height=8, pointsize=10)
-
     cols <- diverge_hcl(64)
     pairs( torts[c("PC1","PC2","PC3","PC4")], 
         lower.panel=function(x,y,...){points(x,y,bg=cols[cut(torts$Northing,breaks=64)], pch=21, cex=2, col=grey(.20) )}, 
         upper.panel=function(x,y,...){points(x,y,bg=cols[cut(torts$Easting,breaks=64)], pch=21, cex=2, col=grey(.20) )},
         main="Northing (above), Easting (below)" )
+dev.off()
 
-    layout(matrix(1:4,nrow=2))
-    plot( Northing ~ Easting, data=torts, bg=cols[cut(PC1,breaks=64)], main="PC1", pch=21, cex=2 )
-    plot( Northing ~ Easting, data=torts, bg=cols[cut(PC2,breaks=64)], main="PC2", pch=21, cex=2 )
-    plot( Northing ~ Easting, data=torts, bg=cols[cut(PC3,breaks=64)], main="PC3", pch=21, cex=2 )
-    plot( Northing ~ Easting, data=torts, bg=cols[cut(PC4,breaks=64)], main="PC4", pch=21, cex=2 )
-
+# maps, with PCs on
+pdf(file="maps-with-PCs.pdf", width=10, height=8, pointsize=10)
+    plot(elev,main="Elevation with tortoise IDs")
+    lines(county_lines)
+    text(tortoise_locations,labels=gsub("etort.","",torts$EM_Tort_ID))
+    ncols <- 16
+    cols <- adjustcolor(diverge_hcl(ncols),.7)
+    for (pcs in c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8")) {
+        pcvec <- torts[[pcs]]
+        pcfac <- cut( pcvec, breaks=ncols )
+        plot(elev,main=pcs)
+        lines(county_lines)
+        points(tortoise_locations,pch=21,cex=2,col=grey(.2), bg=cols[pcfac])
+        legend("topleft", legend=formatC(tapply(pcvec,pcfac,mean,na.rm=TRUE),digits=2), fill=cols)
+    }
 dev.off()
 
 # check stuff for technical artifacts
-for (x in grep("PC",names(torts),value=TRUE,invert=TRUE)) {
-    layout(matrix(1:4,nrow=2))
-    for (pc in c("PC1","PC2","PC3","PC4")) {
-        plot( torts[[x]][torts$UTM_Zone!="12N"], torts[[pc]][torts$UTM_Zone!="12N"], main=paste(x,pc) )
+if (interactive()) {
+    for (x in grep("PC",names(torts),value=TRUE,invert=TRUE)) {
+        layout(matrix(1:4,nrow=2))
+        for (pc in c("PC1","PC2","PC3","PC4")) {
+            plot( torts[[x]][torts$UTM_Zone!="12N"], torts[[pc]][torts$UTM_Zone!="12N"], main=paste(x,pc) )
+        }
+        if (is.null(locator(1))) break
     }
-    if (is.null(locator(1))) break
 }
 
 
-# Does PC1 correlate with coverage?
-coverages <- scan("alleleCounts500kLoci.colmeans.txt")
-dim(coverages) <- c(2,nrow(torts))
-torts$coverage <- colSums(coverages)
-torts$mean.major <- coverages[1,]
+# look for association between PC1 and environmental variables
+raster.covs <- cor( rasters, torts$PC1, use="pairwise" )
+raster.covs <- as.vector( raster.covs ); names(raster.covs) <- colnames(rasters)
 
-plot( PC1 ~ coverage, data=torts )
-plot( PC1 ~ mean.major, data=torts )
-plot( PC1 ~ I(mean.major/coverage), data=torts )
+if (interactive()) {
+    for (k in 1:ncol(rasters)) {
+        plot( rasters[,k], torts$PC1, main=colnames(rasters)[k] )
+        if (is.null(locator(1))) break
+    }
+}
+
+# Does PC1 correlate with coverage?
+if (interactive()) {
+    plot( PC1 ~ coverage, data=torts )
+    plot( PC1 ~ mean.major, data=torts )
+
+    plot( PC1 ~ I(mean.major/coverage), data=torts, type='n' )
+    with(torts, text( (mean.major/coverage), PC1, labels=gsub("etort.","",EM_Tort_ID) ) )
+}
 
 
 if (FALSE) {
 
     ###
-    # remove cluster in Ivanpah
+    # does not change after removing cluster in Ivanpah
 
     ivanpah <- ( torts$Location_ID %in% c("Ivanpah","ISEGS","Silver State") )
 
