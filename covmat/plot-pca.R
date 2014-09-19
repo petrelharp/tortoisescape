@@ -4,6 +4,7 @@ require(sp)
 require(rgdal)
 require(maps)
 require(maptools)
+require(raster)
 
 torts <- read.csv("../1st_180_torts.csv",header=TRUE)
 tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE,stringsAsFactors=FALSE)
@@ -23,7 +24,8 @@ stopifnot( all( rownames(rasters) == torts$EM_Tort_ID ) )
 torts <- cbind(torts,rasters)
 
 ## PCA
-covmat <- scan("alleleCounts100k-covmat.txt")
+# covmat <- scan("../tortGen/exampleOutput/alleleCounts100k-covmat.txt")
+covmat <- scan("../tortGen/exampleOutput/alleleCounts500kLoci-covmat.txt")
 dim(covmat) <- c(nrow(torts),nrow(torts))
 
 eig.covmat <- eigen(covmat)
@@ -115,17 +117,20 @@ if (interactive()) {
 }
 
 # Does PC1 correlate with coverage?
-if (interactive()) {
-    plot( PC1 ~ coverage, data=torts )
-    plot( PC1 ~ mean.major, data=torts )
+pdf(file="PC1-and-coverage.pdf",width=6,height=6,pointsize=10)
+    plot( PC1 ~ coverage, data=torts, type='n' )
+    with(torts, text( coverage, PC1, labels=gsub("etort.","",EM_Tort_ID) ) )
+
+    plot( PC1 ~ mean.major, data=torts, type='n' )
+    with(torts, text( mean.major, PC1, labels=gsub("etort.","",EM_Tort_ID) ) )
 
     plot( PC1 ~ I(mean.major/coverage), data=torts, type='n' )
     with(torts, text( (mean.major/coverage), PC1, labels=gsub("etort.","",EM_Tort_ID) ) )
-}
+dev.off()
 
 
 # how about correlations in coverage?
-full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts100k-raw-covmat.txt",header=FALSE) )
+full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts500k-raw-covmat.txt",header=FALSE) )
 coverage.covmat <- full.coverage.covmat[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts))-1 ]
 minor.covmat <- full.coverage.covmat[ 2*(1:nrow(torts)), 2*(1:nrow(torts)) ]
 coverage.minor.cormat <- cov2cor(full.coverage.covmat)[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts)) ]
