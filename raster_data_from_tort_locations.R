@@ -6,6 +6,8 @@
 #	this function extracts the raster value
 #		from the matrix of locations provided
 require(raster)
+rasterOptions(tmpdir=".")
+
 
 get.raster.data.from.locations <- function(raster,locations){
 	values <- extract(raster, locations)

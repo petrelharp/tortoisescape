@@ -11,6 +11,7 @@ if(file.exists("~/Desktop/Dropbox/tortoisescape")){
 require(raster)
 require(rgdal)
 
+rasterOptions(tmpdir=".")
 
 ################################
 #	getting tortoise locations
@@ -37,5 +38,7 @@ tort.coords_zone12 <- SpatialPoints(tort.coords[grepl("12",tort.zone),,drop=FALS
 tort.coords_zone11_rasterGCS <- spTransform(tort.coords_zone11,raster_GCS_CRS_proj4)
 tort.coords_zone12_rasterGCS <- spTransform(tort.coords_zone12,raster_GCS_CRS_proj4)
 tort.coords.rasterGCS <- rbind(tort.coords_zone11_rasterGCS,tort.coords_zone12_rasterGCS)
+
 row.names(tort.coords.rasterGCS) <- tort.coord.data$EM_Tort_ID
 save(tort.coords.rasterGCS,file="tort.coords.rasterGCS.Robj")
+
