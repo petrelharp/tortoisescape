@@ -6,10 +6,10 @@ if (length(commandArgs(TRUE)) < 2) {
     cat("Usage: \n Rscript counts-pca.R infile outfile \n\n")
 }
 
-# infile <- commandArgs(TRUE)[1]
-# outfile <- commandArgs(TRUE)[2]
-infile <- "exampleOutput/alleleCounts100k.txt"
-outfile <- "exampleOutput/alleleCounts100k-covmat.txt"
+infile <- commandArgs(TRUE)[1]
+outfile <- commandArgs(TRUE)[2]
+# infile <- "exampleOutput/alleleCounts100k.txt"
+# outfile <- "exampleOutput/alleleCounts100k-covmat.txt"
 
 fin <- if (infile=="-") { stdin() } else { file(infile,open="r") }
 c1 <- scan(fin,nlines=1)
