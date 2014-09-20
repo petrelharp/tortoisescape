@@ -38,3 +38,11 @@ x <- read.table("test.data",header=TRUE)
 print( wt.cov(x) )
 
 print(sub.cov(x))
+
+read.table(pipe("cat test.data | awk -f subsampled-covariance.awk"),header=FALSE)
+
+y <- read.table("test.binary.data",header=FALSE)
+print( wt.cov(y) )
+
+read.table(pipe("cat test.binary.data | awk -f subsampled-covariance.awk"),header=FALSE)
+

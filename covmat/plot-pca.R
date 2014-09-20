@@ -130,7 +130,8 @@ dev.off()
 
 
 # how about correlations in coverage?
-full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts500k-raw-covmat.txt",header=FALSE) )
+# full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts100k-raw-covmat.txt",header=FALSE) )
+full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts500kLoci-raw-covmat.txt",header=FALSE) )
 coverage.covmat <- full.coverage.covmat[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts))-1 ]
 minor.covmat <- full.coverage.covmat[ 2*(1:nrow(torts)), 2*(1:nrow(torts)) ]
 coverage.minor.cormat <- cov2cor(full.coverage.covmat)[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts)) ]
