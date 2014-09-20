@@ -34,6 +34,13 @@ pc2lm <- lm( eigen(ngscov)$vectors[,2] ~ eigen(proj.sparsecov)$vectors[,2] )
 plot( torts$coverage, resid(pc1lm) )
 plot( torts$coverage, resid(pc2lm) )
 
+pdf(file="pca-comparison.pdf", width=10, height=5, pointsize=10)
+layout(t(1:2))
+plot( eigen(proj.sparsecov)$vectors[,1], eigen(ngscov)$vectors[,1], type='n', ylab='robust PC1', xlab='ngstools PC1' ); abline(0,1)
+text( eigen(proj.sparsecov)$vectors[,1], eigen(ngscov)$vectors[,1], labels=tortlabs)
+plot( torts$coverage, resid(pc1lm), type='n', xlab='coverage', ylab='residual ngstools against robust' )
+text( torts$coverage, resid(pc1lm), labels=tortlabs)
+dev.off()
 
 
 if (FALSE) {
