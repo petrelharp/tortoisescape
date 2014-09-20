@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-pimat.vals <- scan("100000.pwp")  # has upper triangle of entries
+pimat.vals <- scan("350000.pwp")  # has upper triangle of entries
 nind <- 180
 
 pimat <- numeric(nind^2)
@@ -45,7 +45,7 @@ et110 <- which( torts$EM_Tort_ID == "etort-110" )
 et50 <- which( torts$EM_Tort_ID == "etort-50" )
 other11 <- which( torts$EM_Tort_ID != "etort-110" & ! torts$EM_Tort_ID == "etort-50" & torts$Adapter11 ) 
 
-pdf(file="pairwise-pi-first-100000.pdf",width=10, height=6, pointsize=10)
+pdf(file="pairwise-pi-first-350000.pdf",width=10, height=6, pointsize=10)
 
 plot( tort.dists[usethese], pimat[usethese], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5 )
 abline( coef( lm( pimat[usethese] ~ tort.dists[usethese] ) ) ) 
