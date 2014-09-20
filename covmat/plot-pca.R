@@ -24,11 +24,11 @@ stopifnot( all( rownames(rasters) == torts$EM_Tort_ID ) )
 torts <- cbind(torts,rasters)
 
 ## PCA
-# covmat <- scan("../tortGen/exampleOutput/alleleCounts100k-covmat.txt")
-covmat <- scan("../tortGen/exampleOutput/alleleCounts500kLoci-covmat.txt")
+# covmat <- scan("alleleCounts100k-covmat.txt")
+covmat <- scan("alleleCounts500kLoci-covmat.txt")
 dim(covmat) <- c(nrow(torts),nrow(torts))
-
-eig.covmat <- eigen(covmat)
+pmat <- diag(nrow(torts)) - 1/nrow(torts)
+eig.covmat <- eigen(pmat %*% covmat %*% pmat)
 
 # proportion of variance explained
 eig.covmat$values / sum(eig.covmat$values)
@@ -53,11 +53,11 @@ stopifnot( all( row.names(tort.coords.rasterGCS) == torts$EM_Tort_ID ) )
 load("../county_tortoise_plotting_info.Robj")  # @gbradburd: how was this produced?
 
 # and, coverages
-coverages <- scan("../tortGen/exampleOutput/alleleCounts500kLoci.colmeans.txt")
-dim(coverages) <- c(2,nrow(torts))
-torts$coverage <- coverages[1,]
-torts$mean.major.coverage <- coverages[2,]
-torts$mean.major <- coverages[2,]/coverages[1,]
+coverages <- read.csv("../coverage_info.csv")
+torts$coverage <- coverages$sequence_yield_megabases[match(torts$EM_Tort_ID,coverages$individual)]
+raw.coverages <- scan("alleleCounts500kLoci.colmeans.txt")
+dim(raw.coverages) <- c(2,nrow(torts))
+torts$mean.major <- raw.coverages[2,]/raw.coverages[1,]
 
 
 ####
@@ -130,8 +130,8 @@ dev.off()
 
 
 # how about correlations in coverage?
-# full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts100k-raw-covmat.txt",header=FALSE) )
-full.coverage.covmat <- as.matrix( read.table("../tortGen/exampleOutput/alleleCounts500kLoci-raw-covmat.txt",header=FALSE) )
+# full.coverage.covmat <- as.matrix( read.table("alleleCounts100k-raw-covmat.txt",header=FALSE) )
+full.coverage.covmat <- as.matrix( read.table("alleleCounts500kLoci-raw-covmat.txt",header=FALSE) )
 coverage.covmat <- full.coverage.covmat[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts))-1 ]
 minor.covmat <- full.coverage.covmat[ 2*(1:nrow(torts)), 2*(1:nrow(torts)) ]
 coverage.minor.cormat <- cov2cor(full.coverage.covmat)[ 2*(1:nrow(torts))-1, 2*(1:nrow(torts)) ]
