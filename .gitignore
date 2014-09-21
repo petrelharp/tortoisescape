@@ -1,5 +1,5 @@
 *.Rapp.history
-DS_Store
+.DS_Store
 server.info
 *.aux
 *.log
