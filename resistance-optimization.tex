@@ -302,3 +302,31 @@ and
 \end{align}
 
 \end{document}
+
+
+%%%%%%%% %%%%%%%% 
+\section{Initial values}
+ 
+It would be nice to get order-of-magnitude estimates
+for where to start the parameters above.
+To do this, we can pretend that space is flat.
+Let $\tau_r$ be the first hitting time of two-dimensional Brownian motion of a disk of radius $r$.
+Then with the motion begun at radius $x > r$,
+\begin{align}
+  \E_x[ e^{-\alpha \tau_r} ] = \frac{ K_0( x \sqrt{2 \alpha } ) }{ K_0( r \sqrt{2 \alpha } ) } ,
+\end{align}
+where $K_0(x)$ is the modified Bessel function of the second kind (Borodin \& Salminen 4.2.0.1).
+Differentiating, using Gradshteyn \& Ryzhik 8.486.13 and 8.446,
+that $\partial_z K_0(z) = - K_1(z)$,
+that $K_0(x) \sim \log(1/x)$ for small $x$,
+and $K_1(x) \sim 1/x$ for small $x$,
+\begin{align}
+  \E_x[ \tau_r ] &= - \partial_\alpha \frac{ K_0( x \sqrt{2 \alpha } ) }{ K_0( r \sqrt{2 \alpha } ) } \Bigg \vert_{\alpha=0} \\
+  &= \lim_{\alpha \to 0} \frac{ K_1( x \sqrt{2 \alpha} ) K_0(r \sqrt{2 \alpha}) - K_0(x \sqrt{2\alpha}) K_1( r \sqrt{2 \alpha} ) }{ K_0(r \sqrt{2\alpha} )^2 }  \\
+  &= \lim_{\alpha \to 0}  \frac{ \log(x \sqrt{2 \alpha}) / ( r \sqrt{2 \alpha} ) - \log(r \sqrt{2 \alpha}) / ( x \sqrt{2 \alpha} ) }{ \log( r \sqrt{2\alpha} )^2 } \\
+\end{align}
+
+Now suppose that typical points in the range are separated by $R$
+and that our discretization divides regions into pieces of width $\epsilon$.
+Then the mean hitting time 
+
