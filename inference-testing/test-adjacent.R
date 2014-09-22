@@ -4,7 +4,7 @@ require(Matrix)
 require(raster)
 
 # load raster (change to full size for actual use)
-rast<- raster("crop_resampled_masked_aggregated_100x_m2_02tmax")
+rast<- raster("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_m2_02tmax")
 ## For cluster
 # setwd("/home/rcf-40/pralph/panfs/tortoises/tortoisescape")
 # layer.prefix <- c("geolayers/TIFF/masked/")
