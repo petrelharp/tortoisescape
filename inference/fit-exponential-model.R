@@ -6,7 +6,7 @@ require(raster)
 layer.prefix <- c("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
 layer.names <- c("annual_precip","barren_30","bd_ss2_st_30","eastness_30","lat_gcs_30","lon_gcs_30")
 
-init.params <- c( rep(.01,length(layer.names)), rep(.01,length(layer.names)) )
+init.params <- c( beta=1.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
 
 ###
 # layer whatnot
@@ -38,19 +38,22 @@ stopifnot( all( locs == cellFromRowCol(onelayer,locs.ij[,2],locs.ij[,1]) ) )
 
 ###
 # generator matrix
-ij <- adjacent(onelayer,cells=nonmissing,target=nonmissing,directions=4,pairs=TRUE) # to and from cells both loc
+ij <- adjacent(onelayer,cells=nonmissing,target=nonmissing,directions=4,pairs=TRUE,sorted=TRUE) # to and from cells both loc
+ij <- ij[,2:1]
+stopifnot( all(ij[,1] != ij[,2]) ) ## NO DIAGONAL
+
+G <- sparseMatrix( i=ij[,1], j=ij[,2], x=1.0 )
 
 transfn <- exp
 valfn <- function (gamma) { ( rowSums( layers * gamma[col(layers)], na.rm=TRUE ) ) }
 
 update.G <- function(params) {
-    gamma <- params[1:length(delta)]
-    delta <- params[length(delta)+(1:length(gamma))]
-    G <- grid.adjacency(n,m,diag=FALSE,symmetric=FALSE)
-    dp <- diff(G@p)
-    jj <- rep(seq_along(dp),dp)
-    G@x <- transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[jj] )
-    diag(G) <- (-1) * rowSums(G)
-    return(G)
+    beta <- params[1]
+    gamma <- params[1+(1:length(delta))]
+    delta <- params[1+(length(delta)+(1:length(gamma)))]
+    return( beta * transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[jj] ) )
 }
 
+G@x <- update.G(init.params)
+
+true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
