@@ -1,5 +1,10 @@
 #!/usr/bin/Rscript
 
+##
+# infer parameters on layers ("aa") in a linear model
+#  by gradient ascent
+#  by inferring true hitting times
+
 source("resistance-fns.R")
 
 # width of square grid
