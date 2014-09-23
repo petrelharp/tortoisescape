@@ -77,23 +77,27 @@ grid.generator <- function (n,killing=0) {
     return(A)
 }
 
-hitting.jacobi <- function (locs,G,hts,b=-1.0,tol=1e-6) {
+hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=1000) {
     # compute analytical expected hitting times using the Jacobi method (from jacobi.R)
     #  note that G ** comes with no diagonal **
-    kmax <- 10000 #maximum iterations
-    idG <- 1/rowSums(G)
     for (locnum in 1:length(locs)) {
         ll <- locs[locnum]
         k <- 1
-        x <- hts[-ll,locnum]
+        x <- hts[,locnum]
+        x[ll] <- 0
         for (k in 1:kmax) {
-            x_new <- idG[-ll] * (b-G[-ll,-ll]%*%x)
+            x_new <- idG * (G%*%x-b)
+            x_new[ll] <- 0
             err <- mean((x_new-x)^2)
-            if (err < tol || err > 2^16) { break; }
+            cat(k,":",err,"\n")
+            if (err < tol) {
+                cat("converged! err=", err, "\n")
+                break; 
+            }
             x <- x_new
         }
-        hts[ll,locnum] <- 0
-        hts[-locs[locnum],locnum] <- x
+        if (k==kmax) { cat("Hit kmax. Did not converge, err=",err,"\n") }
+        hts[,locnum] <- as.vector(x_new)
     }
     return(hts)
 }

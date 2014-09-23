@@ -1,4 +1,4 @@
-jacobi <- function(D_R,D_1b,b){
+jacobi <- function(D_R,D_1b,tol=1e-6){
     # solves Ax = b
     # where D_1b is the inverse of the diagonal of A, multiplied by b
     #  and D_R is the inverse of the diagonal of A, multiplied by (-1) times the offdiagonal of A:
@@ -6,9 +6,8 @@ jacobi <- function(D_R,D_1b,b){
     # D_R <- (-1) * 1/diag(A) * (A - diag(A))
 
     kmax <- 10000 #maximum iterations
-    tol <- 1e-6
     err <- 1 
-    x = rnorm(length(b),0,1) # starting vector
+    x = rnorm(length(D_1b),0,1) # starting vector
     k <- 1
 
     while(k < kmax && err > tol && err < 2^16){

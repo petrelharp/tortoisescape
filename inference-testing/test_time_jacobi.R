@@ -37,15 +37,15 @@ for(i in seq_along(nn)){
   gc()
   
   # pre-calculate stuff  
-  b = rnorm(n^2,0,1)
-  D_R <- (D_1)%*%(-R)
-  D_1b <- (D_1)%*%b
-  
+  b <- rnorm(n^2,0,1)
+  D_R <- (D_1)%*%(R)
+  D_1b <- (-1)*(D_1)%*%b
+
   # free memory again
   rm("R","D_1")
   gc()
   
-  t <- system.time(for(k in 1:nreps[i]) x <- jacobi(D_R,D_1b))
+  t <- system.time(for(k in 1:nreps[i]) x <- jacobi(D_R,D_1b,b))
 
   nn.times[i] <- t["user.self"]/nreps[i]
   
