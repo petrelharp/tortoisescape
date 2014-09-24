@@ -14,3 +14,10 @@ will produce the files
  
 - `crop_resampled_masked_aggregated_100x_nonmissing.RData` : the necessary info to translate from nonmissing index back to position in the layer
   - `nonmissing` : indices of nonmissing items in layers
+
+
+2. `setup-tort-locs.R` will figure out which raster cell each tortoise fell in, and save this to, e.g.
+```
+  Rscript setup-tort-locs.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_
+```
+will save this in `crop_resampled_masked_aggregated_100x_tortlocs.RData`

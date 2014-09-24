@@ -4,21 +4,17 @@ source("resistance-fns.R")
 require(raster)
 
 layer.prefix <- c("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
-layer.names <- c("annual_precip","barren_30","bd_ss2_st_30","eastness_30","lat_gcs_30","lon_gcs_30")
 
-init.params <- c( beta=1.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
+# get precomputed G
+load(paste(basename(layer.prefix),"G.RData",sep=''))
+Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
 ###
 # layer whatnot
 
-# get info out of one layer
-onelayer <- raster(paste(layer.prefix,layer.names[1],sep=''))
-n <- dim(onelayer)[2]; m <- dim(onelayer)[1]
-nmap <- matrix(1:n*m,nrow=n)
-all.locs <- cbind( i=as.vector(row(nmap)), j=as.vector(col(nmap)) )
-onevals <- values(onelayer)
-nonmissing <- which(!is.na(onevals))
+init.params <- c( beta=1.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
 
+layer.names <- c("annual_precip","barren_30","eastness_30","lat_gcs_30","lon_gcs_30")
 layers <- sapply(layer.names, function (ll) {
             rast <- raster(paste(layer.prefix,ll,sep=''))
             # note this is ROW-ORDERED
@@ -26,6 +22,9 @@ layers <- sapply(layer.names, function (ll) {
             vrast <- scale( values(rast)[nonmissing] )
             return(vrast)
         } )
+stopifnot(nrow(layers)==nrow(G))
+
+G@x <- update.G(init.params)
 
 ###
 # tortoise locations
@@ -35,31 +34,9 @@ locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 locs.ij <- cbind( colFromX(onelayer,tort.coords.rasterGCS), rowFromY(onelayer,tort.coords.rasterGCS) )
 stopifnot( all( locs == cellFromRowCol(onelayer,locs.ij[,2],locs.ij[,1]) ) )
 
-
-###
-# generator matrix
-ij <- adjacent(onelayer,cells=nonmissing,target=nonmissing,directions=4,pairs=TRUE,sorted=TRUE) # to and from cells both loc
-ij <- ij[,2:1]
-stopifnot( all(ij[,1] != ij[,2]) ) ## NO DIAGONAL
-
-G <- sparseMatrix( i=ij[,1], j=ij[,2], x=1.0 )
-Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
-
-transfn <- exp
-valfn <- function (gamma) { ( rowSums( layers * gamma[col(layers)], na.rm=TRUE ) ) }
-
-update.G <- function(params) {
-    beta <- params[1]
-    gamma <- params[1+(1:length(layers))]
-    delta <- params[1+(length(layers)+(1:length(layers)))]
-    return( beta * transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[Gjj] ) )
-}
-
-G@x <- update.G(init.params)
-
 # get some initial values for the jacobi iterative solver
 
-analytic.true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
-jacobi.true.hts <- hitting.jacobi(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
+init.hts <- matrix(1,nrow=nrow(G),ncol=length(locs))
+system.time( jacobi.true.hts <- hitting.jacobi(locs,G,init.hts) )
 
 
