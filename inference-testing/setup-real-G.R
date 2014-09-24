@@ -3,11 +3,12 @@
 source("resistance-fns.R")
 require(raster)
 
-layer.prefix <- commandArgs(TRUE)[1]
+if (!interactive()) { layer.prefix <- commandArgs(TRUE)[1] }
 
-# for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_") ) {
+# for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_", "../geolayers/TIFF/masked/crop_resampled_masked_" ) ) {
 
-    layer.names <- c("annual_precip","barren_30","bd_ss2_st_30","eastness_30","lat_gcs_30","lon_gcs_30")
+    # minimal list to make sure this works with update.G below
+    layer.names <- c("annual_precip","lon_gcs_30")
 
     init.params <- c( beta=1.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
 
@@ -22,6 +23,15 @@ layer.prefix <- commandArgs(TRUE)[1]
     onevals <- values(onelayer)
     nonmissing <- which(!is.na(onevals))
 
+    ###
+    # generator matrix
+    ij <- adjacent(onelayer,cells=nonmissing,target=nonmissing,directions=4,pairs=TRUE,sorted=TRUE) # to and from cells both loc
+    ij <- ij[,2:1]
+    stopifnot( all(ij[,1] != ij[,2]) ) ## NO DIAGONAL
+
+    G <- sparseMatrix( i=match(ij[,1],nonmissing), j=match(ij[,2],nonmissing), x=1.0 )
+    Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+
     layers <- sapply(layer.names, function (ll) {
                 rast <- raster(paste(layer.prefix,ll,sep=''))
                 # note this is ROW-ORDERED
@@ -29,14 +39,7 @@ layer.prefix <- commandArgs(TRUE)[1]
                 vrast <- scale( values(rast)[nonmissing] )
                 return(vrast)
             } )
-    ###
-    # generator matrix
-    ij <- adjacent(onelayer,cells=nonmissing,target=nonmissing,directions=4,pairs=TRUE,sorted=TRUE) # to and from cells both loc
-    ij <- ij[,2:1]
-    stopifnot( all(ij[,1] != ij[,2]) ) ## NO DIAGONAL
-
-    G <- sparseMatrix( i=ij[,1], j=ij[,2], x=1.0 )
-    Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+    stopifnot(nrow(layers)==nrow(G))
 
     transfn <- exp
     valfn <- function (gamma) { ( rowSums( layers * gamma[col(layers)], na.rm=TRUE ) ) }
@@ -52,4 +55,5 @@ layer.prefix <- commandArgs(TRUE)[1]
     G@x <- update.G(init.params)
 
     save( G, update.G, ndelta, ngamma, transfn, valfn, layers, file=paste(basename(layer.prefix),"G.RData",sep=''))
+    save( nonmissing, file=paste(basename(layer.prefix),"nonmissing.RData",sep=''))
     # }
