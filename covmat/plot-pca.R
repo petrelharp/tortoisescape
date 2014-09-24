@@ -50,7 +50,7 @@ elev <- raster(elev.file)
 load("../tort.coords.rasterGCS.Robj")
 stopifnot( all( row.names(tort.coords.rasterGCS) == torts$EM_Tort_ID ) )
 # and county lines
-load("../county_tortoise_plotting_info.Robj")  # @gbradburd: how was this produced?
+load("../county_lines.Robj")  # @gbradburd: how was this produced?
 
 # and, coverages
 coverages <- read.csv("../coverage_info.csv")
@@ -80,7 +80,7 @@ dev.off()
 pdf(file="maps-with-PCs.pdf", width=10, height=8, pointsize=10)
     plot(elev,main="Elevation with tortoise IDs")
     lines(county_lines)
-    text(tortoise_locations,labels=gsub("etort.","",torts$EM_Tort_ID))
+    text(tort.coords.rasterGCS,labels=gsub("etort.","",torts$EM_Tort_ID))
     ncols <- 16
     cols <- adjustcolor(diverge_hcl(ncols),.7)
     for (pcs in c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8")) {
@@ -88,7 +88,7 @@ pdf(file="maps-with-PCs.pdf", width=10, height=8, pointsize=10)
         pcfac <- cut( pcvec, breaks=ncols )
         plot(elev,main=pcs)
         lines(county_lines)
-        points(tortoise_locations,pch=21,cex=2,col=grey(.2), bg=cols[pcfac])
+        points(tort.coords.rasterGCS,pch=21,cex=2,col=grey(.2), bg=cols[pcfac])
         legend("topleft", legend=formatC(tapply(pcvec,pcfac,mean,na.rm=TRUE),digits=2), fill=cols)
     }
 dev.off()

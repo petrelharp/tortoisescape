@@ -35,7 +35,7 @@ elev.file <- "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.
 elev <- raster(elev.file)
 # and tortoise locs on it
 load("../tort.coords.rasterGCS.Robj")
-load("../county_tortoise_plotting_info.Robj")  # @gbradburd: how was this produced?
+load("../county_lines.Robj")  # @gbradburd: how was this produced?
 
 
 ###
@@ -102,8 +102,8 @@ for (meth in c("angsd","robust")) {
             ncols <- 16
             cols <- adjustcolor(diverge_hcl(ncols),.7)
             pifac <- cut( diag(pimat), breaks=ncols )
-            points(tortoise_locations,pch=21,cex=2,col=grey(.2), bg=cols[pifac])
-            # text(tortoise_locations,labels=gsub("etort.","",torts$EM_Tort_ID))
+            points(tort.coords.rasterGCS,pch=21,cex=2,col=grey(.2), bg=cols[pifac])
+            # text(tort.coords.rasterGCS,labels=gsub("etort.","",torts$EM_Tort_ID))
             legend("bottomright",pch=20,col=cols,legend=levels(pifac))
         }
 
@@ -112,8 +112,8 @@ for (meth in c("angsd","robust")) {
         ncols <- 16
         cols <- adjustcolor(diverge_hcl(ncols),.7)
         slfac <- cut( ht.coefs[,2], breaks=ncols )
-        points(tortoise_locations,pch=21,cex=2,col=grey(.2), bg=cols[slfac])
-        # text(tortoise_locations,labels=gsub("etort.","",torts$EM_Tort_ID))
+        points(tort.coords.rasterGCS,pch=21,cex=2,col=grey(.2), bg=cols[slfac])
+        # text(tort.coords.rasterGCS,labels=gsub("etort.","",torts$EM_Tort_ID))
         legend("bottomright",pch=20,col=cols,legend=levels(slfac))
 
 

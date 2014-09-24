@@ -89,7 +89,7 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
             x_new <- idG * (G%*%x-b)
             x_new[ll] <- 0
             err <- mean((x_new-x)^2)
-            cat(k,":",err,"\n")
+            # cat(k,":",err,"\n")
             if (err < tol) {
                 cat("converged! err=", err, "\n")
                 break; 

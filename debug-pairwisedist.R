@@ -32,4 +32,7 @@ all.locs.dists <- sapply( 1:length(locs), function (k) {
 ###
 # compare
 
+plot(onelayer)
+points(tort.coords.rasterGCS)
+
 plot( tort.dists[upper.tri(tort.dists)], all.locs.dists[locs,][upper.tri(tort.dists)] )
