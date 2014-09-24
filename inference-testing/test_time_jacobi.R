@@ -45,7 +45,7 @@ for(i in seq_along(nn)){
   rm("R","D_1")
   gc()
   
-  t <- system.time(for(k in 1:nreps[i]) x <- jacobi(D_R,D_1b,b))
+  t <- system.time(for(k in 1:nreps[i]) x <- jacobi(D_R,D_1b))
 
   nn.times[i] <- t["user.self"]/nreps[i]
   

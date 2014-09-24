@@ -43,17 +43,23 @@ ij <- ij[,2:1]
 stopifnot( all(ij[,1] != ij[,2]) ) ## NO DIAGONAL
 
 G <- sparseMatrix( i=ij[,1], j=ij[,2], x=1.0 )
+Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
 transfn <- exp
 valfn <- function (gamma) { ( rowSums( layers * gamma[col(layers)], na.rm=TRUE ) ) }
 
 update.G <- function(params) {
     beta <- params[1]
-    gamma <- params[1+(1:length(delta))]
-    delta <- params[1+(length(delta)+(1:length(gamma)))]
-    return( beta * transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[jj] ) )
+    gamma <- params[1+(1:length(layers))]
+    delta <- params[1+(length(layers)+(1:length(layers)))]
+    return( beta * transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[Gjj] ) )
 }
 
 G@x <- update.G(init.params)
 
-true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
+# get some initial values for the jacobi iterative solver
+
+analytic.true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
+jacobi.true.hts <- hitting.jacobi(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
+
+
