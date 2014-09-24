@@ -27,7 +27,10 @@ rm(nonmissing)
 
 # tortoise locations
 load(paste(basename(layer.prefix),"tortlocs.RData",sep=''))
+na.indiv <- which( is.na( locs ) )
+locs <- locs[-na.indiv]
 nind <- length(locs)
+
 
 # pairwise divergence values
 pimat.vals <- scan("../pairwisePi/alleleCounts_1millionloci.pwp") # has UPPER with diagonal
@@ -35,6 +38,7 @@ pimat <- numeric(nind^2)
 dim(pimat) <- c(nind,nind)
 pimat[upper.tri(pimat,diag=TRUE)] <- pimat.vals
 pimat[lower.tri(pimat,diag=FALSE)] <- t(pimat)[lower.tri(pimat,diag=FALSE)]
+pimat <- pimat[-na.indiv,-na.indiv]
 
 # scale to actual pairwise divergence, and then by 1/mutation rate
 pimat <- pimat * .018 * 1e8
@@ -45,18 +49,35 @@ pimat <- pimat * .018 * 1e8
 #   so time to move N grid sites away is sqrt(N)/r
 #   so if hitting times are of order T, want r of order sqrt(N)/T
 
-gridwidth <- sqrt(dim(G)[1])  # roughly
+gridwidth <- sqrt(dim(G)[1])  # roughly, N
 ratescale <- sqrt(gridwidth)/mean(pimat)
 
-init.params <- c( beta=1.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
+init.params <- c( beta=ratescale, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
 
 G@x <- update.G(init.params)
 
 
-# get some initial values for the jacobi iterative solver
+# get some initial values for the iterative solver
+load(paste(basename(layer.prefix),"alllocs.RData",sep='')) # provides all.locs.dists
+all.locs.dists <- all.locs.dists[,-na.indiv]
 
-init.hts <- matrix(1e4,nrow=nrow(G),ncol=length(locs))
-system.time( jacobi.true.hts <- hitting.jacobi(locs,G,init.hts,tol=.01,kmax=100) )
+ht.lms <- lapply( seq_along(locs), function (kk) {
+        lm( pimat[kk,-kk] ~ dz, data.frame(dz=all.locs.dists[locs[-kk],kk]) )
+    } )
+init.hts <- sapply( seq_along(ht.lms), function (kk) {
+        predict( ht.lms[[kk]], newdata=data.frame(dz=all.locs.dists[,kk]), )
+    } )
+
+
+system.time( init.hts <- hitting.jacobi(locs,G,init.hts,tol=.01,kmax=10) )
+
+jacobi.hts <- hitting.jacobi(locs,G,init.hts,tol=.01,kmax=10)
+
+jacobi.hts <- hitting.jacobi(locs,G,100*jacobi.hts,tol=.01,kmax=10)
+
+jacobi.hts <- hitting.jacobi(locs,G,10*jacobi.hts,tol=.01,kmax=10)
+
+jacobi.hts <- hitting.jacobi(locs,G,2*jacobi.hts,tol=.01,kmax=10)
 
 if (FALSE) {
     load(paste(basename(layer.prefix),"nonmissing.RData",sep=''))
@@ -66,14 +87,16 @@ if (FALSE) {
 
     kk <- 1
     
-    jhts <- jacobi.true.hts[,kk]
+    jhts <- jacobi.hts[,kk]
 
     tmp[nonmissing] <- jhts
     image(tmp)
 
     jhts <- hitting.jacobi( locs[kk], G, cbind(jhts) )
 
-    plot(jhts,jacobi.true.hts[,kk])
+    plot(jhts,jacobi.hts[,kk]); abline(0,1)
+
+    plot( G[-locs[kk],-locs[kk]] %*% jhts[-locs[kk]] - rowSums(G[-locs[kk],-locs[kk]])*jhts[-locs[kk]] )
 
 }
 
