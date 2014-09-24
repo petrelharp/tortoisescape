@@ -1,4 +1,8 @@
 #!/usr/bin/Rscript
+require(rgdal)
+require(maps)
+require(maptools)
+require(raster)
 
 angsd.pimat.vals <- scan("350000.pwp")  # has LOWER triangle of entries, without diagonal
 robust.pimat.vals <- scan("alleleCounts_1millionloci.pwp") # robust version, has UPPER with diagonal
@@ -26,9 +30,18 @@ tort.dists <- tort.dists + t(tort.dists)
 coverages <- read.csv("../coverage_info.csv")
 torts$coverage <- coverages$sequence_yield_megabases
 
+# elevation raster
+elev.file <- "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri"
+elev <- raster(elev.file)
+# and tortoise locs on it
+load("../tort.coords.rasterGCS.Robj")
+load("../county_tortoise_plotting_info.Robj")  # @gbradburd: how was this produced?
+
+
 ###
 # compare two methods
 for (meth in c("angsd","robust")) {
+
     pimat <- get(paste(meth,"pimat",sep='.'))
 
     ut <- upper.tri(pimat,diag=FALSE) 
@@ -56,36 +69,53 @@ for (meth in c("angsd","robust")) {
 
     pdf(file=paste(meth,"pairwise-pi.pdf",sep='-'), width=10, height=6, pointsize=10)
 
-    plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5 )
-    abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ) ) 
+        plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5 )
+        abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ) ) 
 
-    plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5, col=lcols[torts$Location_ID][row(pimat)[ut]] ) # tcols[row(pimat)[ut]] )
-    abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ) ) 
-    legend("bottomright",pch=20,col=lcols,legend=levels(torts$Location_ID),cex=0.5)
+        plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5, col=lcols[torts$Location_ID][row(pimat)[ut]] ) # tcols[row(pimat)[ut]] )
+        abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ) ) 
+        legend("bottomright",pch=20,col=lcols,legend=levels(torts$Location_ID),cex=0.5)
 
-    plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5, col=lcols[torts$Location_ID][col(pimat)[ut]] ) # tcols[col(pimat)[ut]] )
-    abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ) ) 
-    legend("bottomright",pch=20,col=lcols,legend=levels(torts$Location_ID),cex=0.5)
+        plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5, col=lcols[torts$Location_ID][col(pimat)[ut]] ) # tcols[col(pimat)[ut]] )
+        abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ) ) 
+        legend("bottomright",pch=20,col=lcols,legend=levels(torts$Location_ID),cex=0.5)
 
-    layout(matrix(1:4,nrow=2))
-    plot( torts$coverage[row(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='coverage 1' )
-    plot( torts$coverage[col(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='coverage 2' )
-    plot( torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='mean coverage' )
-    plot( torts$coverage[col(pimat)[ut]]-torts$coverage[row(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='diff coverage' )
+        layout(matrix(1:4,nrow=2))
+        plot( torts$coverage[row(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='coverage 1' )
+        plot( torts$coverage[col(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='coverage 2' )
+        plot( torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='mean coverage' )
+        plot( torts$coverage[col(pimat)[ut]]-torts$coverage[row(pimat)[ut]], pimat[ut], cex=0.5, pch=20, main='diff coverage' )
 
-    layout(1)
-    plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5, col=var_col("Adapter11")[ut] )
-    points( tort.dists[et110,], pimat[et110,], col='green' )
-    points( tort.dists[et50,], pimat[et50,], col='purple' )
-    points( tort.dists[other11,other11], pimat[other11,other11], col='blue' )
-    ad11 <- with(torts,outer(Adapter11,Adapter11,"|"))
-    xx <- tort.dists[ut & ad11]
-    yy <- pimat[ut & ad11]
-    abline( coef( lm( yy ~ xx ) ), col='red', lwd=2 )
-    xx <- tort.dists[ut & !ad11]
-    yy <- pimat[ut & !ad11]
-    abline( coef( lm( yy ~ xx ) ), lwd=2 )
-    legend("bottomright", pch=c(20,1,1,1), col=c("red","green","purple","blue"), legend=c("adapter 11-others", "etort-110", "etort-50", "adapter 11-adapter 11") )
+
+        ht.lms <- lapply( 1:nrow(pimat), function (kk) {
+                lm( pimat[kk,-kk] ~ tort.dists[kk,-kk] )
+            } )
+        ht.coefs <- sapply( ht.lms, coef )
+
+        layout(1)
+        plot( tort.dists[ut], pimat[ut], xlab="geographic distance", ylab="pairwise divergence", pch=20, cex=0.5, col=var_col("Adapter11")[ut] )
+        invisible( lapply( ht.lms, function (x) abline(coef(x),col=adjustcolor("black",.1)) ) )
+
+        if (diff(range(diag(pimat)))>0) {
+            plot(elev,main="Tortoise heterozygosity")
+            lines(county_lines)
+            ncols <- 16
+            cols <- adjustcolor(diverge_hcl(ncols),.7)
+            pifac <- cut( diag(pimat), breaks=ncols )
+            points(tortoise_locations,pch=21,cex=2,col=grey(.2), bg=cols[pifac])
+            # text(tortoise_locations,labels=gsub("etort.","",torts$EM_Tort_ID))
+            legend("bottomright",pch=20,col=cols,legend=levels(pifac))
+        }
+
+        plot(elev,main="Slope in isolation by distance relationship")
+        lines(county_lines)
+        ncols <- 16
+        cols <- adjustcolor(diverge_hcl(ncols),.7)
+        slfac <- cut( ht.coefs[,2], breaks=ncols )
+        points(tortoise_locations,pch=21,cex=2,col=grey(.2), bg=cols[slfac])
+        # text(tortoise_locations,labels=gsub("etort.","",torts$EM_Tort_ID))
+        legend("bottomright",pch=20,col=cols,legend=levels(slfac))
+
 
     dev.off()
 
