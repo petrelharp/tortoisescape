@@ -22,11 +22,15 @@ orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 load(paste(basename(layer.prefix),"nonmissing.RData",sep=''))
 locs <- match(orig.locs,nonmissing)
 
+save( locs, file=paste(basename(layer.prefix),"tortlocs.RData",sep='') )
+
 ###
 # and distances from all nonmissing locations to torts
-all.locs.dists <- sapply( 1:length(locs), function (k) {
-            values( distanceFromPoints( onelayer, tort.coords.rasterGCS[k] ) )[nonmissing]
-        } )
+if (dim(onelayer)[1]<5000) {
 
-save( locs, file=paste(basename(layer.prefix),"tortlocs.RData",sep='') )
-save( all.locs.dists, file=paste(basename(layer.prefix),"alllocs.RData",sep='') )
+    all.locs.dists <- sapply( 1:length(locs), function (k) {
+                values( distanceFromPoints( onelayer, tort.coords.rasterGCS[k] ) )[nonmissing]
+            } )
+
+    save( all.locs.dists, file=paste(basename(layer.prefix),"alllocs.RData",sep='') )
+}
