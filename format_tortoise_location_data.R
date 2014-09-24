@@ -37,8 +37,17 @@ tort.coords_zone11 <- SpatialPoints(tort.coords[grepl("11",tort.zone),],proj4str
 tort.coords_zone12 <- SpatialPoints(tort.coords[grepl("12",tort.zone),,drop=FALSE],proj4string=CRS("+proj=utm +zone=12"))
 tort.coords_zone11_rasterGCS <- spTransform(tort.coords_zone11,raster_GCS_CRS_proj4)
 tort.coords_zone12_rasterGCS <- spTransform(tort.coords_zone12,raster_GCS_CRS_proj4)
-tort.coords.rasterGCS <- rbind(tort.coords_zone11_rasterGCS,tort.coords_zone12_rasterGCS)
+tort.coords.rasterGCS <- rbind(tort.coords_zone11_rasterGCS[1:(grep("12",tort.zone)-1),],
+									tort.coords_zone12_rasterGCS,
+								tort.coords_zone11_rasterGCS[grep("12",tort.zone):(length(tort.zone)-1),])
 
 row.names(tort.coords.rasterGCS) <- tort.coord.data$EM_Tort_ID
 save(tort.coords.rasterGCS,file="tort.coords.rasterGCS.Robj")
+
+################################
+#	making pairwise distance table
+################################
+
+tort.distance <- pointDistance(tort.coords.rasterGCS,lonlat=FALSE)
+
 
