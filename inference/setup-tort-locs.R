@@ -15,10 +15,18 @@ load("../tort.coords.rasterGCS.Robj")  # provides tort.coords.rasterGCS
 orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 # #  locs.ij <- k.to.ij(locs,n)  # this produces j's that are off by one (zero-based?)
 # locs.ij <- cbind( colFromX(onelayer,tort.coords.rasterGCS), rowFromY(onelayer,tort.coords.rasterGCS) )
-# stopifnot( all( locs == cellFromRowCol(onelayer,locs.ij[,2],locs.ij[,1]) ) )
+# stopifnot( all( orig.locs == cellFromRowCol(onelayer,locs.ij[,2],locs.ij[,1]) ) )
+
 
 # ok, but we need indices in NONMISSING ones
 load(paste(basename(layer.prefix),"nonmissing.RData",sep=''))
 locs <- match(orig.locs,nonmissing)
 
+###
+# and distances from all nonmissing locations to torts
+all.locs.dists <- sapply( 1:length(locs), function (k) {
+            values( distanceFromPoints( onelayer, tort.coords.rasterGCS[k] ) )[nonmissing]
+        } )
+
 save( locs, file=paste(basename(layer.prefix),"tortlocs.RData",sep='') )
+save( all.locs.dists, file=paste(basename(layer.prefix),"alllocs.RData",sep='') )

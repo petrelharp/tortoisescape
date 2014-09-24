@@ -20,4 +20,5 @@ will produce the files
 ```
   Rscript setup-tort-locs.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_
 ```
-will save this in `crop_resampled_masked_aggregated_100x_tortlocs.RData`
+will save `locs` and `locs.ij` in `crop_resampled_masked_aggregated_100x_tortlocs.RData`.
+  - This also saves `all.locs.ij` in `crop_resampled_masked_aggregated_100x_alllocs.RData` (for use in smoothing).

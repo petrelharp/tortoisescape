@@ -8,8 +8,8 @@ robust.pimat <- angsd.pimat <- numeric(nind^2)
 dim(robust.pimat) <- dim(angsd.pimat) <- c(nind,nind)
 angsd.pimat[lower.tri(angsd.pimat,diag=FALSE)] <- angsd.pimat.vals
 angsd.pimat <- angsd.pimat + t(angsd.pimat)
-robust.pimat[upper.tri(pimat,diag=TRUE)] <- robust.pimat.vals
-robust.pimat[lower.tri(pimat,diag=FALSE)] <- t(robust.pimat)[lower.tri(pimat,diag=FALSE)]
+robust.pimat[upper.tri(robust.pimat,diag=TRUE)] <- robust.pimat.vals
+robust.pimat[lower.tri(robust.pimat,diag=FALSE)] <- t(robust.pimat)[lower.tri(robust.pimat,diag=FALSE)]
 
 mean(angsd.pimat)
 mean(robust.pimat)
