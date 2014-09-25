@@ -16,7 +16,7 @@ if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     layer.name <- commandArgs(TRUE)[2]
 } else {
-    layer.prefix <- c("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
+    layer.prefix <- c("../geolayers/TIFF/500x/500x_")
     layer.name <- "annual_precip"
 }
 
@@ -62,6 +62,25 @@ init.params <- c( beta=ratescale, gamma=1, delta=1 )
 G@x <- update.G(init.params)
 
 
+###
+# now follow interp.hitting in resistance-fns.R
+
+Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
+PtP <- crossprod(Pmat)
+dG <- rowSums(G)
+interp.hts <- sapply( seq_along(locs), function (kk) {
+            Gk <- G[-locs[kk],]
+            diag(Gk) <- (-1)*dG[-locs[kk]]
+            bvec <- crossprod(Pmat,pimat[,kk]) - crossprod( Gk, rep(1.0,nrow(G)-1) )
+            as.numeric( solve( PtP+crossprod(Gk), bvec ) )
+} )
+
+tmp <- interp.hitting( G - diag(rowSums(G)), locs, pimat )
+
+################
+# previous attempt
+if (FALSE) {
+
 # get some initial values for the iterative solver
 load(paste(basename(layer.prefix),"alllocs.RData",sep='')) # provides all.locs.dists
 all.locs.dists <- all.locs.dists[,-na.indiv]
@@ -80,4 +99,19 @@ for (k in 2:nreps) {
     jacobi.hts.list[[k]] <- hitting.jacobi(locs,G,jacobi.hts.list[[k-1]],kmax=kmax)
 }
 
-save( jacobi.hts.list, file=paste(basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
+save( jacobi.hts.list, init.params, ratescale, gridwidth, file=paste(basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
+
+###
+# look at results
+if (FALSE) {
+
+    kk <- 1
+    x <- sapply( jacobi.hts.list, function (y) y[,kk] )
+    x[locs[kk],] <- 0
+    Gx <- G%*%x - rowSums(G)*x
+    Gx[locs[kk],] <- 0
+
+    matplot(Gx,pch=20,cex=0.25)
+
+}
+}
