@@ -1,5 +1,7 @@
 #!/usr/bin/Rscript
 
+require(parallel)
+
 ###
 # Get hitting times with a landscape layer
 #   e.g.
@@ -61,38 +63,8 @@ init.params <- c( beta=ratescale, gamma=1, delta=1 )
 
 G@x <- update.G(init.params)
 
-
 ###
-# now follow interp.hitting in resistance-fns.R
-
-Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
-PtP <- crossprod(Pmat)
-dG <- rowSums(G)
-interp.hts <- sapply( seq_along(locs), function (kk) {
-            Gk <- G[-locs[kk],]
-            diag(Gk) <- (-1)*dG[-locs[kk]]
-            bvec <- crossprod(Pmat,pimat[,kk]) - crossprod( Gk, rep(1.0,nrow(G)-1) )
-            as.numeric( solve( PtP+crossprod(Gk), bvec ) )
-} )
-
-
-###
-# testing
-
-
-fullG <- G
-diag(fullG) <- (-1)*rowSums(G)
-
-true.hts <- hitting.analytic(locs,fullG)
-hitting.layer <- raster(paste(layer.prefix,layer.name,sep='')) 
-k <- 1
-values(hitting.layer)[nonmissing] <- true.hts[,k]
-plot(hitting.layer)
-
-solve.hts <- interp.hitting( fullG, locs, true.hts[locs,] )
-solve.hts[cbind(locs,seq_along(locs))] <- 0
-
-range(solve.hts)
+# Conjugate gradient
 
 dG <- rowSums(G)
 cG <- colSums(G)
@@ -112,58 +84,37 @@ dH <- function (ht,obs.ht,loc,locs) {
     z[loc] <- 0
     return( 2 * as.vector(z) / length(z) )
 }
-k <- 1
-H(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
-dH(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
 
 optim.hts <- optim( par=solve.hts[,k], fn=H, gr=dH, obs.ht=solve.hts[locs,k], loc=k, locs=locs, method="CG", control=list(parscale=rep(mean(solve.hts),nrow(G)),maxit=1000) )
 
-Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
-PtP <- crossprod(Pmat)
-interp.hts <- sapply( seq_along(locs), function (kk) {
-            Gk <- G[-locs[kk],]
-            bvec <- crossprod(Pmat,true.hts[locs,kk]) - crossprod( Gk, rep(1.0,nrow(G)-1) )
-            as.numeric( solve( PtP+crossprod(Gk), bvec ) )
-} )
+optim.hts <- mclapply( seq_along(locs), function (k) {
+            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], locs=locs, method="CG", control=list( parscale=parscale ) ) 
+        } )
 
-values(hitting.layer)[nonmissing] <- interp.hts[,k]
-plot(hitting.layer)
 
-################
-# previous attempt
+###
+# testing
 if (FALSE) {
 
-# get some initial values for the iterative solver
-load(paste(basename(layer.prefix),"alllocs.RData",sep='')) # provides all.locs.dists
-all.locs.dists <- all.locs.dists[,-na.indiv]
+    fullG <- G
+    diag(fullG) <- (-1)*rowSums(G)
 
-ht.lms <- lapply( seq_along(locs), function (kk) {
-        lm( pimat[kk,-kk] ~ dz, data.frame(dz=all.locs.dists[locs[-kk],kk]) )
-    } )
-init.hts <- sapply( seq_along(ht.lms), function (kk) {
-        predict( ht.lms[[kk]], newdata=data.frame(dz=all.locs.dists[,kk]), )
-    } )
+    true.hts <- hitting.analytic(locs,fullG)
+    hitting.layer <- raster(paste(layer.prefix,layer.name,sep='')) 
+    values(hitting.layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
+    k <- 1
+    values(hitting.layer)[nonmissing] <- true.hts[,k]
+    plot(hitting.layer)
 
-jacobi.hts.list <- vector(mode="list",length=nreps)
-jacobi.hts.list[[1]] <- init.hts 
+    solve.hts <- interp.hitting( fullG, locs, true.hts[locs,] )
+    solve.hts[cbind(locs,seq_along(locs))] <- 0
 
-for (k in 2:nreps) {
-    jacobi.hts.list[[k]] <- hitting.jacobi(locs,G,jacobi.hts.list[[k-1]],kmax=kmax)
+    range(solve.hts)
+
+    k <- 1
+    H(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
+    dH(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
+
 }
 
 save( jacobi.hts.list, init.params, ratescale, gridwidth, file=paste(basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
-
-###
-# look at results
-if (FALSE) {
-
-    kk <- 1
-    x <- sapply( jacobi.hts.list, function (y) y[,kk] )
-    x[locs[kk],] <- 0
-    Gx <- G%*%x - rowSums(G)*x
-    Gx[locs[kk],] <- 0
-
-    matplot(Gx,pch=20,cex=0.25)
-
-}
-}

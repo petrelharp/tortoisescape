@@ -2,6 +2,7 @@
 
 source("resistance-fns.R")
 require(raster)
+rasterOptions(tmpdir=".")
 
 if (!interactive()) { 
     layer.prefix <- commandArgs(TRUE)[1] 

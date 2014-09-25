@@ -10,7 +10,7 @@ if (!interactive()) {
 }
 
 require(raster)
-
+rasterOptions(tmpdir=".")
 
 layer.files <- list.files(dirname(layer.prefix),paste(basename(layer.prefix),".*gri",sep=''),full.names=TRUE)
 layer.names <- gsub(layer.prefix,"",gsub(".gri","",layer.files,fixed=TRUE))
@@ -30,7 +30,7 @@ for (lf in use.files) {
     reflayer <- reflayer | is.na(other)
 }
 
-writeRaster( reflayer, file=paste(dirname(layer.prefix),"/",basename(layer.file),"-na",sep='') )
+writeRaster( reflayer, file=paste(dirname(layer.prefix),"/",basename(layer.file),"-na",sep=''), overwrite=TRUE )
 
 if (FALSE) {
     require(parallel)

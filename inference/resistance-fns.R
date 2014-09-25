@@ -166,6 +166,7 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 # plotting whatnot
 
 plot.ht <- function (h,layer,nonmissing,...) {
+    values(layer)[-nonmissing] <- NA
     values(layer)[nonmissing] <- h
     plot(layer,...)
 }
