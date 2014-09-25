@@ -19,7 +19,7 @@ for (k in 2:n.layers) {
 # sampling locations
 nsamps <- 100
 locs.ij <- cbind( i=sample.int(n,nsamps)-1L, j=sample.int(n,nsamps)-1L )
-locs <- ij.to.k(locs.ij,n)
+locs <- ij.to.k(locs.ij,n,n)
 
 # analytical mean hitting times
 true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s for n=100 and nsamps=20)
@@ -47,7 +47,7 @@ bvec <- gamma * crossprod(Pmat,obs.hts) - crossprod( G[-locs[kk],], rep(1.0,nrow
 interp.hts <- solve( PtP+GtG, bvec )
 
 layout(matrix(c(1,2,1,3),nrow=2))
-plot( interp.hts, true.hts[,kk] )
+plot( interp.hts, true.hts[,kk] ); abline(0,1)
 tmp <- true.hts[,kk]; dim(tmp) <- c(n,n); image(tmp)
 tmp <- as.numeric(interp.hts); dim(tmp) <- c(n,n); image(tmp)
 
@@ -62,5 +62,5 @@ for (kk in seq_along(locs)) {
     plot( all.interp.hts[,kk], true.hts[,kk] )
     tmp <- true.hts[,kk]; dim(tmp) <- c(n,n); image(tmp)
     tmp <- as.numeric(all.interp.hts[,kk]); dim(tmp) <- c(n,n); image(tmp)
-    readline("next?")
+    if (is.null(locator(1))) { break }
 }

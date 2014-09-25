@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 source("resistance-fns.R")
+source("testing-fns.R")
 
 # width of square grid
 n <- 100

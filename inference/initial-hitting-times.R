@@ -75,7 +75,59 @@ interp.hts <- sapply( seq_along(locs), function (kk) {
             as.numeric( solve( PtP+crossprod(Gk), bvec ) )
 } )
 
-tmp <- interp.hitting( G - diag(rowSums(G)), locs, pimat )
+
+###
+# testing
+
+
+fullG <- G
+diag(fullG) <- (-1)*rowSums(G)
+
+true.hts <- hitting.analytic(locs,fullG)
+hitting.layer <- raster(paste(layer.prefix,layer.name,sep='')) 
+k <- 1
+values(hitting.layer)[nonmissing] <- true.hts[,k]
+plot(hitting.layer)
+
+solve.hts <- interp.hitting( fullG, locs, true.hts[locs,] )
+solve.hts[cbind(locs,seq_along(locs))] <- 0
+
+range(solve.hts)
+
+dG <- rowSums(G)
+cG <- colSums(G)
+# objective function
+H <- function (ht,obs.ht,loc,locs) {
+    ht[loc] <- 0
+    z <- G%*%ht - dG*ht
+    z[loc] <- 0
+    return( ( sum( z^2 ) + sum( (ht[locs] - obs.ht)^2 ) )/length(z) )
+}
+dH <- function (ht,obs.ht,loc,locs) {
+    # cG - G[loc,] is, except at [loc], 1^T ((G-diag(dG))[-loc,])
+    z <- G%*%ht - dG*ht
+    z[loc] <- 0
+    z <- (G%*%z - dG*z) + (cG-G[loc,]) 
+    z[locs] <- z[locs] + (ht[locs]-obs.ht)
+    z[loc] <- 0
+    return( 2 * as.vector(z) / length(z) )
+}
+k <- 1
+H(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
+dH(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
+
+optim.hts <- optim( par=solve.hts[,k], fn=H, gr=dH, obs.ht=solve.hts[locs,k], loc=k, locs=locs, method="CG", control=list(parscale=rep(mean(solve.hts),nrow(G)),maxit=1000) )
+
+Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
+PtP <- crossprod(Pmat)
+interp.hts <- sapply( seq_along(locs), function (kk) {
+            Gk <- G[-locs[kk],]
+            bvec <- crossprod(Pmat,true.hts[locs,kk]) - crossprod( Gk, rep(1.0,nrow(G)-1) )
+            as.numeric( solve( PtP+crossprod(Gk), bvec ) )
+} )
+
+values(hitting.layer)[nonmissing] <- interp.hts[,k]
+plot(hitting.layer)
 
 ################
 # previous attempt
