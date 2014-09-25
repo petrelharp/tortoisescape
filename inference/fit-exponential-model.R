@@ -2,6 +2,7 @@
 
 source("resistance-fns.R")
 require(raster)
+rasterOptions(tmpdir=".")
 
 layer.prefix <- c("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
 

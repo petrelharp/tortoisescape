@@ -2,6 +2,7 @@
 require(Matrix)
 source("jacobi.R")
 source("resistance-fns.R")
+source("testing-fns.R")
 
 # declare transition/generating matrix
 n <- 32

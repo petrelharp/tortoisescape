@@ -2,6 +2,7 @@
 
 source("resistance-fns.R")
 require(raster)
+rasterOptions(tmpdir=".")
 
 # for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_", "../geolayers/TIFF/masked/crop_resampled_masked_" ) ) {
 

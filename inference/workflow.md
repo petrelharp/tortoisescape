@@ -1,15 +1,17 @@
 Setup
 ====
 
+The script `setup-everything.sh` will, er, do all the following setup.
+
 1. `make-overlap-na-layer.R` : figures out the common set of nonmissing locations
 ```
-  Rscript make-overlap-na-layer.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ ../inference/six-raster-list
+  Rscript make-overlap-na-layer.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ six-raster-list
 ```
 will create the `six-raster-list-na.grd` layer in `../geolayers/TIFF/100x/`.
 
 2. `setup-real-G.R` will set up the generator matrix for the non-NA entries of a particular set of layers.  For instance, 
 ```
-  Rscript setup-real-G.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_
+  Rscript setup-real-G.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ six-raster-list
 ```
 will produce the files 
 - `crop_resampled_masked_aggregated_100x_G.RData` : the generator matrix and associated things:
