@@ -15,6 +15,6 @@ tort.coords <- tort.coords.GCS.spobj@coords
 sample.covariance <- as.matrix(read.table("~/Desktop/Dropbox/tortoisescape/covmat/alleleCounts500kLoci-covmat.txt"))
 
 #third, specify the mean sample sizes
-mean.sample.sizes <- rep(1,nrow(sample.covariance))
+mean.sample.sizes <- rep(100,nrow(sample.covariance))
 
 save(tort.coords,sample.covariance,mean.sample.sizes,file="tort180_spacemix_dataset.Robj")
