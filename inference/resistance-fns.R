@@ -181,7 +181,7 @@ plot.ht.fn <- function (layer.prefix,layer.name,nonmissing) {
         points(tort.coords.rasterGCS,pch=20,cex=.25)
     }
     environment(ph) <- new.env()
-    assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(f))
+    assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
     return(ph)
 }
 

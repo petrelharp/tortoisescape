@@ -93,11 +93,13 @@ init.hts <- matrix(parscale,nrow=nrow(G),ncol=length(locs))
 init.hts[cbind(locs,seq_along(locs))] <- 0
 
 optim.ht.list <- mclapply( seq_along(locs), function (k) {
-            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="L-BFGS-B", control=list( parscale=parscale ), lower=0, upper=Inf ) 
+            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
         } )
 optim.hts <- sapply(optim.ht.list,"[[","par")
 
-if (any(sapply(optim.ht.list,"[[","convergence")!=0)) { warning("Some did not converge") }
+convergences <- sapply(optim.ht.list,"[[","convergence")
+
+if (any(convergences!=0)) { warning("Some did not converge") }
 
 save( optim.hts, init.params, ratescale, gridwidth, file=paste(subdir,"/",basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
 
@@ -105,6 +107,14 @@ save( optim.hts, init.params, ratescale, gridwidth, file=paste(subdir,"/",basena
 ###
 # testing
 if (FALSE) {
+
+
+    ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
+    for (k in 1:ncol(optim.hts)) {
+        ph( optim.hts[,k] )
+        if (is.null(locator(1))) { break }
+    }
+
 
 ###
 # analytic
@@ -117,38 +127,10 @@ solve.hts[cbind(locs,seq_along(locs))] <- 0
 plot( as.vector(tmp.pimat), as.vector(solve.hts[locs,]), col=1+(row(pimat)==col(pimat)) ); abline(0,1)
 
 for (k in seq_along(locs)[1:length(locs)]) {
-    plot.ht( (solve.hts[,k]), hitting.layer, nonmissing )
-    text( tort.coords.rasterGCS, labels=1:180 )
-    points( tort.coords.rasterGCS[k+if(k>56){1}else{0}], pch="*", cex=4, col='red' )
-    if (is.null(locator(1))) { break }
-}
-
-for (k in seq_along(locs)[1:length(locs)]) {
     plot.ht( pmax(solve.hts[,k],0), hitting.layer, nonmissing )
     text( tort.coords.rasterGCS, labels=1:180 )
     points( tort.coords.rasterGCS[k+if(k>56){1}else{0}], pch="*", cex=4, col='red' )
     if (is.null(locator(1))) { break }
 }
-
-    load("../tort.coords.rasterGCS.Robj")
-
-    fullG <- G
-    diag(fullG) <- (-1)*rowSums(G)
-    true.hts <- hitting.analytic(locs,fullG)
-    hlayer <- raster(paste(layer.prefix,layer.name,sep='')) 
-    values(hlayer)[-nonmissing] <- NA # NOTE '-' NOT '!'
-    k <- 1
-    values(hlayer)[nonmissing] <- true.hts[,k]
-    plot(hlayer)
-
-    solve.hts <- interp.hitting( fullG, locs, true.hts[locs,] )
-    solve.hts[cbind(locs,seq_along(locs))] <- 0
-
-    range(solve.hts)
-
-    k <- 1
-    H(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
-    dH(solve.hts[,k], obs.ht=solve.hts[locs,k], loc=k, locs=locs )
-
 }
 
