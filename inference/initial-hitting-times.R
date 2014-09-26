@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 require(parallel)
+numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
 
 ###
 # Get hitting times with a landscape layer
@@ -16,13 +17,15 @@ require(raster)
 
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
-    layer.name <- commandArgs(TRUE)[2]
-    subdir <- if (length(commandArgs(TRUE))>2) { commandArgs(TRUE)[3] } else { "." }
+    subdir <- commandArgs(TRUE)[2]
+    layer.file <- commandArgs(TRUE)[3]
 } else {
     layer.prefix <- c("../geolayers/TIFF/500x/500x_")
-    layer.name <- "annual_precip"
     subdir <- "500x"
+    layer.file <- "six-raster-list"
+    # layer.names <- c("imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st")
 }
+layer.names <- scan(layer.file,what="char") 
 
 # get precomputed G
 load(paste(subdir,"/",basename(layer.prefix),"G.RData",sep=''))
@@ -32,7 +35,9 @@ Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 ###
 # layer whatnot
 
-layers <- cbind( scale( values( raster(paste(layer.prefix,layer.name,sep='')) )[nonmissing] ) )
+layers <- do.call( cbind, lapply( layer.names, function (layer.name) {
+        scale( values( raster(paste(layer.prefix,layer.name,sep='')) )[nonmissing] ) 
+    } ) )
 stopifnot(nrow(layers)==nrow(G))
 
 # tortoise locations
@@ -107,7 +112,7 @@ init.hts[cbind(locs,seq_along(locs))] <- 0
 optim.ht.list <- mclapply( seq_along(locs), function (k) {
             optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, 
                 method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-        }, mc.cores=16 )
+        }, mc.cores=numcores )
 
 convergences <- sapply(optim.ht.list,"[[","convergence")
 unconverged <- which(convergences != 0)
@@ -118,7 +123,7 @@ for (k in 1:3) {
                     newstart <- sample( setdiff(seq_along(locs),unconverged), 1 )
                     optim( par=optim.ht.list[[newstart]]$par, fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, 
                         method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-                }, mc.cores=16 )
+                }, mc.cores=numcores )
         convergences <- sapply(optim.ht.list,"[[","convergence")
         unconverged <- which(convergences != 0)
     }
@@ -128,7 +133,7 @@ optim.hts <- sapply(optim.ht.list,"[[","par")
 
 if (any(convergences!=0)) { warning("Some did not converge") }
 
-save( layer.prefix, layer.name, subdir, optim.hts, convergences, init.params, ratescale, gridwidth, file=paste(subdir,"/",basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
+save( layer.prefix, layer.names, subdir, optim.hts, convergences, init.params, ratescale, gridwidth, file=paste(subdir,"/",basename(layer.prefix),layer.file,"-init-hts.RData",sep='') )
 
 
 ###
@@ -145,21 +150,21 @@ if (FALSE) {
     }
 
 
-###
-# analytic
+    ###
+    # analytic
 
-tmp.pimat <- pimat-mean(diag(pimat))
+    tmp.pimat <- pimat-mean(diag(pimat))
 
-solve.hts <- interp.hitting( fullG, locs, tmp.pimat )
-solve.hts[cbind(locs,seq_along(locs))] <- 0
+    solve.hts <- interp.hitting( fullG, locs, tmp.pimat )
+    solve.hts[cbind(locs,seq_along(locs))] <- 0
 
-plot( as.vector(tmp.pimat), as.vector(solve.hts[locs,]), col=1+(row(pimat)==col(pimat)) ); abline(0,1)
+    plot( as.vector(tmp.pimat), as.vector(solve.hts[locs,]), col=1+(row(pimat)==col(pimat)) ); abline(0,1)
 
-for (k in seq_along(locs)[1:length(locs)]) {
-    plot.ht( pmax(solve.hts[,k],0), hitting.layer, nonmissing )
-    text( tort.coords.rasterGCS, labels=1:180 )
-    points( tort.coords.rasterGCS[k+if(k>56){1}else{0}], pch="*", cex=4, col='red' )
-    if (is.null(locator(1))) { break }
-}
+    for (k in seq_along(locs)[1:length(locs)]) {
+        plot.ht( pmax(solve.hts[,k],0), hitting.layer, nonmissing )
+        text( tort.coords.rasterGCS, labels=1:180 )
+        points( tort.coords.rasterGCS[k+if(k>56){1}else{0}], pch="*", cex=4, col='red' )
+        if (is.null(locator(1))) { break }
+    }
 }
 
