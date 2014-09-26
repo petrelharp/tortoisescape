@@ -105,7 +105,8 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
 hitting.analytic <- function (locs,G) {
     # compute analytical expected hitting times
     if ("parallel" %in% .packages()) {
-        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=16 ) ) }
+        numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
