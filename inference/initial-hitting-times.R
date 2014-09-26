@@ -116,11 +116,22 @@ save( layer.prefix, layer.names, subdir, optim.hts, convergences, init.params, r
 if (FALSE) {
 
 
-    load(paste(subdir,"/",basename(layer.prefix),"nonmissing.RData",sep=''))
+    load(paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep=''))
+    load("../tort.coords.rasterGCS.Robj")
+    load(paste(subdir,"/",basename(layer.prefix),"alllocs.RData",sep='')) # all.locs.dists
+    load("torts-info.RData")
     ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
+    optim.hts[cbind(1+locs,seq_along(locs))] <- NA
+
     for (k in 1:ncol(optim.hts)) {
+        layout(matrix(1:4,nrow=2))
         ph( optim.hts[-1,k], main=optim.hts[1,k] )
+        points(tort.coords.rasterGCS[k])
+        plot( all.locs.dists[,k], optim.hts[-1,k], pch=20, cex=.5 )
+        points( all.locs.dists[locs,k], optim.hts[1+locs,k], col='red' )
+        plot( tort.dists[k,], optim.hts[(1+locs),k], pch=20, cex=.5 )
+        plot( pimat[,k]-optim.hts[1,k], optim.hts[(1+locs),k], pch=20, cex=.5 ); abline(0,1)
         if (is.null(locator(1))) { break }
     }
 

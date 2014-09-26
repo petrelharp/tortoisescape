@@ -178,8 +178,11 @@ plot.ht.fn <- function (layer.prefix,layer.name,nonmissing) {
     load("../tort.coords.rasterGCS.Robj")
     ph <- function (x,...) { 
         values(layer)[nonmissing] <- x
+        opar <- par()  # plotting layers messes up margins
         plot(layer,...)
         points(tort.coords.rasterGCS,pch=20,cex=.25)
+        # par(opar[setdiff(names(opar), c("cin", "cra", "csi", "cxy", "din", "page") )])
+        par(mar=opar$mar)
     }
     environment(ph) <- new.env()
     assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))

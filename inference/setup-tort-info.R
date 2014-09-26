@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 
 ###
-# This tortoise falls of the edge of the grid
+# This tortoise falls off the edge of the grid
 missing.tort.index <- 57
 
 ###

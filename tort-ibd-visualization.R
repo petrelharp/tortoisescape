@@ -28,8 +28,8 @@ for (k in 1:nind) {
     plot(layer)
     points(tort.coords.rasterGCS,pch=20,cex=1,col=pc.cols)
     points(tort.coords.rasterGCS[k],cex=2,col='red')
-    plot( tort.dists[upper.tri(pimat)], pimat[upper.tri(pimat)], pch=20, cex=.5, col=adjustcolor("black",.25) )
-    points( tort.dists[k,], pimat[k,], pch=20, col=pc.cols )
+    plot( tort.dists[upper.tri(pimat)]/1000, pimat[upper.tri(pimat)], pch=20, cex=.5, col=adjustcolor("black",.25), xlab="geographic distance (km)", ylab="pairwise divergence" )
+    points( tort.dists[k,]/1000, pimat[k,], pch=20, col=pc.cols )
     # if (is.null(locator(1))) { break }
     dev.off()
 }
