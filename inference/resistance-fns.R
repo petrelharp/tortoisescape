@@ -104,7 +104,12 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
 
 hitting.analytic <- function (locs,G) {
     # compute analytical expected hitting times
-    hts <- sapply( locs, function (k) { 
+    if ("parallel" %in% .packages()) {
+        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=16 ) ) }
+    } else {
+        this.apply <- function (...) { sapply( ... ) }
+    }
+    hts <- this.apply( locs, function (k) { 
                 z <- solve( G[-k,-k], rep.int(-1.0,nrow(G)-1L) ) 
                 return( c( z[seq.int(1,length.out=k-1L)], 0, z[seq.int(k,length.out=length(z)-k+1L)] ) )
             } )

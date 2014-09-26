@@ -11,7 +11,7 @@ run.spacemix.analysis(	n.fast.reps = 0,
 						long.likelihood.option = "wishart",
 						proj.mat.option=NULL,
 						sample.frequencies=NULL,
-						mean.sample.sizes=mean.sample.sizes,
+						mean.sample.sizes=rep(100,length=nrow(sample.covariance)),  # NOT what is in the .Robj
 						counts = NULL,
 						sample.sizes = NULL,
 						sample.covariance=sample.covariance,
