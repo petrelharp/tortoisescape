@@ -96,20 +96,33 @@ parscale <- c( min(pimat), rep( mean(pimat), nrow(G) ) )
 init.hts <- matrix(parscale,nrow=nrow(G)+1,ncol=length(locs))
 init.hts[cbind(locs,seq_along(locs))] <- 0
 
-H( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
-dH( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
+# H( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
+# dH( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
+
+k <- 28 
+test.ht <- optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, g.match=1/200,
+        method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
+ph(test.ht$par[-1]); with( environment(ph), points(tort.coords.rasterGCS[k]) )
 
 optim.ht.list <- mclapply( seq_along(locs), function (k) {
-            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
+            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, 
+                method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
         }, mc.cores=16 )
 
 convergences <- sapply(optim.ht.list,"[[","convergence")
 unconverged <- which(convergences != 0)
 
-optim.ht.list[unconverged] <- mclapply( unconverged, function (k) {
-            newstart <- sample( setdiff(seq_along(locs),unconverged), 1 )
-            optim( par=optim.ht.list[[newstart]]$par, fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-        }, mc.cores=16 )
+for (k in 1:3) {
+    if (length(unconverged)<length(locs)) {
+        optim.ht.list[unconverged] <- mclapply( unconverged, function (k) {
+                    newstart <- sample( setdiff(seq_along(locs),unconverged), 1 )
+                    optim( par=optim.ht.list[[newstart]]$par, fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, 
+                        method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
+                }, mc.cores=16 )
+        convergences <- sapply(optim.ht.list,"[[","convergence")
+        unconverged <- which(convergences != 0)
+    }
+}
 
 optim.hts <- sapply(optim.ht.list,"[[","par")
 
@@ -127,7 +140,7 @@ if (FALSE) {
     ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
     for (k in 1:ncol(optim.hts)) {
-        ph( optim.hts[-1,k] )
+        ph( optim.hts[-1,k], main=optim.hts[1,k] )
         if (is.null(locator(1))) { break }
     }
 
