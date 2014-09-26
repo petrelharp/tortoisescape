@@ -1,0 +1,21 @@
+#PBS -S /bin/bash
+#PBS -q cmb
+#PBS -l nodes=1:sl230s:ppn=16
+#PBS -l walltime=200:00:00
+#PBS -l mem=120gb
+#PBS -l vmem=120gb
+#PBS -l pmem=7500mb
+# #PBS -e qsub-logs
+# #PBS -o qsub-logs
+
+source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+
+cd $PBS_O_WORKDIR
+
+for x in $(cat ../inference/twentyfour-raster-list)
+do
+    Rscript get-environmental-distance.R ../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_ 10x $x
+done
+
+exit
+
