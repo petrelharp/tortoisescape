@@ -16,7 +16,7 @@ will create the `six-raster-list-na.grd` layer in `../geolayers/TIFF/100x/`.
 will produce the files 
 - `crop_resampled_masked_aggregated_100x_G.RData` : the generator matrix and associated things:
   - `G` : generator matrix, indexed by **nonmissing** raster pixels
-  - `layers` : matrix of **nonmissing* raster values (just two layers; replace this in scripts)
+  - `layers` : matrix of **nonmissing** raster values (just two layers; replace this in scripts)
   - `update.G` : function returning `G@x`
   - `ndelta` : required for `update.G`
   - `ngamma` : required for `update.G`
@@ -34,6 +34,11 @@ will produce the files
 will save `locs` and `locs.ij` in `crop_resampled_masked_aggregated_100x_tortlocs.RData`.
   - This also saves `all.locs.ij` in `crop_resampled_masked_aggregated_100x_alllocs.RData` (for use in smoothing).
 
+4. `setup-inference.R` will load these things and `pimat` up in an `.RData`, e.g.
+```
+Rscript setup-inference.R ../geolayers/TIFF/500x/500x_ 500x six-raster-list
+```
+will make the file `twelve-raster-list-500x_setup.RData`
 
 Inference
 =========
@@ -41,7 +46,16 @@ Inference
 General outline is as follows:
 0. Begin with reasonable guess at parameter values, and construct `G` matrix.
 1. Interpolate observed mean pairwise divergence times using `G` to get estimate of full matrix of divergence times, as in `interp-inference.R`.
+  1. use `initial-hitting-times.R` as e.g.
+```
+Rscript initial-hitting-times.R ../geolayers/TIFF/500x/500x_ 500x six-raster-list
+```
+  which produces `500x_six-raster-list-init-hts.RData`
 2. Given full matrix of divergence times to infer parameter values, as in `exponential-transform.R`.
+  1. use `fit-exponential-model.R` as e.g.
+```
+Rscript fit-exponential-model.R ../geolayers/TIFF/500x/500x_ 500x six-raster-list
+```
 3. Return to (1) if necessary.
 Also, do this for sequentially finer grids, using previously inferred parameter values to start the next,
 multiplied by the square of the ratio of the two grid sizes.

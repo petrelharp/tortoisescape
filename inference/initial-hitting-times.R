@@ -1,16 +1,13 @@
 #!/usr/bin/Rscript
 
-require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
-
 ###
 # Get hitting times with a landscape layer
 #   e.g.
 #     Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ annual_precip
 # (note the space!)                                                                           ---->^
 
-nreps <- 3
-kmax <- 1e4
+require(parallel)
+numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
 
 source("resistance-fns.R")
 require(raster)
@@ -19,43 +16,17 @@ if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
+    param.file <- if (length(commandArgs(TRUE))>3) { commandArgs(TRUE)[4] } else { NULL }
 } else {
     layer.prefix <- c("../geolayers/TIFF/500x/500x_")
     subdir <- "500x"
     layer.file <- "six-raster-list"
+    param.file <- NULL
     # layer.names <- c("imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st")
 }
 layer.names <- scan(layer.file,what="char") 
 
-# get precomputed G
-load(paste(subdir,"/",basename(layer.prefix),"G.RData",sep=''))
-load(paste(subdir,"/",basename(layer.prefix),"nonmissing.RData",sep=''))
-Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
-
-###
-# layer whatnot
-
-layers <- do.call( cbind, lapply( layer.names, function (layer.name) {
-        scale( values( raster(paste(layer.prefix,layer.name,sep='')) )[nonmissing] ) 
-    } ) )
-stopifnot(nrow(layers)==nrow(G))
-
-# tortoise locations
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep=''))
-nind <- length(locs)
-na.indiv <- which( is.na( locs ) )
-locs <- locs[-na.indiv]
-
-# pairwise divergence values
-pimat.vals <- scan("../pairwisePi/alleleCounts_1millionloci.pwp") # has UPPER with diagonal
-pimat <- numeric(nind^2)
-dim(pimat) <- c(nind,nind)
-pimat[upper.tri(pimat,diag=TRUE)] <- pimat.vals
-pimat[lower.tri(pimat,diag=FALSE)] <- t(pimat)[lower.tri(pimat,diag=FALSE)]
-pimat <- pimat[-na.indiv,-na.indiv]
-
-# scale to actual pairwise divergence, and then by 1/mutation rate
-pimat <- pimat * .018 * 1e8
+load(paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep=''))
 
 ##
 # initial parameters?
@@ -66,7 +37,11 @@ pimat <- pimat * .018 * 1e8
 gridwidth <- sqrt(dim(G)[1])  # roughly, N
 ratescale <- sqrt(gridwidth)/mean(pimat)
 
-init.params <- c( beta=ratescale, gamma=1, delta=1 )
+if (is.null(param.file)) {
+    init.params <- c( beta=ratescale, gamma=rep(1,length(layer.names)), delta=rep(1,length(layer.names) ) )
+} else {
+    init.params <- scan( param.file )
+} 
 
 G@x <- update.G(init.params)
 

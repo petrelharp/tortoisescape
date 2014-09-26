@@ -1,104 +1,164 @@
 #!/usr/bin/Rscript
 
-source("resistance-fns.R")
 require(raster)
 rasterOptions(tmpdir=".")
 
-layer.prefix <- c("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
+if (!interactive()) {
+    layer.prefix <- commandArgs(TRUE)[1]
+    subdir <- commandArgs(TRUE)[2]
+    layer.file <- commandArgs(TRUE)[3]
+    ht.file <- if (length(commandArgs(TRUE))>3) { commandArgs(TRUE)[4] } else { paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-init-hts.RData",sep='') }
+} else {
+    layer.prefix <- c("../geolayers/TIFF/500x/500x_")
+    subdir <- "500x"
+    layer.file <- "six-raster-list"
+    ht.file <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-init-hts.RData",sep='')
+    # layer.names <- c("imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st")
+}
+layer.names <- scan(layer.file,what="char") 
 
-# get precomputed G
-load(paste(basename(layer.prefix),"G.RData",sep=''))
-load(paste(basename(layer.prefix),"nonmissing.RData",sep=''))
-Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+ht.id <- gsub( paste(basename(layer.prefix),basename(layer.file),sep=""), "", gsub("-init-hts.RData","", basename(ht.file) ) )
+if (nchar(ht.id)>0) { ht.id <- paste("_",ht.id) }
+outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),ht.id,"-fit-params.RData",sep='')
 
-###
-# layer whatnot
+load(paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep=''))
+load(ht.file)
 
-layer.names <- c("annual_precip","barren_30","eastness_30","lat_gcs_30","lon_gcs_30")
-layers <- sapply(layer.names, function (ll) {
-            rast <- raster(paste(layer.prefix,ll,sep=''))
-            # note this is ROW-ORDERED
-            # so to plot do:  dim(x) <- dim(rast)[2:1]; image(x)
-            vrast <- scale( values(rast)[nonmissing] )
-            return(vrast)
+source("resistance-fns.R")
+
+hts <- optim.hts[-1,]
+ht.shifts <- optim.hts[1,]
+rm(optim.hts)
+
+# Massage the numerics.
+zeros <- which( row(hts) == locs[col(hts)] )
+scaling <- sqrt(nrow(G) * length(locs))
+hts <- hts/scaling
+hts[zeros] <- 0
+sc.one <- 1/scaling
+
+#
+dG <- rowSums(G)
+GH <- G %*% hts - dG*hts
+GH[zeros] <- 0
+
+init.beta <- init.params[1]
+
+L <- function (params) {
+    if (any(params != get("params",parent.env(environment()) ) ) ) { 
+        assign("params", params, parent.env(environment()) )
+        evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
+        evalq( dG <- rowSums(G), parent.env(environment()) )
+        GH <- G %*% hts - dG*hts
+        GH[zeros] <- 0
+        assign("GH", GH, parent.env(environment()) )
+    }
+    ans <- ( sum( (GH+sc.one)^2 ) - length(zeros)*sc.one^2 )
+    if (!is.finite(ans)) { browser() }
+    return(ans)
+}
+dL <- function (params) {
+    if (any(params != get("params", parent.env(environment()) ) ) ) { 
+        assign("params", params, parent.env(environment()) )
+        evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
+        evalq( dG <- rowSums(G), parent.env(environment()) )
+        GH <- G %*% hts - dG*hts
+        GH[zeros] <- 0
+        assign("GH", GH, parent.env(environment()) )
+    }
+    ggrads <- sapply( 1:ncol(layers), function (kk) {
+            2 * sum( layers[,kk] * GH * (GH+sc.one) )
         } )
-stopifnot(nrow(layers)==nrow(G))
+    dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
+            GL <- G
+            GL@x <- G@x * layers[Gjj,kk]
+            dGL <- rowSums(GL)
+            GLH <- GL %*% hts - dGL*hts
+            GLH[zeros] <- 0
+            return( 2 * sum( GLH * (GH+sc.one)  ) )
+        } )
+    ans <- ( c(ggrads, dgrads) )
+    if (any(!is.finite(ans))) { browser() }
+    return(ans)
+}
+environment(L) <- environment(dL) <- fun.env <- list2env( list(
+                G=G,
+                dG=dG,
+                params=init.params[-1],
+                GH=GH), 
+        parent=environment() )
 
-rm(nonmissing)
+L(init.params[-1])
+dL(init.params[-1])
 
-# tortoise locations
-load(paste(basename(layer.prefix),"tortlocs.RData",sep=''))
-na.indiv <- which( is.na( locs ) )
-locs <- locs[-na.indiv]
-nind <- length(locs)
+L(init.params[-1]+.01)
+dL(init.params[-1]+.01)
 
-
-# pairwise divergence values
-pimat.vals <- scan("../pairwisePi/alleleCounts_1millionloci.pwp") # has UPPER with diagonal
-pimat <- numeric(nind^2)
-dim(pimat) <- c(nind,nind)
-pimat[upper.tri(pimat,diag=TRUE)] <- pimat.vals
-pimat[lower.tri(pimat,diag=FALSE)] <- t(pimat)[lower.tri(pimat,diag=FALSE)]
-pimat <- pimat[-na.indiv,-na.indiv]
-
-# scale to actual pairwise divergence, and then by 1/mutation rate
-pimat <- pimat * .018 * 1e8
-
-##
-# initial parameters?
-#   in time t, 1D RW with rate r does t*r jumps, displacement has variance t*r
-#   so time to move N grid sites away is sqrt(N)/r
-#   so if hitting times are of order T, want r of order sqrt(N)/T
-
-gridwidth <- sqrt(dim(G)[1])  # roughly, N
-ratescale <- sqrt(gridwidth)/mean(pimat)
-
-init.params <- c( beta=ratescale, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
-
-G@x <- update.G(init.params)
-
-
-# get some initial values for the iterative solver
-load(paste(basename(layer.prefix),"alllocs.RData",sep='')) # provides all.locs.dists
-all.locs.dists <- all.locs.dists[,-na.indiv]
-
-ht.lms <- lapply( seq_along(locs), function (kk) {
-        lm( pimat[kk,-kk] ~ dz, data.frame(dz=all.locs.dists[locs[-kk],kk]) )
-    } )
-init.hts <- sapply( seq_along(ht.lms), function (kk) {
-        predict( ht.lms[[kk]], newdata=data.frame(dz=all.locs.dists[,kk]), )
-    } )
-
-
-system.time( init.hts <- hitting.jacobi(locs,G,init.hts,tol=.01,kmax=10) )
-
-jacobi.hts <- hitting.jacobi(locs,G,init.hts,tol=.01,kmax=10)
-
-jacobi.hts <- hitting.jacobi(locs,G,100*jacobi.hts,tol=.01,kmax=10)
-
-jacobi.hts <- hitting.jacobi(locs,G,10*jacobi.hts,tol=.01,kmax=10)
-
-jacobi.hts <- hitting.jacobi(locs,G,2*jacobi.hts,tol=.01,kmax=10)
-
-if (FALSE) {
-    load(paste(basename(layer.prefix),"nonmissing.RData",sep=''))
-    rast <- raster(paste(layer.prefix,layer.names[1],sep=''))
-    tmp <- matrix(NA,nrow=dim(rast)[2],ncol=dim(rast)[1])
-    rm(rast)
-
-    kk <- 1
-    
-    jhts <- jacobi.hts[,kk]
-
-    tmp[nonmissing] <- jhts
-    image(tmp)
-
-    jhts <- hitting.jacobi( locs[kk], G, cbind(jhts) )
-
-    plot(jhts,jacobi.hts[,kk]); abline(0,1)
-
-    plot( G[-locs[kk],-locs[kk]] %*% jhts[-locs[kk]] - rowSums(G[-locs[kk],-locs[kk]])*jhts[-locs[kk]] )
-
+parscale <- c( rep(0.1,length(init.params)-1) )
+results <- optim( par=init.params[-1], fn=L, gr=dL, control=list(parscale=parscale), method="BFGS" )
+if (results$convergence != 0) {
+    results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale/10), method="BFGS" )
 }
 
+write( c(init.beta,results$par), file=outfile )
 
+if (FALSE) {
+
+    # check gradient  (VERY STEEP ?!?!?!)
+    dp <- 1e-8 * runif(length(init.params)-1)
+    L0 <- L(init.params[-1])
+    dL0 <- dL(init.params[-1])
+    L1 <- L(init.params[-1]+dp)
+    c( L1-L0, sum(dp*dL0) )
+
+
+
+    # version with beta free to vary
+L <- function (params) {
+    if (any(params != get("params",parent.env(environment()) ) ) ) { 
+        evalq(params <- params, parent.env(environment()) )
+        evalq( G@x <- update.G(params), parent.env(environment()) )
+        evalq( dG <- rowSums(G), parent.env(environment()) )
+        GH <- G %*% hts - dG*hts
+        GH[zeros] <- 0
+        evalq(GH <- GH, parent.env(environment()) )
+    }
+    ans <- ( sum( (GH+sc.one)^2 ) - length(zeros)*sc.one^2 )
+    if (!is.finite(ans)) { browser() }
+    return(ans)
+}
+dL <- function (params) {
+    if (any(params != get("params", parent.env(environment()) ) ) ) { 
+        evalq(params <- params, parent.env(environment()) )
+        evalq( G@x <- update.G(params), parent.env(environment()) )
+        evalq( dG <- rowSums(G), parent.env(environment()) )
+        GH <- G %*% hts - dG*hts
+        GH[zeros] <- 0
+        evalq(GH <- GH, parent.env(environment()) )
+    }
+    bgrad <- 2 * sum( GH * (GH+sc.one) ) / params[1]
+    ggrads <- sapply( 1:ncol(layers), function (kk) {
+            2 * sum( layers[,kk] * GH * (GH+sc.one) )
+        } )
+    dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
+            GL <- G
+            GL@x <- G@x * layers[Gjj,kk]
+            dGL <- rowSums(GL)
+            GLH <- GL %*% hts - dGL*hts
+            GLH[zeros] <- 0
+            return( 2 * sum( GLH * (GH+sc.one)  ) )
+        } )
+    ans <- ( c(bgrad, ggrads, dgrads) )
+    if (any(!is.finite(ans))) { browser() }
+    return(ans)
+}
+environment(L) <- environment(dL) <- fun.env <- list2env( list(
+                G=G,
+                dG=dG,
+                params=init.params,
+                GH=GH), 
+        parent=environment() )
+parscale <- c( init.params[1]/10, rep(0.1,length(init.params)-1) )
+results <- optim( par=init.params, fn=L, gr=dL, control=list(parscale=parscale, trace=5), method="L-BFGS-B", lower=c(1e-6,rep(-Inf,length(init.params)-1)) )
+
+}
