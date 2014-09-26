@@ -43,6 +43,9 @@ torts$PC6 <- eig.covmat$vectors[,6]
 torts$PC7 <- eig.covmat$vectors[,7]
 torts$PC8 <- eig.covmat$vectors[,8]
 
+write.csv( torts[paste("PC",1:8,sep='')], file="tort-PCs.csv", row.names=torts$EM_Tort_ID )
+
+
 # get elevation raster
 elev.file <- "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri"
 elev <- raster(elev.file)
