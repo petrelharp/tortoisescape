@@ -101,7 +101,7 @@ convergences <- sapply(optim.ht.list,"[[","convergence")
 
 if (any(convergences!=0)) { warning("Some did not converge") }
 
-save( optim.hts, init.params, ratescale, gridwidth, file=paste(subdir,"/",basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
+save( optim.hts, convergences, init.params, ratescale, gridwidth, file=paste(subdir,"/",basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
 
 
 ###

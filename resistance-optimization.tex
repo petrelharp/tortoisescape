@@ -188,19 +188,6 @@ and equal to the mean hitting time of $y_i$ at those locations
 is very nearly the minimal solution to this problem.
 This only underestimates the truth by the mean time to first hit one of the $\{y_j\}$.
 
-For things less close to true hitting times (due to, say, noise)
-we need to 
-make $\gamma$ not too big.
-Rather than the hard constraint, we might do a soft constraint, 
-adding a penalization to get something nonnegative, say,
-\begin{align}
-    \text{minimize } & J(H) = \| Q^{-y_i} z + \bone \|^2 + \gamma \| Pz - H_{\cdot y_i} \|^2 + \eta \sum_{x} \exp(-h_{xy_i}) .
-\end{align}
-This has derivative
-\begin{align}
-    \partial_{H_{uv}} J(H) =  2 (Q^{-y_i})^T ( Q^{-y_i} z + \bone ) + 2 \gamma P^T ( Pz - H_{\cdot y_i} ) - \eta \sum_x \exp(-h_{xy_i}) .
-\end{align}
-
 
 
 %%%%%%%% %%%%%%%%%%%%
