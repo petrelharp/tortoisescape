@@ -17,14 +17,16 @@ require(raster)
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     layer.name <- commandArgs(TRUE)[2]
+    subdir <- if (length(commandArgs(TRUE))>2) { commandArgs(TRUE)[3] } else { "." }
 } else {
     layer.prefix <- c("../geolayers/TIFF/500x/500x_")
     layer.name <- "annual_precip"
+    subdir <- "."
 }
 
 # get precomputed G
-load(paste(basename(layer.prefix),"G.RData",sep=''))
-load(paste(basename(layer.prefix),"nonmissing.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),"G.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),"nonmissing.RData",sep=''))
 Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
 ###
@@ -34,7 +36,7 @@ layers <- cbind( scale( values( raster(paste(layer.prefix,layer.name,sep='')) )[
 stopifnot(nrow(layers)==nrow(G))
 
 # tortoise locations
-load(paste(basename(layer.prefix),"tortlocs.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep=''))
 nind <- length(locs)
 na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]
@@ -69,33 +71,40 @@ G@x <- update.G(init.params)
 dG <- rowSums(G)
 cG <- colSums(G)
 # objective function
-H <- function (ht,obs.ht,loc,locs,g.match=1,g.nonneg=1) {
+H <- function (ht,obs.ht,loc,locs,g.match=1) {
     ht[loc] <- 0
-    z <- G%*%ht - dG*ht
+    z <- G%*%ht - dG*ht + 1
     z[loc] <- 0
-    return( ( sum( z^2 ) + g.match * sum( (ht[locs] - obs.ht)^2 ) + 2 * g.nonneg * sum( exp(-ht) ) )/length(z) )
+    return( ( sum( z^2 ) + g.match * sum( (ht[locs] - obs.ht)^2 ) )/length(z) )
 }
-dH <- function (ht,obs.ht,loc,locs,g.match=1,g.nonneg=1) {
+dH <- function (ht,obs.ht,loc,locs,g.match=1) {
     # cG - G[loc,] is, except at [loc], 1^T ((G-diag(dG))[-loc,])
     z <- G%*%ht - dG*ht
     z[loc] <- 0
-    z <- (G%*%z - dG*z) + (cG-G[loc,]) - g.nonneg * exp(-ht)
+    z <- (G%*%z - dG*z) + (cG-G[loc,]) 
     z[locs] <- z[locs] + g.match*(ht[locs]-obs.ht)
     z[loc] <- 0
     return( 2 * as.vector(z) / length(z) )
 }
 
-parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
+# parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
+parscale <- rep( mean(pimat), nrow(G) )
 init.hts <- matrix(parscale,nrow=nrow(G),ncol=length(locs))
 init.hts[cbind(locs,seq_along(locs))] <- 0
 
-optim.hts <- optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="CG", control=list(parscale=parscale,maxit=100) )
-optim.hts <- optim( par=optim.hts$par, fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="CG", control=list(parscale=parscale,maxit=10000) )
-
-
-optim.hts <- mclapply( seq_along(locs), function (k) {
-            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="CG", control=list( parscale=parscale ) ) 
+optim.ht.list <- mclapply( seq_along(locs), function (k) {
+            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, method="L-BFGS-B", control=list( parscale=parscale ), lower=0, upper=Inf ) 
         } )
+optim.hts <- sapply(optim.ht.list,"[[","par")
+
+if (any(sapply(optim.ht.list,"[[","convergence")!=0)) { warning("Some did not converge") }
+
+save( optim.hts, init.params, ratescale, gridwidth, file=paste(subdir,"/",basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
+
+
+###
+# testing
+if (FALSE) {
 
 ###
 # analytic
@@ -107,34 +116,30 @@ solve.hts[cbind(locs,seq_along(locs))] <- 0
 
 plot( as.vector(tmp.pimat), as.vector(solve.hts[locs,]), col=1+(row(pimat)==col(pimat)) ); abline(0,1)
 
-for (k in seq_along(locs)[55:length(locs)]) {
+for (k in seq_along(locs)[1:length(locs)]) {
     plot.ht( (solve.hts[,k]), hitting.layer, nonmissing )
     text( tort.coords.rasterGCS, labels=1:180 )
     points( tort.coords.rasterGCS[k+if(k>56){1}else{0}], pch="*", cex=4, col='red' )
     if (is.null(locator(1))) { break }
 }
 
-for (k in seq_along(locs)[55:length(locs)]) {
+for (k in seq_along(locs)[1:length(locs)]) {
     plot.ht( pmax(solve.hts[,k],0), hitting.layer, nonmissing )
     text( tort.coords.rasterGCS, labels=1:180 )
     points( tort.coords.rasterGCS[k+if(k>56){1}else{0}], pch="*", cex=4, col='red' )
     if (is.null(locator(1))) { break }
 }
 
-###
-# testing
-if (FALSE) {
-
     load("../tort.coords.rasterGCS.Robj")
 
     fullG <- G
     diag(fullG) <- (-1)*rowSums(G)
     true.hts <- hitting.analytic(locs,fullG)
-    hitting.layer <- raster(paste(layer.prefix,layer.name,sep='')) 
-    values(hitting.layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
+    hlayer <- raster(paste(layer.prefix,layer.name,sep='')) 
+    values(hlayer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     k <- 1
-    values(hitting.layer)[nonmissing] <- true.hts[,k]
-    plot(hitting.layer)
+    values(hlayer)[nonmissing] <- true.hts[,k]
+    plot(hlayer)
 
     solve.hts <- interp.hitting( fullG, locs, true.hts[locs,] )
     solve.hts[cbind(locs,seq_along(locs))] <- 0
@@ -147,4 +152,3 @@ if (FALSE) {
 
 }
 
-save( jacobi.hts.list, init.params, ratescale, gridwidth, file=paste(basename(layer.prefix),layer.name,"-init-hts.RData",sep='') )
