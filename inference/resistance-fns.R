@@ -105,7 +105,8 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
 hitting.analytic <- function (locs,G) {
     # compute analytical expected hitting times
     if ("parallel" %in% .packages()) {
-        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=16 ) ) }
+        numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
@@ -170,10 +171,19 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 ##
 # plotting whatnot
 
-plot.ht <- function (h,layer,nonmissing,...) {
-    values(layer)[-nonmissing] <- NA
-    values(layer)[nonmissing] <- h
-    plot(layer,...)
+plot.ht.fn <- function (layer.prefix,layer.name,nonmissing) {
+    # use this to make a quick plotting function
+    layer <- raster(paste(layer.prefix,layer.name,sep=''))
+    values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
+    load("../tort.coords.rasterGCS.Robj")
+    ph <- function (x,...) { 
+        values(layer)[nonmissing] <- x
+        plot(layer,...)
+        points(tort.coords.rasterGCS,pch=20,cex=.25)
+    }
+    environment(ph) <- new.env()
+    assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
+    return(ph)
 }
 
 colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), zero=FALSE, trim=0, breaks, return.breaks=FALSE) {
