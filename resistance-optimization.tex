@@ -175,7 +175,8 @@ Then for each $i$ we want to solve the following problem:
     \text{subject to } &  z \ge 0 .
 \end{align}
 
-This works ridiculously well.
+This works ridiculously well on things closeish to true hitting times,
+not even requiring the constraint.
 
 In some cases, so does solving:
 \begin{align}
@@ -186,7 +187,6 @@ This is because the function that is harmonic off of $\{y_j\}$
 and equal to the mean hitting time of $y_i$ at those locations
 is very nearly the minimal solution to this problem.
 This only underestimates the truth by the mean time to first hit one of the $\{y_j\}$.
-
 
 
 

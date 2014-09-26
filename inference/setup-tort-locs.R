@@ -6,7 +6,13 @@ rasterOptions(tmpdir=".")
 
 # for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_", "../geolayers/TIFF/masked/crop_resampled_masked_" ) ) {
 
-if (!interactive()) { layer.prefix <- commandArgs(TRUE)[1] }
+if (!interactive()) { 
+    layer.prefix <- commandArgs(TRUE)[1] 
+    subdir <- commandArgs(TRUE)[2] 
+} else {
+    layer.prefix <- "../geolayers/TIFF/500x/500x_"
+    subdir <- "500x"
+}
 
 onelayer <- raster(paste(layer.prefix,"annual_precip",sep=''))
 
@@ -20,10 +26,10 @@ orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 
 
 # ok, but we need indices in NONMISSING ones
-load(paste(basename(layer.prefix),"nonmissing.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),"nonmissing.RData",sep=''))
 locs <- match(orig.locs,nonmissing)
 
-save( locs, file=paste(basename(layer.prefix),"tortlocs.RData",sep='') )
+save( locs, file=paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='') )
 
 ###
 # and distances from all nonmissing locations to torts
@@ -33,5 +39,5 @@ if (dim(onelayer)[1]<5000) {
                 values( distanceFromPoints( onelayer, tort.coords.rasterGCS[k] ) )[nonmissing]
             } )
 
-    save( all.locs.dists, file=paste(basename(layer.prefix),"alllocs.RData",sep='') )
+    save( all.locs.dists, file=paste(subdir,"/",basename(layer.prefix),"alllocs.RData",sep='') )
 }
