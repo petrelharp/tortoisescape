@@ -99,10 +99,10 @@ init.hts[cbind(locs,seq_along(locs))] <- 0
 # H( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
 # dH( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
 
-k <- 28 
-test.ht <- optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, g.match=1/200,
-        method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-ph(test.ht$par[-1]); with( environment(ph), points(tort.coords.rasterGCS[k]) )
+# k <- 28 
+# test.ht <- optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, g.match=1/200,
+#         method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
+# ph(test.ht$par[-1]); with( environment(ph), points(tort.coords.rasterGCS[k]) )
 
 optim.ht.list <- mclapply( seq_along(locs), function (k) {
             optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, 
