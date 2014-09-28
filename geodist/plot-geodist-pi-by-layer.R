@@ -14,7 +14,8 @@ require(colorspace)
 require(MASS)
 
 # georaphic distance
-torts <- read.csv("../1st_180_torts.csv",header=TRUE)
+torts <- read.csv("../1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
+use.torts <- torts$EM_Tort_ID
 nind <- nrow(torts)
 tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
@@ -23,6 +24,10 @@ tort.dists <- tort.dists + t(tort.dists)
 
 # environmental distance
 edists <- read.table(paste(subdir,"/",layer.name,"-edist.tsv",sep=''),sep='\t',header=TRUE)
+
+# coverages
+coverage <- read.csv("../coverage_info.csv")
+torts$coverage <- coverage$sequence_yield_megabases[match(torts$EM_Tort_ID,coverage$individual)]
 
 # genetic distance
 pimat.vals <- scan("../pairwisePi/alleleCounts_1millionloci.pwp") # has UPPER with diagonal
@@ -49,9 +54,6 @@ rm(nind)
 # scale
 dists$DISTANCE <- dists$DISTANCE/1000
 
-ncols <- 16
-cols <- adjustcolor(diverge_hcl(ncols),.7)
-
 pr <- function (params) {
     A <- params[1]; B <- params[2]; Const <- params[3]; C <- params[3+(1:ntorts)]
     Z <- with(dists, C[etort1] * C[etort2] * ( A * DISTANCE + B * edist + Const ) )
@@ -61,9 +63,7 @@ pr <- function (params) {
 }
 
 base.lm <- lm( pi ~ DISTANCE + edist, data=dists )
-init.C.lm <- lm( log(pi) ~ etort1 + etort2, data=dists )
-init.C <- exp( rowSums( cbind( coef(init.C.lm)[1+(1:ntorts)] , coef(init.C.lm)[1+ntorts+(1:ntorts)] ), na.rm=TRUE )/2 )
-init.params <- c( A=coef(base.lm)[2], B=coef(base.lm)[3], Const=coef(base.lm)[1]/mean(init.C), C=init.C )
+init.params <- c( A=coef(base.lm)[2], B=coef(base.lm)[3], Const=coef(base.lm)[1], C=rep(1,length(use.torts)) )
 
 pr(init.params)
 

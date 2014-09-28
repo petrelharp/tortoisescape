@@ -6,7 +6,8 @@ require(colorspace)
 require(MASS)
 
 # georaphic distance
-torts <- read.csv("../1st_180_torts.csv",header=TRUE)
+torts <- read.csv("../1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
+use.torts <- torts$EM_Tort_ID
 nind <- nrow(torts)
 tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
@@ -30,7 +31,7 @@ dists <- tort.dist.table
 dists$pi <- pimat[ cbind(match(dists$etort1,torts$EM_Tort_ID),match(dists$etort2,torts$EM_Tort_ID)) ]
 
 # remove missing one
-use.torts <- levels(torts$EM_Tort_ID)
+use.torts <- torts$EM_Tort_ID
 dists$etort1 <- factor( as.character(dists$etort1), use.torts )
 dists$etort2 <- factor( as.character(dists$etort2), use.torts )
 
@@ -41,68 +42,61 @@ rm(nind)
 # scale
 dists$DISTANCE <- dists$DISTANCE/1000
 
-ncols <- 16
-cols <- adjustcolor(diverge_hcl(ncols),.7)
-
-pr <- function (params) {
-    A <- params[1]; Const <- params[2]; C <- params[2+(1:ntorts)]
-    Z <- with(dists, C[etort1] * C[etort2] * ( A * DISTANCE + Const ) )
-    plot( pi ~ Z, data=dists )
-    abline(0,1,col='red')
-    with( dists, mean( ( C[etort1] * C[etort2] * ( A * DISTANCE + Const ) - pi )^2 ) )
-}
-
-base.lm <- lm( pi ~ DISTANCE, data=dists )
-init.C.lm <- lm( log(pi) ~ etort1 + etort2, data=dists )
-init.C <- exp( rowSums( cbind( coef(init.C.lm)[1+(1:ntorts)] , coef(init.C.lm)[1+ntorts+(1:ntorts)] ), na.rm=TRUE )/2 )
-init.params <- c( A=coef(base.lm)[2], Const=coef(base.lm)[1]/mean(init.C), C=init.C )
-
-pr(init.params)
-
 
 ## want to do this: but nls won't
 # fit <- nls( pi ~  C[etort1] * C[etort2] * ( A * DISTANCE + B * edist + Const ), data=dists,  ...
 #
-# NOTE: constrain C to have C[1] = 1 or else nonidentifiable
+##
+# resolve nonidentifiability by setting Const = mean(pi) .
+mean.pi <- mean(dists$pi)
 
+pr <- function (params) {
+    A <- params[1]; C <- params[1+(1:ntorts)]
+    Z <- with(dists, C[etort1] * C[etort2] * ( A * DISTANCE + mean.pi ) )
+    with( dists, plot( Z,  pi ) )
+    abline(0,1,col='red')
+    cat(with( dists, mean( ( C[etort1] * C[etort2] * ( A * DISTANCE + mean.pi ) - pi )^2 ) ),"\n")
+}
+
+
+
+# setup for given A, fit C
+C.model.matrix <- sapply( 1:ntorts, function (k) {
+        ( dists$etort1 == use.torts[k] ) + ( dists$etort2 == use.torts[k] )
+    } )
+colnames(C.model.matrix) <- use.torts
+
+base.lm <- lm( pi-mean.pi ~ DISTANCE+0, data=dists )
+init.params <- c( A=coef(base.lm)[1], C=rep(1,length(use.torts)) )
+
+pr(init.params)
 
 params <- init.params
 
-for (k in 1:50) {
+max.k <- 100
+for (k in 1:max.k) {
     cat(k,"\n")
     old.params <- params
 
-    # Given C, fit A, B, Const:
-    C <- c(1,params[2+(1:ntorts)])
-    AB.lm <- lm( I(pi/(C[etort1]*C[etort2])) ~ DISTANCE, data=dists )
-    params[1:2] <- coef(AB.lm)[c(2,1)]
+    # Given C, fit A, B
+    C <- params[1+(1:ntorts)]
+    AB.lm <- lm( I(pi/(C[etort1]*C[etort2])-mean.pi) ~ DISTANCE + 0, data=dists )
+    params[1] <- coef(AB.lm)[1]
 
     pr(params)
-
-    # given A, B, Const, fit C
-    C.model.matrix1 <- model.matrix( pi ~ etort1, data=dists )
-    colnames(C.model.matrix1) <- gsub("^etort[12]","",colnames(C.model.matrix1))
-    Cmm1 <- C.model.matrix1[,match(levels(dists$etort1),colnames(C.model.matrix1))]
-    Cmm1[is.na(Cmm1)] <- 0
-    C.model.matrix2 <- model.matrix( pi ~ etort2, data=dists )
-    colnames(C.model.matrix2) <- gsub("^etort[12]","",colnames(C.model.matrix2))
-    Cmm2 <- C.model.matrix1[,match(levels(dists$etort1),colnames(C.model.matrix2))]
-    Cmm2[is.na(Cmm2)] <- 0
-    stopifnot(all(levels(dists$etort1)==levels(dists$etort2)))
-    C.model.matrix <- Cmm1 + Cmm2
 
     # minimize ( z - A x )^2 by solving  A^T  z = A^T A x
-    A <- params[1]; Const <- params[3]
-    lr.pi <- with(dists, log(pi / (A*DISTANCE+Const)) )
+    A <- params[1]
+    lr.pi <- with(dists, log(pi / (A*DISTANCE+mean.pi)) )
 
     log.C.lm <- ginv(crossprod(C.model.matrix)) %*% crossprod(C.model.matrix,lr.pi)
-    C.lm <- exp(log.C.lm)
-    params[-(1:2)] <- C.lm
+    params[-1] <- exp(log.C.lm)
 
     pr(params)
 
-    if (max((old.params-params)*c(1e6,1,rep(1,length(C)-1)))<1e-4) { break }
+    if (max(abs(old.params-params)*c(1e6,rep(1,length(C))))<1e-4) { break }
 }
+if (k==max.k) { warning("Didn't converge.") }
 
 outfile <- "inferred-geodist-params.tsv" 
 write( c("DISTANCE",use.torts), file=outfile, ncolumns=length(params) )
