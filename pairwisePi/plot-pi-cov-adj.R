@@ -74,15 +74,22 @@ for (meth in c("angsd","robust")) {
 	# find trendline in pi vs. coverage
 	cov.adj <- coef( lm( pimat[ut] ~ torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]] ) )
 
+	# find mean
+	mean_cov <- mean(torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]])
+
 #	# adjust values
-#	pimat.adj <- pimat[ut] - cov.adj[[2]]*(torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]]) no, this is wrong
+	pimat.adj <- pimat[ut] - cov.adj[[2]]*(torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]]-mean_cov) # works fine, just don't subset it twice
 
+	# plot adjusted values in red
+	plot( tort.dists[ut], pimat.adj, xlab="geographic distance", ylab="coverage adjusted pairwise divergence", pch=20, cex=0.5, col=adjustcolor("red",.75) )
+	abline( coef( lm( pimat.adj ~ tort.dists[ut] ) ), col=adjustcolor("red",.75) ) # this seems to work
 
-	# plot adjusted values
-	plot( tort.dists[ut], pimat[ut] - cov.adj[[2]]*(torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]]),
-		xlab="geographic distance", ylab="coverage adjusted pairwise divergence", pch=20, cex=0.5 )
-	abline( coef( lm( (pimat[ut] - cov.adj[[2]]*(torts$coverage[col(pimat)[ut]]+torts$coverage[row(pimat)[ut]])) ~ tort.dists[ut] ) ) ) # this seems to work
+	#plot original values in black
+	matplot( tort.dists[ut], pimat[ut], pch=20, cex=0.5, col=adjustcolor("black",.75), add=T )
+	abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ),col=adjustcolor("black",.75) ) 
 
+	#plot lines between old and new
+	matplot( t(cbind(tort.dists[ut],tort.dists[ut])), t(cbind(pimat[ut],pimat.adj)),type="l",col=adjustcolor("black",.2), lty=1, add=T )
 
     dev.off()
 
