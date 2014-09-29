@@ -1,0 +1,25 @@
+#PBS -S /bin/bash
+#PBS -q cmb
+#PBS -l nodes=1:dl165:ppn=24
+#PBS -l walltime=200:00:00
+#PBS -l mem=48000mb
+#PBS -l vmem=48000mb
+#PBS -l pmem=2000mb
+# #PBS -e qsub-logs
+# #PBS -o qsub-logs
+
+# USAGE:
+#    qsub -vARGS="stuff to pass to Rscript" skeleton.pbs
+# e.g.
+#    qsub -vARGS="bcells-inference.R -u 02-C-M_out_of_frame -w 2 -l 2 -r 2 -k 2" skeleton.pbs
+
+source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+
+cd $PBS_O_WORKDIR
+
+echo "$ARGS"
+
+Rscript $ARGS
+
+exit
+
