@@ -19,11 +19,14 @@ if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1] 
     subdir <- commandArgs(TRUE)[2] 
     layer.name <- commandArgs(TRUE)[3]
+    sumfun.name <- commandArgs(TRUE)[4]
 } else {
     layer.prefix <- "../geolayers/TIFF/500x/500x_"
     subdir <- "500x"
     layer.name <- "annual_precip"
+    sumfun.name <- "mean"
 }
+sumfun <- get(sumfun.name,mode="function")
 
 layer.file <- paste(layer.prefix,layer.name,sep='')
 layer <- raster(layer.file)
@@ -60,12 +63,12 @@ env.dists <- unlist( mclapply( 1:ncol(tort.pairs), function (k) {
             t2 <- tort.pairs[2,k]
             x <- cellFromLine( layer, SpatialLines( list( Lines( list(Line( tort.coords.raw[c(t1,t2),] )), ID=paste(torts$EM_Tort_ID[c(t1,t2)],collapse='-') ) ), 
                             proj4string=crs(proj4string(tort.coords.rasterGCS)) ) )
-            sum( abs(values(layer)[x[[1]]]) )
+            sumfun( (values(layer)[x[[1]]]) )
         }, mc.cores=numcores ) )
 
 edists <- data.frame( tort1=torts$EM_Tort_ID[tort.pairs[1,]], tort2=torts$EM_Tort_ID[tort.pairs[2,]], edist=env.dists )
 
-write.table( edists, file=paste(subdir,"/", layer.name, "-edist.tsv", sep=''), sep='\t', row.names=FALSE, quote=FALSE )
+write.table( edists, file=paste(subdir,"/", layer.name, "-", sumfun.name, "-edist.tsv", sep=''), sep='\t', row.names=FALSE, quote=FALSE )
 
 # NOT WORKING:
 # tort.cells <- mclapply( cellFromLine( layer, SpatialLines( lapply( 1:ncol(tort.pairs), function (k) {

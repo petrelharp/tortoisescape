@@ -14,7 +14,8 @@ cd $PBS_O_WORKDIR
 
 for x in $(cat ../inference/twentyfour-raster-list)
 do
-    Rscript get-environmental-distance.R ../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_ 10x $x
+    Rscript get-environmental-distance.R ../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_ 10x $x mean;
+    Rscript get-environmental-distance.R ../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_ 10x $x max;
 done
 
 exit
