@@ -7,9 +7,11 @@ rasterOptions(tmpdir=".")
 if (!interactive()) { 
     layer.prefix <- commandArgs(TRUE)[1] 
     layer.file <- commandArgs(TRUE)[2]
+    subdir <- commandArgs(TRUE)[3]
 } else {
     layer.file <- "../inference/six-raster-list"
     layer.prefix <- c("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
+    subdir <- "100x"
 }
 
 # for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_", "../geolayers/TIFF/masked/crop_resampled_masked_" ) ) {
@@ -55,6 +57,6 @@ if (!interactive()) {
 
     G@x <- update.G(init.params)
 
-    save( G, update.G, ndelta, ngamma, transfn, valfn, layers, file=paste(basename(layer.prefix),"G.RData",sep=''))
-    save( nonmissing, file=paste(basename(layer.prefix),"nonmissing.RData",sep=''))
+    save( G, update.G, ndelta, ngamma, transfn, valfn, layers, file=paste(subdir,"/",basename(layer.prefix),"G.RData",sep=''))
+    save( nonmissing, file=paste(subdir,"/",basename(layer.prefix),"nonmissing.RData",sep=''))
     # }
