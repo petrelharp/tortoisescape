@@ -18,12 +18,17 @@ if (!interactive()) {
     layer.file <- commandArgs(TRUE)[3]
     param.file <- if (length(commandArgs(TRUE))>3) { commandArgs(TRUE)[4] } else { NULL }
 } else {
-    layer.prefix <- c("../geolayers/TIFF/500x/500x_")
+    # layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
+    # subdir <- "100x"
+    # layer.file <- "../inference/six-raster-list"
+    # param.file <- "500x/six-raster-list-hitting-times.tsv"
+
+    layer.prefix <- "../geolayers/TIFF/500x/500x_"
     subdir <- "500x"
     layer.file <- "../inference/six-raster-list"
     param.file <- NULL
-    # layer.names <- c("imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st")
 }
+method <- "analytic"
 layer.names <- scan(layer.file,what="char") 
 
 load( paste(subdir,"/",basename(layer.prefix),"G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
