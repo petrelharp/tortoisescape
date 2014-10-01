@@ -21,7 +21,7 @@ if (!interactive()) {
     # layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
     # subdir <- "100x"
     # layer.file <- "../inference/six-raster-list"
-    # param.file <- "500x/six-raster-list-hitting-times.tsv"
+    # param.file <- "simple-init-params-six-raster-list.tsv"
 
     layer.prefix <- "../geolayers/TIFF/500x/500x_"
     subdir <- "500x"
@@ -45,7 +45,7 @@ locs <- locs[-na.indiv]
 #   so if hitting times are of order T, want r of order sqrt(N)/T
 
 init.param.table <- read.table( param.file, header=TRUE )
-init.params <- as.vector( init.param.table[ match( subdir, init.param.table[,1] ), -1 ] )
+init.params <- unlist( init.param.table[ match( subdir, init.param.table[,1] ), -1 ] )
 
 G@x <- update.G(init.params)
 
