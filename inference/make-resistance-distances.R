@@ -101,7 +101,8 @@ if (method=="analytic") {
     }
 }
 
-write.table( hts, file=paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", row.names=FALSE ) )
+colnames( hts ) <- locs
+write.table( hts, file=paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep=''), row.names=FALSE )
 
 if (FALSE) {
 
