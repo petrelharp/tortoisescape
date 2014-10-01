@@ -24,7 +24,7 @@ tort.dists <- tort.dists + t(tort.dists)
 
 # environmental distance
 edist.list <- lapply( layer.names, function (layer.name) {
-        x <- read.table(paste(subdir,"/",layer.name,"-edist.tsv",sep=''),sep='\t',header=TRUE)
+        x <- read.table(paste(subdir,"/",layer.name,"-mean-edist.tsv",sep=''),sep='\t',header=TRUE)
         colnames(x)[3] <- layer.name
         x
     } )
@@ -72,6 +72,7 @@ for (k in seq_along(layer.names)) {
 }
 dev.off()
 
+if (FALSE) {
 
 pcs <- read.csv("../covmat/tort-PCs.csv",stringsAsFactors=FALSE)
 names(pcs)[1] <- "etort"
@@ -100,7 +101,6 @@ with( subset(dists,pcs$PC1[match(etort1,pcs$etort)]*pcs$PC1[match(etort2,pcs$eto
     hist( mean_slope_30, col=adjustcolor("blue",.5), add=TRUE,freq=FALSE )
     )
 
-if (FALSE) {
 
 layer <- raster("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_dem_30")
 load("../tort.coords.rasterGCS.Robj")
@@ -108,4 +108,5 @@ coord.names <- rownames(tort.coords.rasterGCS@coords)
 
 plot(layer,main="adjustment factor")
 text(tort.coords.rasterGCS, gsub("etort.","",coord.names),cex=.5)
+
 }

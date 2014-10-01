@@ -6,11 +6,11 @@
 #     Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ annual_precip
 # (note the space!)                                                                           ---->^
 
-require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
-
 source("resistance-fns.R")
 require(raster)
+
+require(parallel)
+numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
 
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
@@ -63,9 +63,9 @@ dH <- function (par,obs.ht,loc,locs,g.match=1) {
     # cG - G[loc,] is, except at [loc], 1^T ((G-diag(dG))[-loc,])
     a <- par[1]
     ht <- par[-1]
-    z <- G%*%ht - dG*ht
+    z <- G%*%ht - dG*ht   # NOTE: Should be +1 here?
     z[loc] <- 0
-    z <- (G%*%z - dG*z) + (cG-G[loc,]) 
+    z <- (G%*%z - dG*z) + (cG-G[loc,])   # and without this last bit?
     z[locs] <- z[locs] + g.match*(ht[locs]-(obs.ht-a))
     z[loc] <- 0
     return( c( 2 * g.match * sum( ht[locs] - (obs.ht-a) ) / length(z) , 2 * as.vector(z) / length(z) ) )

@@ -85,11 +85,27 @@ for (meth in c("angsd","robust")) {
 	abline( coef( lm( pimat.adj ~ tort.dists[ut] ) ), col=adjustcolor("red",.75) ) # this seems to work
 
 	#plot original values in black
-	matplot( tort.dists[ut], pimat[ut], pch=20, cex=0.5, col=adjustcolor("black",.75), add=T )
+	matplot( tort.dists[ut], pimat[ut], pch=20, cex=0.5, col=adjustcolor("black",.25), add=TRUE )
 	abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ),col=adjustcolor("black",.75) ) 
 
 	#plot lines between old and new
 	matplot( t(cbind(tort.dists[ut],tort.dists[ut])), t(cbind(pimat[ut],pimat.adj)),type="l",col=adjustcolor("black",.2), lty=1, add=T )
+
+    # and side-by-side
+    layout(t(1:2))
+
+	# plot adjusted values in red
+	plot( tort.dists[ut], pimat.adj, xlab="geographic distance", ylab="coverage adjusted pairwise divergence", pch=20, cex=0.5, col=adjustcolor("red",.75) )
+	abline( coef( lm( pimat.adj ~ tort.dists[ut] ) ), col=adjustcolor("red",.75) ) # this seems to work
+
+	#plot original values in black
+	matplot( tort.dists[ut], pimat[ut], pch=20, cex=0.5, col=adjustcolor("black",.25) )
+	abline( coef( lm( pimat[ut] ~ tort.dists[ut] ) ),col=adjustcolor("black",.75) ) 
+
+	#plot lines between old and new
+	matplot( t(cbind(tort.dists[ut],tort.dists[ut])), t(cbind(pimat[ut],pimat.adj)),type="l",col=adjustcolor("black",.2), lty=1, add=T )
+
+
 
     dev.off()
 
