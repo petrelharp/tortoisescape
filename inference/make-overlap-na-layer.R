@@ -4,9 +4,9 @@ if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     layer.file <- commandArgs(TRUE)[2]
 } else {
-    layer.file <- "../inference/twentyfour-raster-list"
     # layer.prefix <- c("TIFF/masked/crop_resampled_masked_")
-    layer.prefix <- c("TIFF/100x/crop_resampled_masked_aggregated_100x_")
+    layer.prefix <- c("../geolayers/TIFF/500x/500x_")
+    layer.file <- "../inference/twentyfour-raster-list"
 }
 
 require(raster)
@@ -22,8 +22,8 @@ use.names <- layer.names[match(use.ref,layer.names)]
 
 names(use.files) <- use.names
 
-refname <- grep("annual_precip",layer.names)
-reflayer <- is.na( raster(layer.files[refname]) ) #annual_precip
+refname <- grep("dem_30",layer.names)
+reflayer <- is.na( raster(layer.files[refname]) ) # dem
 
 for (lf in use.files) {
     other <- raster(lf) 

@@ -9,9 +9,9 @@ if (!interactive()) {
     layer.file <- commandArgs(TRUE)[2]
     subdir <- commandArgs(TRUE)[3]
 } else {
-    layer.file <- "../inference/six-raster-list"
-    layer.prefix <- c("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_")
-    subdir <- "100x"
+    layer.prefix <- c("../geolayers/TIFF/500x/500x_")
+    layer.file <- "six-raster-list"
+    subdir <- "500x"
 }
 
 # for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_", "../geolayers/TIFF/masked/crop_resampled_masked_" ) ) {
