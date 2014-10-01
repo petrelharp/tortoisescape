@@ -16,19 +16,24 @@ if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
-    param.file <- if (length(commandArgs(TRUE))>3) { commandArgs(TRUE)[4] } else { NULL }
+    param.file <- commandArgs(TRUE)[4] 
+    method <- commandArgs(TRUE)[5] 
+    prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
 } else {
     # layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
     # subdir <- "100x"
     # layer.file <- "../inference/six-raster-list"
     # param.file <- "simple-init-params-six-raster-list.tsv"
+    # method <- "analytic"
+    # prev.ht <- "500x/six-raster-list-hitting-times.tsv"
 
     layer.prefix <- "../geolayers/TIFF/500x/500x_"
     subdir <- "500x"
     layer.file <- "../inference/six-raster-list"
     param.file <- "simple-init-params-six-raster-list.tsv"
+    method <- "CG"
+    prev.ht <- NULL
 }
-method <- "analytic"
 layer.names <- scan(layer.file,what="char") 
 
 load( paste(subdir,"/",basename(layer.prefix),"G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
@@ -55,6 +60,8 @@ if (method=="analytic") {
 
 } else if (method=="CG") {
 
+    init.hts <- read.table(prev.ht,header=TRUE)
+
     dG <- rowSums(G)
     cG <- colSums(G)
     # objective function
@@ -78,8 +85,6 @@ if (method=="analytic") {
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
     parscale <- rep( 1, nrow(G) )
-    init.hts <- matrix(parscale,nrow=nrow(G),ncol=length(locs))
-    init.hts[cbind(locs,seq_along(locs))] <- 0
 
     optim.ht.list <- mclapply( seq_along(locs), function (k) {
                 optim( par=init.hts[,k], fn=H, gr=dH, loc=locs[k], 
