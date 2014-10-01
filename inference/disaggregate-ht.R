@@ -56,6 +56,9 @@ new.hts <- do.call( rbind, mclapply( 1:ncol(hts), function (k) {
         # get values out
         return( values(layer.1.dis)[nonmissing.2] )
     }, mc.cores=numcores ) )
+colnames(new.hts) <- colnames(hts)
+
+write.table( new.hts, file=paste( subdir.2, "/", basename(subdir.1), "aggregated-hitting-times.tsv", sep=''), row.names=FALSE )
 
 if (FALSE) {
     layout(t(1:4))
