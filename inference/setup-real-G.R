@@ -18,7 +18,9 @@ if (!interactive()) {
 
     # # minimal list to make sure this works with update.G below
     # layer.names <- c("annual_precip","lon_gcs_30")
-    layer.names <- paste( basename(layer.file), "-na", sep='' )  # this is TRUE in cells with missing data
+    na.layer.name <- paste( basename(layer.file), "-na", sep='' )  # this is TRUE in cells with missing data
+
+    layer.names <- scan(layer.file,what='char')
 
     init.params <- c( beta=1.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
 
@@ -26,7 +28,7 @@ if (!interactive()) {
     # layer whatnot
 
     # get info out of na layer
-    nalayer <- raster(paste(dirname(layer.prefix),"/",layer.names[1],sep=''))
+    nalayer <- raster(paste(dirname(layer.prefix),"/",na.layer.name,sep=''))
     n <- dim(nalayer)[2]; m <- dim(nalayer)[1]
     nmap <- matrix(1:n*m,nrow=n)
     all.locs <- cbind( i=as.vector(row(nmap)), j=as.vector(col(nmap)) )
@@ -41,7 +43,9 @@ if (!interactive()) {
     G <- sparseMatrix( i=match(ij[,1],nonmissing), j=match(ij[,2],nonmissing), x=1.0 )
     Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
-    layers <- cbind( values(nalayer)[nonmissing] ) # should be all zero, but heck
+    layers <- sapply( layer.names, function (ln) {
+                values( raster( paste(layer.prefix,ln,sep='') ) )[nonmissing]
+            } )
     stopifnot(nrow(layers)==nrow(G))
 
     transfn <- exp

@@ -24,16 +24,17 @@ if (!interactive()) {
     # subdir <- "100x"
     # layer.file <- "../inference/six-raster-list"
     # param.file <- "simple-init-params-six-raster-list.tsv"
-    # method <- "analytic"
-    # prev.ht <- "500x/six-raster-list-hitting-times.tsv"
+    # method <- "CG"
+    # prev.ht <- "100x/500x-aggregated-hitting-times.tsv"
 
     layer.prefix <- "../geolayers/TIFF/500x/500x_"
     subdir <- "500x"
     layer.file <- "../inference/six-raster-list"
     param.file <- "simple-init-params-six-raster-list.tsv"
-    method <- "CG"
+    method <- "analytic"
     prev.ht <- NULL
 }
+
 layer.names <- scan(layer.file,what="char") 
 
 load( paste(subdir,"/",basename(layer.prefix),"G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
@@ -60,7 +61,11 @@ if (method=="analytic") {
 
 } else if (method=="CG") {
 
-    init.hts <- read.table(prev.ht,header=TRUE)
+    init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
+
+    stopifnot( nrow(init.hts) == nrow(G) )
+
+    # infer better parameters
 
     dG <- rowSums(G)
     cG <- colSums(G)
@@ -84,10 +89,10 @@ if (method=="analytic") {
     }
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
-    parscale <- rep( 1, nrow(G) )
+    parscale <- rep( mean(init.hts), nrow(init.hts) )
 
-    optim.ht.list <- mclapply( seq_along(locs), function (k) {
-                optim( par=init.hts[,k], fn=H, gr=dH, loc=locs[k], 
+    optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
+                optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=locs[loc.ind], 
                     method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
             }, mc.cores=numcores )
 
@@ -96,12 +101,37 @@ if (method=="analytic") {
 
     if (FALSE) {
         # check gradient
-        k <- 10
-        loc <- locs[k]
-        ht <- init.hts[,k]
+        loc.ind <- 10
+        loc <- locs[loc.ind]
+        ht <- init.hts[,loc.ind]
 
         eps <- 1e-5 * runif(length(ht))
         c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+        # look at convergence
+        load( paste(subdir, "/", basename(layer.prefix),"nonmissing.RData",sep='') ) # provides nonmissing
+        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
+
+        loc.ind <- 10
+        oht.list <- vector( mode='list', length=6 )
+        oht.list[[1]] <- list( par=init.hts[,loc.ind] )
+        for (k in 2:10) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=locs[loc.ind], method="L-BFGS-B", control=list( parscale=parscale, maxit=10000 ), lower=0, upper=Inf )  }
+
+        layout( matrix(1:6,nrow=2) )
+        for (k in 2:length(oht.list)) { 
+            ph( oht.list[[k]]$par )
+            ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
+            ph( dH( oht.list[[k-1]]$par, loc=locs[loc.ind] ) )
+            if (is.null(locator(1))) break
+        }
+
+        layout( matrix(1:6,nrow=2) )
+        ph( dH( oht.list[[length(oht.list)]]$par, loc=locs[loc.ind] ) )
+        for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
+            ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
+        }
+
+
     }
 }
 

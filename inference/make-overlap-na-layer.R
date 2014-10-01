@@ -30,7 +30,9 @@ for (lf in use.files) {
     reflayer <- reflayer | is.na(other)
 }
 
-writeRaster( reflayer, file=paste(dirname(layer.prefix),"/",basename(layer.file),"-na",sep=''), overwrite=TRUE )
+outfile <- paste(dirname(layer.prefix),"/",basename(layer.file),"-na",sep='')
+cat('writing to: ', outfile,'\n')
+writeRaster( reflayer, file=outfile, overwrite=TRUE )
 
 if (FALSE) {
     require(parallel)
