@@ -26,7 +26,7 @@ if (!interactive()) {
     layer.prefix <- "../geolayers/TIFF/500x/500x_"
     subdir <- "500x"
     layer.file <- "../inference/six-raster-list"
-    param.file <- NULL
+    param.file <- "simple-init-params-six-raster-list.tsv"
 }
 method <- "analytic"
 layer.names <- scan(layer.file,what="char") 
@@ -44,14 +44,8 @@ locs <- locs[-na.indiv]
 #   so time to move N grid sites away is sqrt(N)/r
 #   so if hitting times are of order T, want r of order sqrt(N)/T
 
-
-if (is.null(param.file)) {
-    gridwidth <- sqrt(dim(G)[1])  # roughly, N
-    ratescale <- sqrt(gridwidth)/(1)
-    init.params <- c( beta=ratescale, gamma=rep(1,length(layer.names)), delta=rep(1,length(layer.names) ) )
-} else {
-    init.params <- scan( param.file )
-} 
+init.param.table <- read.table( param.file, header=TRUE )
+init.params <- as.vector( init.param.table[ match( subdir, init.param.table[,1] ), -1 ] )
 
 G@x <- update.G(init.params)
 
