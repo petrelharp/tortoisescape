@@ -94,12 +94,12 @@ for(i in 1:length(tsv.files)){
 				ylab="pairwise pi",
 				main=paste("IBD&E: ",basename(tsv.file.names[i]),sep=""))
         edist.qs <- quantile(edist.mat[index.mat],c(0,.25,.5,.75,1),na.rm=TRUE)
-        qcols <- rev(diverge_hcl(4,c=100))
+        qcols <- rev(diverge_hcl(4,c=100,l=c(30,30)))
         for (k in 1:4) {
             usethese <- (!is.na(edist.mat[index.mat])) & ( edist.mat[index.mat] >= edist.qs[k] ) & ( edist.mat[index.mat] < edist.qs[k+1] )
-            if (any(usethese)) { lines( lowess( tort.dists.ut[usethese], tort.pwp.ut[usethese], f=.2 ), col=qcols[k], lwd=2 ) }
+            if (any(usethese)) { lines( lowess( tort.dists.ut[usethese], tort.pwp.ut[usethese], f=.2 ), col=qcols[k], lwd=2, lty=k ) }
         }
-        legend("bottomright", lwd=2, col=qcols, legend=paste(c("first","second","third","fourth"),"quartile"), title=basename(tsv.file.names[i]) )
+        legend("bottomright", lwd=2, col=qcols, legend=paste(c("first","second","third","fourth"),"quartile"), lty=1:4, title=basename(tsv.file.names[i]) )
 	dev.off()
 }
 
