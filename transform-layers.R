@@ -11,10 +11,12 @@ basedir <- "geolayers/TIFF/"
 layer.name <- "dem_30"
 new.name <- "dem_30_m800_sq"
 xform <- function (x) { scale( (x-800)^2 ) }
+maxval <- 3
 
 rast <- raster( paste(basedir,"masked/crop_resampled_masked_",layer.name,sep='') )
 new.rast <- xform(rast)
-write.raster(new.rast, file=paste(basedir,"masked/crop_resampled_masked_",new.name,sep='') )
+new.rast[new.rast>maxval] <- maxval
+writeRaster(new.rast, file=paste(basedir,"masked/crop_resampled_masked_",new.name,sep=''), overwrite=TRUE )
 
 
 # from crop_mask_rasters.R

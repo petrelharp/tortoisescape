@@ -9,9 +9,9 @@
 
 # do all the setup
 
-if [ -e /home/rcf-40/pralph/cmb/lib/openblas-usc-R-setup.sh ]
+if [ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]
 then
-    source /home/rcf-40/pralph/cmb/lib/openblas-usc-R-setup.sh
+    source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
     cd $PBS_O_WORKDIR
 fi
 

@@ -1,0 +1,5 @@
+subdir  beta   gamma1  delta1
+500x    4e-6   1       1     
+100x    .0001  1       1     
+10x     .01    1       1     
+masked  1      1       1     

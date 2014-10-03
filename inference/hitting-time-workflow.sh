@@ -1,4 +1,19 @@
-#!/bin/bash
+#PBS -S /bin/bash
+#PBS -q cmb
+#PBS -l nodes=1:dl165:ppn=24
+#PBS -l walltime=200:00:00
+#PBS -l mem=48000mb
+#PBS -l vmem=48000mb
+#PBS -l pmem=2000mb
+
+set -eu
+set -o pipefail
+
+if [ -e /home/rcf-40/pralph/cmb/lib/openblas-usc-R-setup.sh ]
+then
+    source /home/rcf-40/pralph/cmb/lib/openblas-usc-R-setup.sh
+    cd $PBS_O_WORKDIR
+fi
 
 # get initial hitting times on 500x grid
 #   makes 500x/six-raster-list-hitting-times.tsv
