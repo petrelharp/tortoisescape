@@ -47,7 +47,7 @@ values(layer.2)[-nonmissing.2] <- NA
 # omit aggregation error check for larger grids
 checkit <- ( subdir.1 == "500x" )
 
-new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
+new.hts <- do.call( cbind, lapply( 1:ncol(hts), function (k) {
         values(layer.1)[nonmissing.1] <- hts[,k]
         layer.1.dis <- crop( disaggregate( layer.1, fact=ag.fact, method='bilinear' ), layer.2 )
         stopifnot( all( dim(layer.1.dis)==dim(layer.2) ) )
@@ -58,7 +58,7 @@ new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
         }
         # get values out
         return( values(layer.1.dis)[nonmissing.2] )
-    }, mc.cores=numcores ) )
+    } ) )
 colnames(new.hts) <- colnames(hts)
 
 write.table( new.hts, file=paste( subdir.2, "/", basename(subdir.1), "-aggregated-hitting-times.tsv", sep=''), row.names=FALSE )
