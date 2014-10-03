@@ -9,14 +9,14 @@
 
 # do all the setup
 
-set -eu
-set -o pipefail
-
 if [ -e /home/rcf-40/pralph/cmb/lib/openblas-usc-R-setup.sh ]
 then
     source /home/rcf-40/pralph/cmb/lib/openblas-usc-R-setup.sh
     cd $PBS_O_WORKDIR
 fi
+
+set -eu
+set -o pipefail
 
 for RES in 500x 100x 10x # masked
 do
