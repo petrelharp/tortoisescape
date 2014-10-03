@@ -65,7 +65,83 @@ if (method=="analytic") {
 
     stopifnot( nrow(init.hts) == nrow(G) )
 
-    # infer better parameters
+    ####
+    ## FIRST
+    # infer parameters that better match these hitting times
+
+    # Massage the numerics.
+    zeros <- which( row(init.hts) == locs[col(init.hts)] )
+    scaling <- sqrt(nrow(G) * length(locs))
+    init.hts <- init.hts/scaling
+    init.hts[zeros] <- 0
+    sc.one <- 1/scaling
+
+    dG <- rowSums(G)
+    GH <- G %*% init.hts - dG*init.hts
+    GH[zeros] <- 0
+
+    init.beta <- init.params[1]
+
+    L <- function (params) {
+        if (any(params != get("params",parent.env(environment()) ) ) ) { 
+            assign("params", params, parent.env(environment()) )
+            evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
+            evalq( dG <- rowSums(G), parent.env(environment()) )
+            GH <- G %*% init.hts - dG*init.hts
+            GH[zeros] <- 0
+            assign("GH", GH, parent.env(environment()) )
+        }
+        ans <- ( sum( (GH+sc.one)^2 ) - length(zeros)*sc.one^2 )
+        if (!is.finite(ans)) { browser() }
+        return(ans)
+    }
+    dL <- function (params) {
+        if (any(params != get("params", parent.env(environment()) ) ) ) { 
+            assign("params", params, parent.env(environment()) )
+            evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
+            evalq( dG <- rowSums(G), parent.env(environment()) )
+            GH <- G %*% init.hts - dG*init.hts
+            GH[zeros] <- 0
+            assign("GH", GH, parent.env(environment()) )
+        }
+        ggrads <- sapply( 1:ncol(layers), function (kk) {
+                2 * sum( layers[,kk] * GH * (GH+sc.one) )
+            } )
+        dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
+                GL <- G
+                GL@x <- G@x * layers[Gjj,kk]
+                dGL <- rowSums(GL)
+                GLH <- GL %*% init.hts - dGL*init.hts
+                GLH[zeros] <- 0
+                return( 2 * sum( GLH * (GH+sc.one)  ) )
+            } )
+        ans <- ( c(ggrads, dgrads) )
+        if (any(!is.finite(ans))) { browser() }
+        return(ans)
+    }
+    environment(L) <- environment(dL) <- fun.env <- list2env( list(
+                    G=G,
+                    dG=dG,
+                    params=init.params[-1],
+                    GH=GH), 
+            parent=environment() )
+
+    L(init.params[-1])
+    dL(init.params[-1])
+
+    L(init.params[-1]+.01)
+    dL(init.params[-1]+.01)
+
+    parscale <- c( rep(0.1,length(init.params)-1) )
+    results <- optim( par=init.params[-1], fn=L, gr=dL, control=list(parscale=parscale), method="BFGS" )
+    if (results$convergence != 0) {
+        results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale/10), method="BFGS" )
+    }
+
+
+    ####
+    ## THEN
+    # solve for hitting times
 
     dG <- rowSums(G)
     cG <- colSums(G)

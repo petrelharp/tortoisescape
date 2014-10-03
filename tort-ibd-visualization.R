@@ -3,7 +3,7 @@
 load("tort.coords.rasterGCS.Robj")
 
 require(raster)
-layer <- raster("geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_dem_30.gri")
+layer <- raster("geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri")
 
 torts <- read.csv("1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
 torts$EM_Tort_ID <- factor( torts$EM_Tort_ID , levels=torts$EM_Tort_ID )
@@ -36,3 +36,26 @@ for (k in 1:nind) {
     # if (is.null(locator(1))) { break }
     dev.off()
 }
+
+
+##
+# only within Ivanpah
+
+torts$Location_ID <- factor(torts$Location_ID)
+ivanpah_locs <- c("Silver State", "ISEGS", "Ivanpah")
+ivanpah_torts <- torts$EM_Tort_ID[ torts$Location_ID %in% ivanpah_locs ]
+ivanpah_coords <- tort.coords.rasterGCS[ torts$Location_ID %in% ivanpah_locs ]
+
+ivanpah_dists <- subset( dists, ( etort1 %in% ivanpah_torts ) & ( etort2 %in% ivanpah_torts ) )
+ivanpah_lm <- lm( pi ~ DISTANCE, data=ivanpah_dists )
+
+infl <- function (x,fac=.5) { as.vector(mean(x) + (1+fac)*(x-mean(x))) }
+
+pdf(file="ivanpah-ibd.pdf", width=10, height=6, pointsize=10)
+layout(t(1:2))
+plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],.8), ylim=infl(ivanpah_coords@bbox["coords.x2",]), main="Ivanpah valley", xaxt='n', yaxt='n' )
+points(ivanpah_coords,pch=20)
+with(ivanpah_dists, plot( DISTANCE, pi, xlab="geographic distance (km)", ylab="genetic distance (divergence)", pch=20, main=paste("IBD for", length(ivanpah_torts), "tortoises in Ivanpah") ) )
+abline( coef( ivanpah_lm ), col='red' )
+addtable2plot( "bottomright", table=round(summary(ivanpah_lm)$coefficients,digits=6), display.rownames=TRUE)
+dev.off()
