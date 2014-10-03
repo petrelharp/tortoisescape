@@ -1,5 +1,8 @@
 #!/usr/bin/Rscript
 
+set -eu
+set -o pipefail
+
 for RES in 500x 400x 300x 200x 100x
 do
     PREFIX=${RES}/${RES}_
@@ -21,6 +24,7 @@ read -r -d '' RCODE << EOF
 source("resistance-fns.R")
 new.hts.500x <- read.table("100x/500x-aggregated-hitting-times.tsv",header=TRUE)
 new.hts.400x <- read.table("100x/400x-aggregated-hitting-times.tsv",header=TRUE)
+new.hts.300x <- read.table("100x/300x-aggregated-hitting-times.tsv",header=TRUE)
 load("100x/100x_nonmissing.RData")
 ph <- plot.ht.fn("100x/100x_","dem_30",nonmissing,homedir='../../') 
 layout(t(1:3))
@@ -31,4 +35,6 @@ for (k in 1:ncol(new.hts.500x)) {
     ph(new.hts.400x[,k]-new.hts.500x[,k])
     if (is.null(locator(1))) { break }
 }
+EOF
 
+echo $RCODE 
