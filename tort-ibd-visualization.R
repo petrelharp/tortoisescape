@@ -46,16 +46,32 @@ ivanpah_locs <- c("Silver State", "ISEGS", "Ivanpah")
 ivanpah_torts <- torts$EM_Tort_ID[ torts$Location_ID %in% ivanpah_locs ]
 ivanpah_coords <- tort.coords.rasterGCS[ torts$Location_ID %in% ivanpah_locs ]
 
+ivanpah_loc_factor <- levels(torts$Location_ID)[ torts$Location_ID[ torts$Location_ID %in% ivanpah_locs ] ]
+ivanpah_loc_factor <- factor( paste( ivanpah_loc_factor, ifelse( ivanpah_loc_factor=="ISEGS", 
+                    ifelse( torts$Easting[torts$Location_ID %in% ivanpah_locs] < 645500, "_east", "_west" ),
+                    "" ), sep='' ) )
+
 ivanpah_dists <- subset( dists, ( etort1 %in% ivanpah_torts ) & ( etort2 %in% ivanpah_torts ) )
+ivanpah_dists$loc1 <- ivanpah_loc_factor[ match(ivanpah_dists$etort1,ivanpah_torts) ]
+ivanpah_dists$loc2 <- ivanpah_loc_factor[ match(ivanpah_dists$etort2,ivanpah_torts) ]
+ivanpah_dists$col <- with(ivanpah_dists, ifelse( loc1==loc2, "green", "black") )
+
 ivanpah_lm <- lm( pi ~ DISTANCE, data=ivanpah_dists )
+ivanpah_within_lm <- lm( pi ~ DISTANCE, data=subset(ivanpah_dists,loc1==loc2) )
 
 infl <- function (x,fac=.5) { as.vector(mean(x) + (1+fac)*(x-mean(x))) }
 
 pdf(file="ivanpah-ibd.pdf", width=10, height=6, pointsize=10)
 layout(t(1:2))
 plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],.8), ylim=infl(ivanpah_coords@bbox["coords.x2",]), main="Ivanpah valley", xaxt='n', yaxt='n' )
-points(ivanpah_coords,pch=20)
-with(ivanpah_dists, plot( DISTANCE, pi, xlab="geographic distance (km)", ylab="genetic distance (divergence)", pch=20, main=paste("IBD for", length(ivanpah_torts), "tortoises in Ivanpah") ) )
+points( ivanpah_coords, pch=20 ) #, col=torts$Location_ID[torts$Location_ID %in% ivanpah_locs] )
+with(ivanpah_dists, plot( DISTANCE, pi, xlab="geographic distance (km)", ylab="genetic distance (divergence)", pch=20, main=paste("IBD for", length(ivanpah_torts), "tortoises in Ivanpah") ) ) # , col=col ) )
 abline( coef( ivanpah_lm ), col='red' )
+# abline( coef( ivanpah_within_lm ), col='green' )
 addtable2plot( "bottomright", table=round(summary(ivanpah_lm)$coefficients,digits=6), display.rownames=TRUE)
+plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],.8), ylim=infl(ivanpah_coords@bbox["coords.x2",]), main="Ivanpah valley", xaxt='n', yaxt='n' )
+points( ivanpah_coords, pch=20 , col=ivanpah_loc_factor )
+with(ivanpah_dists, plot( DISTANCE, pi, xlab="geographic distance (km)", ylab="genetic distance (divergence)", pch=20, main=paste("IBD for", length(ivanpah_torts), "tortoises in Ivanpah"), col=col ) )
+abline( coef( ivanpah_within_lm ), col='green' )
+addtable2plot( "bottomright", table=round(summary(ivanpah_within_lm)$coefficients,digits=6), display.rownames=TRUE)
 dev.off()
