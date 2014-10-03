@@ -62,7 +62,7 @@ tort.plot.mat.col.3bins <- matrix("gray",nrow=nind,ncol=nind)
 #	FIGURES
 ################################
 
-index.mat <- upper.tri(tort.dists,diag=TRUE)
+index.mat <- upper.tri(tort.dists,diag=FALSE)
 
 ################
 #	IBD colored by
@@ -78,6 +78,7 @@ png(file="tort_report_figures/IBD_NN_SS_NS_plot.png",res=200,width=6*200,height=
 		lines(lowess(tort.pwp[use.these] ~ tort.dists[use.these]),col=unique(c(tort.plot.mat.col.3bins))[i],lwd=2)
 	}
 	legend(x="bottomright",lty=1,col=unique(c(tort.plot.mat.col.3bins)),legend=c("North - North","North - South","South - South"))
+	#points(diag(tort.dists),diag(tort.pwp),pch=20,cex=0.5)
 dev.off()
 
 ################
@@ -111,16 +112,71 @@ png(file="tort_report_figures/IBD_PC1dist_plot.png",res=200,width=6*200,height=5
 			col=pc1.dist.mat.cols[index.mat],
 			pch=20,cex=0.3,xlab="pairwise geographic distance",ylab="pairwise sequence divergence",main = "Isolation by Distance")
 				leg.x <- c(1:nind)
-				leg.y <- sort(pc1.dist.mat)
+				leg.y <- sort(pc1.dist.mat[index.mat])
 				leg.z <- outer(leg.x,leg.y)
-				leg.lab.vals <- c(round(min(pc1.dist.mat),2),round(max(pc1.dist.mat),2))
+				leg.lab.vals <- c(round(min(pc1.dist.mat[index.mat]),2),round(max(pc1.dist.mat[index.mat]),2))
 				fields::image.plot(leg.x,leg.y,leg.z,add=TRUE,
 						nlevel=nind,
 						horizontal=FALSE,graphics.reset=TRUE,
 						legend.only=TRUE,col=heat.colors(length(pc1.dist.mat)),
 						smallplot=c(0.815,0.835,0.25,0.5),
-						axis.args=list(at=c(0,35.4),labels=leg.lab.vals))
+						axis.args=list(at=c(0.03,35.4),labels=leg.lab.vals))
 				mtext(text="Distance on\n genetic PC1",side=1,padj=-2.7,adj=0.78)
 dev.off()
 
 
+################
+#	correlation in pairwise pi
+#		against distance
+################
+
+pi.cor <- cor(tort.pwp)
+
+png(file="tort_report_figures/corr_IBD_NN_SS_NS_plot.png",res=200,width=6*200,height=5*200)
+	#quartz(width=6,height=5)
+#	par(bg="gray")
+	plot(tort.dists[index.mat],pi.cor[index.mat],
+			col=tort.plot.mat.col.3bins[index.mat],
+			pch=20,cex=0.3,xlab="pairwise geographic distance",
+			ylab="pairwise sequence divergence",main = "Correlation in Isolation by Distance")
+	for(i in 1:length(unique(c(tort.plot.mat.col.3bins)))){
+		use.these <- which(tort.plot.mat.col.3bins == unique(c(tort.plot.mat.col.3bins))[i],arr.ind=TRUE)
+		lines(lowess(pi.cor[use.these] ~ tort.dists[use.these]),col=unique(c(tort.plot.mat.col.3bins))[i],lwd=2)
+	}
+	legend(x="topright",lty=1,col=unique(c(tort.plot.mat.col.3bins)),
+			legend=c("North - North","North - South","South - South"),cex=0.7)
+dev.off()
+
+png(file="tort_report_figures/corr_IBD_same_diff_plot.png",res=200,width=6*200,height=5*200)
+	#quartz(width=6,height=5)
+#	par(bg="gray")
+	plot(tort.dists[index.mat],pi.cor[index.mat],
+			col=tort.plot.mat.col.2bins[index.mat],
+			pch=20,cex=0.3,xlab="pairwise geographic distance",
+			ylab="pairwise sequence divergence",main = "Correlation in Isolation by Distance")
+	for(i in 1:length(unique(c(tort.plot.mat.col.2bins)))){
+		use.these <- which(tort.plot.mat.col.2bins == unique(c(tort.plot.mat.col.2bins))[i],arr.ind=TRUE)
+		lines(lowess(pi.cor[use.these] ~ tort.dists[use.these]),col=unique(c(tort.plot.mat.col.2bins))[i],lwd=2)
+	}
+	legend(x="topright",lty=1,col=unique(c(tort.plot.mat.col.2bins)),legend=c("North - North and South-South","North - South"),cex=0.7)
+dev.off()
+
+png(file="tort_report_figures/corr_IBD_PC1distcol_plot.png",res=200,width=6*200,height=5*200)
+	#quartz(width=6,height=5)
+	par(bg="gray")
+	plot(tort.dists[index.mat],pi.cor[index.mat],
+			col=pc1.dist.mat.cols[index.mat],
+			pch=20,cex=0.3,xlab="pairwise geographic distance",
+			ylab="pairwise sequence divergence",main = "Correlation in Isolation by Distance")
+				leg.x <- c(1:nind)
+				leg.y <- sort(pc1.dist.mat[index.mat])
+				leg.z <- outer(leg.x,leg.y)
+				leg.lab.vals <- c(round(min(pc1.dist.mat[index.mat]),2),round(max(pc1.dist.mat[index.mat]),2))
+				fields::image.plot(leg.x,leg.y,leg.z,add=TRUE,
+						nlevel=nind,
+						horizontal=FALSE,graphics.reset=TRUE,
+						legend.only=TRUE,col=heat.colors(length(pc1.dist.mat)),
+						smallplot=c(0.815,0.835,0.5,0.75),
+						axis.args=list(at=c(0.03,35.4),labels=leg.lab.vals))
+				mtext(text="Distance on\n genetic PC1",side=1,padj=-6.7,adj=0.78)
+dev.off()
