@@ -19,21 +19,29 @@ if (!interactive()) {
     param.file <- commandArgs(TRUE)[4] 
     method <- commandArgs(TRUE)[5] 
     prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
+    maxtime <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { 6*60*60 } 
+    outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
 } else {
-    # layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
-    # subdir <- "100x"
-    # layer.file <- "../inference/six-raster-list"
-    # param.file <- "simple-init-params-six-raster-list.tsv"
-    # method <- "CG"
-    # prev.ht <- "100x/500x-aggregated-hitting-times.tsv"
-
-    layer.prefix <- "../geolayers/TIFF/500x/500x_"
-    subdir <- "500x"
+    layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
+    subdir <- "100x"
     layer.file <- "../inference/six-raster-list"
     param.file <- "simple-init-params-six-raster-list.tsv"
-    method <- "analytic"
-    prev.ht <- NULL
+    method <- "CG"
+    prev.ht <- "100x/500x-aggregated-hitting-times.tsv"
+    maxtime <- 2*60
+    outfile <- NULL
+
+    # layer.prefix <- "../geolayers/TIFF/500x/500x_"
+    # subdir <- "500x"
+    # layer.file <- "../inference/six-raster-list"
+    # param.file <- "simple-init-params-six-raster-list.tsv"
+    # method <- "analytic"
+    # prev.ht <- NULL
+    # maxtime <- 1*60
+    # outfile <- NULL
 }
+
+if (is.null(outfile)) { paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
 layer.names <- scan(layer.file,what="char") 
 
@@ -64,6 +72,97 @@ if (method=="analytic") {
     init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
 
     stopifnot( nrow(init.hts) == nrow(G) )
+    # solve for hitting times
+
+    dG <- rowSums(G)
+    cG <- colSums(G)
+    # objective function
+    H <- function (ht,loc) {
+        # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
+        # where S = I except S[loc,loc]=0
+        ht[loc] <- 0
+        z <- G%*%ht - dG*ht + 1
+        z[loc] <- 0
+        return( ( sum( z^2 ) )/length(z) )
+    }
+    dH <- function (ht,loc) {
+        # 2 (G-D)^T S ( (G-D) ht + 1 )
+        ht[loc] <- 0
+        z <- G%*%ht - dG*ht + 1
+        z[loc] <- 0
+        z <- (crossprod(G,z) - dG*z)
+        z[loc] <- 0
+        return( 2 * as.vector(z) / length(z) )
+    }
+
+    # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
+    parscale <- rep( mean(init.hts), nrow(init.hts) )
+
+    H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=locs[k]) ) ) / ncol(init.hts)
+    dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=locs[k]) ) ) / ncol(init.hts)
+
+    maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) )
+
+    optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
+                optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=locs[loc.ind], 
+                    method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit ), lower=0, upper=Inf ) 
+            }, mc.cores=numcores )
+
+    convergences <- sapply(optim.ht.list,"[[","convergence")
+    unconverged <- which(convergences != 0)
+
+    save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
+
+    if (FALSE) {
+        # check gradient
+        loc.ind <- 10
+        loc <- locs[loc.ind]
+        ht <- init.hts[,loc.ind]
+
+        eps <- 1e-5 * runif(length(ht))
+        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+        # look at convergence
+        load( paste(subdir, "/", basename(layer.prefix),"nonmissing.RData",sep='') ) # provides nonmissing
+        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
+
+        loc.ind <- 10
+        oht.list <- vector( mode='list', length=6 )
+        oht.list[[1]] <- list( par=init.hts[,loc.ind] )
+        for (k in 2:10) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=locs[loc.ind], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  }
+
+        layout( matrix(1:6,nrow=2) )
+        for (k in 2:length(oht.list)) { 
+            ph( oht.list[[k]]$par )
+            ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
+            ph( dH( oht.list[[k-1]]$par, loc=locs[loc.ind] ) )
+            if (is.null(locator(1))) break
+        }
+
+        layout( matrix(1:6,nrow=2) )
+        ph( dH( oht.list[[length(oht.list)]]$par, loc=locs[loc.ind] ) )
+        for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
+            ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
+        }
+
+
+    }
+}
+
+colnames( hts ) <- locs
+write.table( hts, file=outfile, row.names=FALSE )
+
+if (FALSE) {
+
+    load( paste(subdir, "/", basename(layer.prefix),"nonmissing.RData",sep='') ) # provides nonmissing
+    ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
+
+    layout( matrix(1:6,nrow=2) )
+    for (k in 1:ncol(hts)) { ph( hts[,k] ); if ((k%%6==0) && is.null(locator(1))) break }
+
+}
+
+if (FALSE) {
 
     ####
     ## FIRST
@@ -141,85 +240,5 @@ if (method=="analytic") {
 
     ####
     ## THEN
-    # solve for hitting times
-
-    dG <- rowSums(G)
-    cG <- colSums(G)
-    # objective function
-    H <- function (ht,loc) {
-        # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
-        # where S = I except S[loc,loc]=0
-        ht[loc] <- 0
-        z <- G%*%ht - dG*ht + 1
-        z[loc] <- 0
-        return( ( sum( z^2 ) )/length(z) )
-    }
-    dH <- function (ht,loc) {
-        # 2 (G-D)^T S ( (G-D) ht + 1 )
-        ht[loc] <- 0
-        z <- G%*%ht - dG*ht + 1
-        z[loc] <- 0
-        z <- (crossprod(G,z) - dG*z)
-        z[loc] <- 0
-        return( 2 * as.vector(z) / length(z) )
-    }
-
-    # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
-    parscale <- rep( mean(init.hts), nrow(init.hts) )
-
-    optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
-                optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=locs[loc.ind], 
-                    method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-            }, mc.cores=numcores )
-
-    convergences <- sapply(optim.ht.list,"[[","convergence")
-    unconverged <- which(convergences != 0)
-
-    if (FALSE) {
-        # check gradient
-        loc.ind <- 10
-        loc <- locs[loc.ind]
-        ht <- init.hts[,loc.ind]
-
-        eps <- 1e-5 * runif(length(ht))
-        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
-
-        # look at convergence
-        load( paste(subdir, "/", basename(layer.prefix),"nonmissing.RData",sep='') ) # provides nonmissing
-        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
-
-        loc.ind <- 10
-        oht.list <- vector( mode='list', length=6 )
-        oht.list[[1]] <- list( par=init.hts[,loc.ind] )
-        for (k in 2:10) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=locs[loc.ind], method="L-BFGS-B", control=list( parscale=parscale, maxit=10000 ), lower=0, upper=Inf )  }
-
-        layout( matrix(1:6,nrow=2) )
-        for (k in 2:length(oht.list)) { 
-            ph( oht.list[[k]]$par )
-            ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
-            ph( dH( oht.list[[k-1]]$par, loc=locs[loc.ind] ) )
-            if (is.null(locator(1))) break
-        }
-
-        layout( matrix(1:6,nrow=2) )
-        ph( dH( oht.list[[length(oht.list)]]$par, loc=locs[loc.ind] ) )
-        for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
-            ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
-        }
-
-
-    }
-}
-
-colnames( hts ) <- locs
-write.table( hts, file=paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep=''), row.names=FALSE )
-
-if (FALSE) {
-
-    load( paste(subdir, "/", basename(layer.prefix),"nonmissing.RData",sep='') ) # provides nonmissing
-    ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
-
-    layout( matrix(1:6,nrow=2) )
-    for (k in 1:ncol(hts)) { ph( hts[,k] ); if ((k%%6==0) && is.null(locator(1))) break }
 
 }
