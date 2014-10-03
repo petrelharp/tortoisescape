@@ -1,0 +1,29 @@
+#!/usr/bin/Rscript
+
+# make some new layers
+# that are trasnforms of the old
+
+require(raster)
+rasterOptions(tmpdir=".")
+
+basedir <- "geolayers/TIFF/"
+
+layer.name <- "dem_30"
+new.name <- "dem_30_m800_sq"
+xform <- function (x) { scale( (x-800)^2 ) }
+
+rast <- raster( paste(basedir,"masked/crop_resampled_masked_",layer.name,sep='') )
+new.rast <- xform(rast)
+write.raster(new.rast, file=paste(basedir,"masked/crop_resampled_masked_",new.name,sep='') )
+
+
+# from crop_mask_rasters.R
+for (fact in c(10,100,500)) {
+    prefix <- paste(fact,"x/crop_resampled_masked_aggregated_",fact,"x_",sep='')
+    aggregate(new.rast,
+                fact=fact,
+                fun=mean,
+                na.rm=TRUE,
+                filename=paste(prefix,new.name,sep=''),
+                overwrite=TRUE)
+}

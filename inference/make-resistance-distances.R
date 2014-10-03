@@ -45,7 +45,7 @@ if (is.null(outfile)) { paste( subdir, "/", basename(layer.file), "-hitting-time
 
 layer.names <- scan(layer.file,what="char") 
 
-load( paste(subdir,"/",basename(layer.prefix),"G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
+load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
 load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
@@ -101,7 +101,7 @@ if (method=="analytic") {
     H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=locs[k]) ) ) / ncol(init.hts)
     dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=locs[k]) ) ) / ncol(init.hts)
 
-    maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) )
+    maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
 
     optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
                 optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=locs[loc.ind], 
@@ -113,6 +113,8 @@ if (method=="analytic") {
 
     save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
 
+    hts <- sapply( optim.ht.list, "[[", "par" )
+
     if (FALSE) {
         # check gradient
         loc.ind <- 10
@@ -123,7 +125,7 @@ if (method=="analytic") {
         c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
 
         # look at convergence
-        load( paste(subdir, "/", basename(layer.prefix),"nonmissing.RData",sep='') ) # provides nonmissing
+        load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
         ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
         loc.ind <- 10
@@ -145,6 +147,23 @@ if (method=="analytic") {
             ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
         }
 
+        # look at inferred layer
+        ph( (transfn(valfn(init.params[1 + (1:ngamma)]))) )
+        ph( log(transfn(valfn(init.params[1 + (1:ngamma)]))) )
+        ph( (transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
+        ph( log(transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
+
+        # compare answers to initial values
+        layout( matrix(1:6,nrow=2) )
+        par(mar=c(5,4,4,5)+.1)
+        for (k in 1:ncol(hts)) {
+            diff.hts <- hts[,k] - init.hts[,k]
+            diff.hts[ (diff.hts<quantile(diff.hts,.05,na.rm=TRUE)) | (diff.hts>quantile(diff.hts,.95,na.rm=TRUE)) ] <- NA
+            ph( init.hts[,k] )
+            ph( hts[,k] )
+            ph( diff.hts )
+            if (is.null(locator(1))) break
+        }
 
     }
 }
