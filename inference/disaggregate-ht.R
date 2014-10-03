@@ -17,12 +17,14 @@ if (!interactive()) {
     subdir.1 <- commandArgs(TRUE)[3]
     subdir.2 <- commandArgs(TRUE)[4]
     prev.ht <- commandArgs(TRUE)[5]
+    ag.fact <- commandArgs(TRUE)[6]
 } else {
     layer.prefix.1 <- "../geolayers/TIFF/500x/500x_"
     layer.prefix.2 <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
     subdir.1 <- "500x"
     subdir.2 <- "100x"
     prev.ht <- "500x/six-raster-list-hitting-times.tsv"
+    ag.fact <- 5
 }
 
 hts <- read.table(prev.ht,header=TRUE)
@@ -47,12 +49,12 @@ checkit <- ( subdir.1 == "500x" )
 
 new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
         values(layer.1)[nonmissing.1] <- hts[,k]
-        layer.1.dis <- crop( disaggregate( layer.1, fact=5, method='bilinear' ), layer.2 )
+        layer.1.dis <- crop( disaggregate( layer.1, fact=ag.fact, method='bilinear' ), layer.2 )
         stopifnot( all( dim(layer.1.dis)==dim(layer.2) ) )
         # can skip this step, hopefully
         if (checkit) {
             layer.1.dis.res <- resample( layer.1.dis, layer.2 )
-            stopifnot( all( abs( values(layer.1.dis)[nonmissing.2] - values(layer.1.dis.res)[nonmissing.2] ) < 1e-8 ) )
+            stopifnot( all( abs( values(layer.1.dis)[nonmissing.2] - values(layer.1.dis.res)[nonmissing.2] ) < 1e-6 ) )
         }
         # get values out
         return( values(layer.1.dis)[nonmissing.2] )

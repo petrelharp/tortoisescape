@@ -44,7 +44,7 @@ if (!interactive()) {
     Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
     layers <- sapply( layer.names, function (ln) {
-                values( raster( paste(layer.prefix,ln,sep='') ) )[nonmissing]
+                scale( values( raster( paste(layer.prefix,ln,sep='') ) )[nonmissing] )
             } )
     stopifnot(nrow(layers)==nrow(G))
 

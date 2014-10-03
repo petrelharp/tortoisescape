@@ -170,11 +170,11 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 ##
 # plotting whatnot
 
-plot.ht.fn <- function (layer.prefix,layer.name,nonmissing) {
+plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,homedir="..") {
     # use this to make a quick plotting function
     layer <- raster(paste(layer.prefix,layer.name,sep=''))
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
-    load("../tort.coords.rasterGCS.Robj")
+    load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
     ph <- function (x,...) { 
         values(layer)[nonmissing] <- x
         opar <- par()  # plotting layers messes up margins

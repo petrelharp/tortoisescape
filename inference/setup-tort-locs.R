@@ -14,7 +14,7 @@ if (!interactive()) {
     subdir <- "500x"
 }
 
-onelayer <- raster(paste(layer.prefix,"annual_precip",sep=''))
+onelayer <- raster(paste(layer.prefix,"dem_30",sep=''))
 
 ###
 # tortoise locations
