@@ -23,5 +23,5 @@ Rscript make-resistance-distances.R ../geolayers/TIFF/500x/500x_ 500x dem-layer-
 Rscript disaggregate-ht.R ../geolayers/TIFF/500x/500x_ ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 500x 100x dem-layer-list 500x/dem-layer-list-hitting-times.tsv 5
 
 # now use those to find hitting times on 100x grid
-Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x dem-layer-list simple-init-params-six-raster-list.tsv CG 100x/500x-aggregated-hitting-times.tsv 3600 100x/dem-layer-list-hitting-times.tsv
+Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x dem-layer-list params-dem-layer-list.tsv CG 100x/500x-aggregated-hitting-times.tsv 3600 100x/dem-layer-list-hitting-times.tsv
 
