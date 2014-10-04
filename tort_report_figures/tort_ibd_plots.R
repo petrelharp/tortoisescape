@@ -180,3 +180,55 @@ png(file="tort_report_figures/corr_IBD_PC1distcol_plot.png",res=200,width=6*200,
 						axis.args=list(at=c(0.03,35.4),labels=leg.lab.vals))
 				mtext(text="Distance on\n genetic PC1",side=1,padj=-6.7,adj=0.78)
 dev.off()
+
+
+################
+#	correlation in pairwise pi
+#		against distance - FLIPBOOK
+################
+
+
+require(raster)
+require(maps)
+require(rgdal)
+require(maptools)
+
+load("tort.coords.rasterGCS.Robj")
+load("county_lines.Robj")
+load("raster_GCS_CRS_proj4.Robj")
+
+# and get state lines in bold
+state.lines <- map(database="state",regions=c("California","Arizona","Nevada"),plot=FALSE)
+state.lines.spobj <- map2SpatialLines(state.lines,proj4string=CRS("+proj=longlat"))
+state.lines.spobj <- spTransform(state.lines.spobj,raster_GCS_CRS_proj4)
+
+
+# load in elevation raster
+if(file.exists("/Volumes/cooplab1/tortoises/geolayers/100x/crop_resampled_masked_aggregated_10x_dem_30.gri")){
+	dem <- raster("/Volumes/cooplab1/tortoises/geolayers/100x/crop_resampled_masked_aggregated_10x_dem_30.gri")
+}
+
+if(!file.exists("tort_report_figures/corr_ibd_plots")){
+	dir.create("tort_report_figures/corr_ibd_plots")
+}
+
+tort.names <- row.names(tort.coords.rasterGCS)
+
+for(i in 1:nind){
+	png(file=paste("tort_report_figures/corr_ibd_plots/","corr_ibd_",tort.names[i],".png",sep=""),res=150,width=10*150,height=5*150)
+		#quartz(width=10,height=5)
+		par(mfrow=c(1,2))
+			plot(dem,ylab="",xlab="",main=paste("Tortoise Sample Map:\n",tort.names[i],sep=""),xaxt='n',yaxt='n',legend=FALSE)
+				points(tort.coords.rasterGCS,pch=20,cex=0.7,col=tort.plotting.colors.continuous)
+					lines(county_lines,lwd=0.5)
+					lines(state.lines.spobj,lwd=2)
+					box(lwd=3)
+				points(tort.coords.rasterGCS@coords[i,,drop=FALSE],cex=2,col=1,lwd=2)
+				points(tort.coords.rasterGCS@coords[i,,drop=FALSE],cex=2,col="green",lwd=1.5)
+				plot(tort.dists[index.mat],pi.cor[index.mat],
+					col="gray",
+					pch=20,cex=0.3,xlab="pairwise geographic distance",
+					ylab="correlation in pairwise sequence divergence",main = "Correlation in Isolation by Distance")
+				points(tort.dists[i,],pi.cor[i,],col= tort.plotting.colors.continuous,pch=20,cex=0.5)
+	dev.off()
+}
