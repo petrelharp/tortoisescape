@@ -16,13 +16,15 @@ if (!interactive()) {
     layer.prefix.2 <- commandArgs(TRUE)[2]
     subdir.1 <- commandArgs(TRUE)[3]
     subdir.2 <- commandArgs(TRUE)[4]
-    prev.ht <- commandArgs(TRUE)[5]
-    ag.fact <- as.numeric( commandArgs(TRUE)[6] )
+    layer.file <- commandArgs(TRUE)[5]
+    prev.ht <- commandArgs(TRUE)[6]
+    ag.fact <- as.numeric( commandArgs(TRUE)[7] )
 } else {
     layer.prefix.1 <- "../geolayers/TIFF/500x/500x_"
     layer.prefix.2 <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
     subdir.1 <- "500x"
     subdir.2 <- "100x"
+    layer.file <- "six-raster-list"
     prev.ht <- "500x/six-raster-list-hitting-times.tsv"
     ag.fact <- 5
 }
@@ -30,9 +32,9 @@ if (!interactive()) {
 hts <- read.table(prev.ht,header=TRUE)
 
 env <- new.env()
-load( paste(subdir.1, "/", basename(layer.prefix.1),"nonmissing.RData",sep=''), envir=env ) # provides nonmissing
+load( paste(subdir.1, "/", basename(layer.prefix.1), "_", basename(layer.file), "_nonmissing.RData",sep=''), envir=env ) # provides nonmissing
 nonmissing.1 <- with( env, nonmissing )
-load( paste(subdir.2, "/", basename(layer.prefix.2),"nonmissing.RData",sep=''), envir=env ) # provides nonmissing
+load( paste(subdir.2, "/", basename(layer.prefix.2), "_", basename(layer.file), "_nonmissing.RData",sep=''), envir=env ) # provides nonmissing
 nonmissing.2 <- with( env, nonmissing )
 
 layer.name <- "dem_30"

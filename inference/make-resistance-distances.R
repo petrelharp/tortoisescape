@@ -173,7 +173,7 @@ write.table( hts, file=outfile, row.names=FALSE )
 
 if (FALSE) {
 
-    load( paste(subdir, "/", basename(layer.prefix),"nonmissing.RData",sep='') ) # provides nonmissing
+    load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
     ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
     layout( matrix(1:6,nrow=2) )
