@@ -56,7 +56,7 @@ new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
         # can skip this step, hopefully
         if (checkit) {
             layer.1.dis.res <- resample( layer.1.dis, layer.2 )
-            stopifnot( all( abs( values(layer.1.dis)[nonmissing.2] - values(layer.1.dis.res)[nonmissing.2] ) < 1e-6 ) )
+            stopifnot( all( abs( values(layer.1.dis)[nonmissing.2] - values(layer.1.dis.res)[nonmissing.2] ) < 1e-3 ) )
         }
         # get values out
         return( values(layer.1.dis)[nonmissing.2] )

@@ -41,7 +41,7 @@ if (!interactive()) {
     # outfile <- NULL
 }
 
-if (is.null(outfile)) { paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
+if (is.null(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
 layer.names <- scan(layer.file,what="char") 
 
@@ -102,6 +102,7 @@ if (method=="analytic") {
     dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=locs[k]) ) ) / ncol(init.hts)
 
     maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
+    maxit <- min( 1e4, maxit )
 
     optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
                 optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=locs[loc.ind], 
