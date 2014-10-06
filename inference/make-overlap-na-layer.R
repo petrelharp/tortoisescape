@@ -22,7 +22,7 @@ use.names <- layer.names[match(use.ref,layer.names)]
 
 names(use.files) <- use.names
 
-refname <- grep("dem_30",layer.names)
+refname <- grep("dem_30",layer.names)[1]
 reflayer <- is.na( raster(layer.files[refname]) ) # dem
 
 for (lf in use.files) {

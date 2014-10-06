@@ -21,7 +21,8 @@ writeRaster(new.rast, file=paste(basedir,"masked/crop_resampled_masked_",new.nam
 
 # from crop_mask_rasters.R
 for (fact in c(10,100,500)) {
-    outfile <- paste(basedir,fact,"x/crop_resampled_masked_aggregated_",fact,"x_",new.name,sep='')
+    prefix <- if (fact %in% c(10,100)) { "crop_resampled_masked_aggregated_" } else { "" }
+    outfile <- paste(basedir,fact,"x/",prefix,fact,"x_",new.name,sep='')
     aggregate(new.rast,
                 fact=fact,
                 fun=mean,

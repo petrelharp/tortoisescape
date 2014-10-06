@@ -35,7 +35,7 @@ do
         Rscript setup-real-G.R ${PREFIX} ${LAYERS} ${RES}
         echo "   setup locations"
         echo "----------------------------"
-        Rscript setup-tort-locs.R ${PREFIX} ${RES}
+        Rscript setup-tort-locs.R ${PREFIX} ${RES} ${LAYERS}
     done
 done
 

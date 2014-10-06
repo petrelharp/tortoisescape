@@ -41,16 +41,21 @@ if (!interactive()) {
     # outfile <- NULL
 }
 
-if (is.null(outfile)) { paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
+if (is.null(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
 layer.names <- scan(layer.file,what="char") 
 
 load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
+load( paste( subdir, "/", basename(layer.prefix), "_", basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
 load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
+
+# REMOVE MISSING INDIV
 na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]
+neighborhoods <- neighborhoods[-na.indiv]
+
 
 ##
 # initial parameters?
@@ -98,13 +103,14 @@ if (method=="analytic") {
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
     parscale <- rep( mean(init.hts), nrow(init.hts) )
 
-    H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=locs[k]) ) ) / ncol(init.hts)
-    dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=locs[k]) ) ) / ncol(init.hts)
+    H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
+    dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
 
     maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
+    maxit <- min( 1e4, maxit )
 
     optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
-                optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=locs[loc.ind], 
+                optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
                     method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit ), lower=0, upper=Inf ) 
             }, mc.cores=numcores )
 
