@@ -6,24 +6,36 @@ require(raster)
 
 angsd.pimat.vals <- scan("350000.pwp")  # has LOWER triangle of entries, without diagonal
 robust.pimat.vals <- scan("alleleCounts_1millionloci.pwp") # robust version, has UPPER with diagonal
+unbiased1.pimat.vals <- scan("unbiased/1millionALLsites.pwp")  # as robust version
+unbiased10.pimat.vals <- scan("unbiased/10millionALLsites.pwp")  # as robust version
 nind <- 180
 
-robust.pimat <- angsd.pimat <- numeric(nind^2)
-dim(robust.pimat) <- dim(angsd.pimat) <- c(nind,nind)
+robust.pimat <- angsd.pimat <- unbiased1.pimat <- unbiased10.pimat <- numeric(nind^2)
+dim(robust.pimat) <- dim(angsd.pimat) <- dim(unbiased1.pimat) <- dim(unbiased10.pimat) <- c(nind,nind)
 angsd.pimat[lower.tri(angsd.pimat,diag=FALSE)] <- angsd.pimat.vals
 angsd.pimat <- angsd.pimat + t(angsd.pimat)
 robust.pimat[upper.tri(robust.pimat,diag=TRUE)] <- robust.pimat.vals
 robust.pimat[lower.tri(robust.pimat,diag=FALSE)] <- t(robust.pimat)[lower.tri(robust.pimat,diag=FALSE)]
+unbiased1.pimat[upper.tri(unbiased1.pimat,diag=TRUE)] <- unbiased1.pimat.vals
+unbiased1.pimat[lower.tri(unbiased1.pimat,diag=FALSE)] <- t(unbiased1.pimat)[lower.tri(unbiased1.pimat,diag=FALSE)]
+unbiased10.pimat[upper.tri(unbiased10.pimat,diag=TRUE)] <- unbiased10.pimat.vals
+unbiased10.pimat[lower.tri(unbiased10.pimat,diag=FALSE)] <- t(unbiased10.pimat)[lower.tri(unbiased10.pimat,diag=FALSE)]
 
 mean(angsd.pimat)
 mean(robust.pimat)
+mean(unbiased1.pimat)
+mean(unbiased10.pimat)
 
 torts <- read.csv("../1st_180_torts.csv",header=TRUE)
+torts$EM_Tort_ID <- levels(torts$EM_Tort_ID)[as.numeric(torts$EM_Tort_ID)]
+torts$EM_Tort_ID <- factor( torts$EM_Tort_ID , levels=torts$EM_Tort_ID  )
 
 # pairwise distances
-tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
+dists <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE,stringsAsFactors=FALSE)
+dists$etort1 <- factor( dists$etort1, levels=levels(torts$EM_Tort_ID) )
+dists$etort2 <- factor( dists$etort2, levels=levels(torts$EM_Tort_ID) )
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
-tort.dists[ cbind( match(tort.dist.table$etort1,torts$EM_Tort_ID), match(tort.dist.table$etort2,torts$EM_Tort_ID) ) ] <- tort.dist.table$DISTANCE
+tort.dists[ cbind( match(dists$etort1,torts$EM_Tort_ID), match(dists$etort2,torts$EM_Tort_ID) ) ] <- dists$DISTANCE
 tort.dists <- tort.dists + t(tort.dists)
 
 # coverage
@@ -37,10 +49,30 @@ elev <- raster(elev.file)
 load("../tort.coords.rasterGCS.Robj")
 load("../county_lines.Robj")  # @gbradburd: how was this produced?
 
+# make a table
+dists$angsd <- angsd.pimat[ cbind( dists$etort1, dists$etort2 ) ]
+dists$robust <- robust.pimat[ cbind( dists$etort1, dists$etort2 ) ]
+dists$unbiased1 <- unbiased1.pimat[ cbind( dists$etort1, dists$etort2 ) ]
+dists$unbiased10 <- unbiased10.pimat[ cbind( dists$etort1, dists$etort2 ) ]
+
+
+
+
+# compare the methods
+ut <- upper.tri(tort.dists,diag=FALSE) 
+pdf(file="pi-methods-comparison.pdf",width=12,height=12,pointsize=10)
+lcols <- adjustcolor(rainbow(nlevels(torts$Location_ID)),0.75)
+pairs( dists[,-(1:2)], pch=20, cex=0.5, 
+        upper.panel=function (x,y,...) points(x,y,col=lcols[torts$Location_ID][row(pimat)[ut]],...),
+        lower.panel=function (x,y,...) points(x,y,col=lcols[torts$Location_ID][row(pimat)[ut]],...)
+        )
+dev.off()
+
+stop('here')
 
 ###
-# compare two methods
-for (meth in c("angsd","robust")) {
+# make plots for each method
+for (meth in c("angsd","robust","unbiased1","unbiased10")) {
 
     pimat <- get(paste(meth,"pimat",sep='.'))
 
