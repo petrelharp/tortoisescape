@@ -5,7 +5,7 @@ if (!interactive()) {
     subdir <- commandArgs(TRUE)[1]
     layer.file <- commandArgs(TRUE)[2]
 } else {
-    subdir <- "100x"
+    subdir <- "10x"
     layer.file <- "../inference/twentyfour-raster-list"
 }
 layer.names <- scan(layer.file,what="char")
