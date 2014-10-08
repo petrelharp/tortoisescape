@@ -38,18 +38,14 @@ dists <- merge( dists, edists, by.x=c("etort1","etort2"), by.y=c("tort1","tort2"
 dists$etort1 <- factor( dists$etort1 , levels=torts$EM_Tort_ID )
 dists$etort2 <- factor( dists$etort2 , levels=torts$EM_Tort_ID )
 
-for (ln in layer.names) {
-    dists[[ paste("mean_",ln,sep='') ]] <- dists[[ln]]/dists[["DISTANCE"]]
-}
-
 ##
 # look at nearby distances
-dist.cutoff <- 50
+dist.cutoff <- 100
 dists <- subset(dists, DISTANCE<dist.cutoff)
 
 edist.lms <- lapply( layer.names, function (layer.name) {
-                z <- dists[[ paste("mean_",layer.name,sep='') ]]
-                lm( dists$npi ~ z )
+                z <- dists[[ layer.name ]]
+                lm( dists$pi ~ z )
     } )
 names(edist.lms) <- layer.names
 
@@ -65,8 +61,8 @@ pdf(file="envdist-correlations.pdf", width=12, height=8, pointsize=10 )
 layout( matrix(1:24,nrow=4) )
 par(mar=c(0,0,2,0)+.1)
 for (k in seq_along(layer.names)) {
-    z <- dists[[ paste("mean_",layer.names[k],sep='') ]]
-    plot( z, dists$npi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
+    z <- dists[[ layer.names[k] ]]
+    plot( z, dists$pi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
         col=adjustcolor("black",.5), xlim=quantile(z,c(0,.98),na.rm=TRUE) )
     abline(coef(edist.lms[[k]]),col='red',lwd=2)
 }
