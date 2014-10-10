@@ -60,7 +60,8 @@ verr <- 10
 
 hets <- rbinom( nloci, size=1, prob=phet )
 hets <- cbind( hets, rbinom( nloci, size=1, prob=(phet+hets)/(phet+1) ) )
-perrs <- cbind( rbeta( nloci, perr*verr, (1-perr)*verr ), rbeta( nloci, perr*verr, (1-perr)*verr ) )  # SEPARATE error probs per indiv
+# perrs <- cbind( rbeta( nloci, perr*verr, (1-perr)*verr ), rbeta( nloci, perr*verr, (1-perr)*verr ) )  # SEPARATE error probs per indiv
+perrs <- rbeta( nloci, perr*verr, (1-perr)*verr ); perrs <- cbind( perrs, perrs )  # SAME error probs per indiv
 coverages <- do.call( cbind, lapply( 1:2, function (k) {
             x <- rpois( nloci*2, mean.coverage )
             x[x>0][1:nloci]
