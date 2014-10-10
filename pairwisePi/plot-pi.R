@@ -4,27 +4,25 @@ require(maps)
 require(maptools)
 require(raster)
 
-angsd.pimat.vals <- scan("350000.pwp")  # has LOWER triangle of entries, without diagonal
-robust.pimat.vals <- scan("alleleCounts_1millionloci.pwp") # robust version, has UPPER with diagonal
-unbiased1.pimat.vals <- scan("unbiased/1millionALLsites.pwp")  # as robust version
-unbiased10.pimat.vals <- scan("unbiased/10millionALLsites.pwp")  # as robust version
 nind <- 180
+read.pimat <- function (filename,tri) {
+    pimat.vals <- scan(filename)
+    diag <- ( length(pimat.vals)!=choose(nind,2) )
+    pimat <- numeric(nind^2); dim(pimat) <- c(nind,nind)
+    pimat[tri(pimat,diag=diag)] <- pimat.vals
+    pimat[row(pimat)!=col(pimat)] <- (pimat+t(pimat))[row(pimat)!=col(pimat)]
+    return( pimat )
+}
 
-robust.pimat <- angsd.pimat <- unbiased1.pimat <- unbiased10.pimat <- numeric(nind^2)
-dim(robust.pimat) <- dim(angsd.pimat) <- dim(unbiased1.pimat) <- dim(unbiased10.pimat) <- c(nind,nind)
-angsd.pimat[lower.tri(angsd.pimat,diag=FALSE)] <- angsd.pimat.vals
-angsd.pimat <- angsd.pimat + t(angsd.pimat)
-robust.pimat[upper.tri(robust.pimat,diag=TRUE)] <- robust.pimat.vals
-robust.pimat[lower.tri(robust.pimat,diag=FALSE)] <- t(robust.pimat)[lower.tri(robust.pimat,diag=FALSE)]
-unbiased1.pimat[upper.tri(unbiased1.pimat,diag=TRUE)] <- unbiased1.pimat.vals
-unbiased1.pimat[lower.tri(unbiased1.pimat,diag=FALSE)] <- t(unbiased1.pimat)[lower.tri(unbiased1.pimat,diag=FALSE)]
-unbiased10.pimat[upper.tri(unbiased10.pimat,diag=TRUE)] <- unbiased10.pimat.vals
-unbiased10.pimat[lower.tri(unbiased10.pimat,diag=FALSE)] <- t(unbiased10.pimat)[lower.tri(unbiased10.pimat,diag=FALSE)]
+pimats <- list( 
+        robust = read.pimat("alleleCounts_1millionloci.pwp",tri=lower.tri), 
+        angsd = read.pimat("350000.pwp",tri=upper.tri), 
+        unbiased10 = read.pimat("unbiased/10millionALLsites.pwp",tri=upper.tri), 
+        read2 = read.pimat("unbiased/1millionALLsites_exactly2reads.pwp",tri=upper.tri), 
+        read3 = read.pimat("unbiased/1millionALLsites_exactly3reads.pwp",tri=upper.tri)
+    )
 
-mean(angsd.pimat)
-mean(robust.pimat)
-mean(unbiased1.pimat)
-mean(unbiased10.pimat)
+sapply( pimats, mean )
 
 torts <- read.csv("../1st_180_torts.csv",header=TRUE)
 torts$EM_Tort_ID <- levels(torts$EM_Tort_ID)[as.numeric(torts$EM_Tort_ID)]
@@ -50,12 +48,8 @@ load("../tort.coords.rasterGCS.Robj")
 load("../county_lines.Robj")  # @gbradburd: how was this produced?
 
 # make a table
-dists$angsd <- angsd.pimat[ cbind( dists$etort1, dists$etort2 ) ]
-dists$robust <- robust.pimat[ cbind( dists$etort1, dists$etort2 ) ]
-dists$unbiased1 <- unbiased1.pimat[ cbind( dists$etort1, dists$etort2 ) ]
-dists$unbiased10 <- unbiased10.pimat[ cbind( dists$etort1, dists$etort2 ) ]
-
-
+dists <- cbind( dists, do.call( cbind, lapply( pimats, function (x) {
+                x[ cbind( dists$etort1, dists$etort2 ) ] } ) ) )
 
 
 # compare the methods
@@ -63,18 +57,16 @@ ut <- upper.tri(tort.dists,diag=FALSE)
 pdf(file="pi-methods-comparison.pdf",width=12,height=12,pointsize=10)
 lcols <- adjustcolor(rainbow(nlevels(torts$Location_ID)),0.75)
 pairs( dists[,-(1:2)], pch=20, cex=0.5, 
-        upper.panel=function (x,y,...) points(x,y,col=lcols[torts$Location_ID][row(pimat)[ut]],...),
-        lower.panel=function (x,y,...) points(x,y,col=lcols[torts$Location_ID][row(pimat)[ut]],...)
+        upper.panel=function (x,y,...) points(x,y,col=lcols[torts$Location_ID][row(tort.dists)[ut]],...),
+        lower.panel=function (x,y,...) points(x,y,col=lcols[torts$Location_ID][row(tort.dists)[ut]],...)
         )
 dev.off()
 
-stop('here')
-
 ###
 # make plots for each method
-for (meth in c("angsd","robust","unbiased1","unbiased10")) {
+for (meth in names(pimats)) {
 
-    pimat <- get(paste(meth,"pimat",sep='.'))
+    pimat <- pimats[[meth]]
 
     ut <- upper.tri(pimat,diag=FALSE) 
     require(colorspace)
@@ -152,3 +144,30 @@ for (meth in c("angsd","robust","unbiased1","unbiased10")) {
     dev.off()
 
 }
+
+###
+# look at wierdos
+
+lowcoverage <- c("etort-106", "etort-105", "etort-103", "etort-109", "etort-102", "etort-107", "etort-108","etort-104")
+highcoverage <- c("etort-61", "etort-127", "etort-151", "etort-141", "etort-31", "etort-16", "etort-51", "etort-110")
+
+pdf(file="comparison-by-coverage.pdf",width=10,height=5,pointsize=10)
+layout(t(1:2))
+
+with( dists, plot( unbiased10, read3, pch=20, cex=0.5 ) )
+with( subset(dists, ( etort1 %in% lowcoverage ) | ( etort1 %in% lowcoverage ) ), 
+    points( unbiased10, read3, col=rainbow(20)[1+ifelse(etort1%in%lowcoverage, match(etort1,lowcoverage),match(etort1,lowcoverage))] ) )
+with( subset(dists, ( etort1 %in% highcoverage ) | ( etort1 %in% highcoverage ) ), 
+    points( unbiased10, read3, pch=20, col=rainbow(20)[11+ifelse(etort1%in%highcoverage, match(etort1,highcoverage),match(etort1,highcoverage))] ) )
+abline(0,1)
+legend("bottomright",col=rainbow(20)[c(1:8,11:20)], legend=c(paste("low:",lowcoverage),paste("high:",highcoverage)), pch=c(rep(1,length(lowcoverage)),rep(20,length(highcoverage))) )
+
+with( dists, plot( read2, read3, pch=20, cex=0.5 ) )
+with( subset(dists, ( etort1 %in% lowcoverage ) | ( etort1 %in% lowcoverage ) ), 
+    points( read2, read3, col=rainbow(20)[1+ifelse(etort1%in%lowcoverage, match(etort1,lowcoverage),match(etort1,lowcoverage))] ) )
+with( subset(dists, ( etort1 %in% highcoverage ) | ( etort1 %in% highcoverage ) ), 
+    points( read2, read3, pch=20, col=rainbow(20)[11+ifelse(etort1%in%highcoverage, match(etort1,highcoverage),match(etort1,highcoverage))] ) )
+abline(0,1)
+legend("bottomright",col=rainbow(20)[c(1:8,11:20)], legend=c(paste("low:",lowcoverage),paste("high:",highcoverage)), pch=c(rep(1,length(lowcoverage)),rep(20,length(highcoverage))) )
+
+dev.off()
