@@ -13,6 +13,9 @@ require(maptools)
 require(rgdal)
 require(TeachingDemos)
 
+if(file.exists("~/desktop/dropbox/tortoisescape")){
+	setwd("~/desktop/dropbox/tortoisescape")
+}
 # get tortoise coords and 
 #	county lines in raster coordinate space
 load("tort.coords.rasterGCS.Robj")
@@ -74,15 +77,16 @@ png(file="tort_report_figures/discrete.pc.colors.sample.map.png",res=200,width=1
 par(mfrow=c(1,2),oma=c(1,1,1,1),mar=c(2,1,4,4))
 #	plot(runif(10)) ; box(lwd=3)
 plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
-		points(tort.coords.rasterGCS,pch=tort.plotting.pch,cex=0.7,col=tort.plotting.colors.discrete)
 		polygon(x=c(x.min,x.max,x.max,x.min,x.min),y=c(y.min,y.min,y.max,y.max,y.min),lty=2,lwd=0.5)
 		#points(tort.coords.rasterGCS[match(c("etort-1","etort-16","etort-70"),row.names(tort.coords.rasterGCS)),],pch=1,col="green",cex=2)
 			lines(county_lines,lwd=0.5)
 			lines(state.lines.spobj,lwd=2)
+		points(tort.coords.rasterGCS,pch=tort.plotting.pch,cex=0.7,col=tort.plotting.colors.discrete)
 			box(lwd=3)
 		rect(-2155000,-5.75e+05,-1872000,-4.2e+05,col="white")
 		subplot(fun = {		plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],
-								col=tort.plotting.colors.discrete,pch=tort.plotting.pch,cex=0.5,xaxt='n',yaxt='n',xlab="",ylab="")
+								col=tort.plotting.colors.discrete,pch=tort.plotting.pch,cex=0.5,xaxt='n',yaxt='n',xlab="",ylab="") ; 
+							abline(v=0,lty=2,lwd=0.5)
 						},
 					x=c(-2155000,-1872000),y=c(-5.75e+05,-4.2e+05))
 	mtext(side=1,text="PC 1",cex=0.75,adj=0.215,padj=-3)
@@ -110,11 +114,11 @@ png(file="tort_report_figures/continuous.pc.colors.sample.map.png",res=200,width
 par(mfrow=c(1,2),oma=c(1,1,1,1),mar=c(2,1,4,4))
 #	plot(runif(10)) ; box(lwd=3)
 plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
-		points(tort.coords.rasterGCS,pch=tort.plotting.pch,cex=0.7,col=tort.plotting.colors.continuous)
 		polygon(x=c(x.min,x.max,x.max,x.min,x.min),y=c(y.min,y.min,y.max,y.max,y.min),lty=2,lwd=0.5)
 		#points(tort.coords.rasterGCS[match(c("etort-1","etort-16","etort-70"),row.names(tort.coords.rasterGCS)),],pch=1,col="green",cex=2)
 			lines(county_lines,lwd=0.5)
 			lines(state.lines.spobj,lwd=2)
+		points(tort.coords.rasterGCS,pch=tort.plotting.pch,cex=0.7,col=tort.plotting.colors.continuous)
 			box(lwd=3)
 		rect(-2155000,-5.75e+05,-1872000,-4.2e+05,col="white")
 		subplot(fun = {		plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],
@@ -138,8 +142,20 @@ plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
 	scalebar(d=20000,xy=c(x.min+10000,y.max-15000),type="line",below="meters",lwd=1.1,label="20km")
 dev.off()
 
-
-
+png(file="tort_report_figures/PC1_map.png",res=200,width=5*200,height=5*200)
+	plot(eig.covmat$vectors[,1],
+		eig.covmat$vectors[,2],
+		col=tort.plotting.colors.continuous,
+		pch=tort.plotting.pch,
+		cex=1.5,main="Tortoise Principal Componennts Analysis",
+		xlab=paste("PC1 (",
+					100*round(eig.covmat$values[1]/sum(eig.covmat$values),3)
+					,"%)",sep=""),
+		ylab=paste("PC2 (",
+					100*round(eig.covmat$values[2]/sum(eig.covmat$values),3)
+					,"%)",sep=""),
+		cex.axis=0.8)
+dev.off()
 
 
 if(FALSE){
