@@ -1,0 +1,123 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{hyperref}
+
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\DeclareMathOperator{\var}{var}
+\DeclareMathOperator{\cov}{cov}
+\newcommand{\deq}{\overset{\scriptscriptstyle{d}}{=}}
+
+\newcommand{\given}{\,\vert\,}
+\newcommand{\st}{\,\colon\,} % such that
+\newcommand{\floor}[1]{{\left\lfloor #1 \right\rfloor }}
+\newcommand{\one}{\mathbb{1}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+
+
+%%%%%%%%%%%%%%
+\section*{Heterozygosity}
+
+Suppose that we have sequence from an individual,
+with $C_i$ reads that map to a position overlapping site $i$, for $1 \le i \le L$,
+and that the marginal distribution of $C_i$ is Poisson with mean $\lambda c_i$.
+Suppose that each read covering site $i$ independently draws an allele,
+with the probability of drawing allele $a$ being $p_i(a)$;
+suppose that allele $a$ is observed $N_i(a)$ times amongst the $C_i$ reads at position $i$.
+Given $C_i$, $N_i(\cdot)$ is Multinomial, so
+on the set $\{ C_i > 1 \}$,
+the probability that two reads drawn without replacement at $i$ both have $a$ is
+\begin{align}
+    Z_i(a) := \frac{N_i(a)(N_i(a)-1)}{C_i(C_i-1)} .
+\end{align}
+This has expectation
+\begin{align}
+\E\left[ Z_i(a) \given C_i \right] 
+    & = \frac{ \E[ N_i(a)^2 - N_i(a) \given C_i ] }{ C_i (C_i-1) } \\
+    & = \frac{ C_i p_i(a)(1-p_i(a)) + C_i^2 p_i^2 - C_i p_i }{ C_i (C_i-1) } \\
+    % & = \frac{ C_i (C_i-1) p_i^2 }{ C_i (C_i-1) } \\
+    & = p_i^2 .
+\end{align}
+(Note that the quantity with replacement, $(N_i(a)/C_i)^2$ does depend on $C_i$, 
+since the chance of drawing the same read twice is $1/C_i$.)
+
+Given a nonnegative function $w$ with $w(0)=w(1)=0$,
+an estimator of weighted heterozygosity is
+\begin{align}
+    H(w) = \frac{ \sum_{i=1}^L w(C_i) \left( 1 - \sum_a Z_i(a) \right) }{ \sum_{i=1}^L w(C_i) } .
+\end{align}
+The expectation of $H(w)$ is therefore
+\begin{align}
+    \E[H(w)] &= \E \left[ \frac{ \sum_{i=1}^L w(C_i) \left( 1 - \sum_a Z_i(a) \right) }{ \sum_{i=1}^L w(C_i) } \right] \\
+        &= \E\left[ \frac{ \sum_{i=1}^L w(C_i) \left( 1 - \sum_a p_i(a)^2 \right) }{ \sum_{i=1}^L w(C_i) } \right] .
+\end{align}
+
+We would like $H(w)$ to not depend on $\lambda$.
+For this to be the case, we want $\lambda$ to factor out of the numerator and denominator;
+ideally, we'd like
+\begin{align}
+    \E\left[ \frac{ \sum_i w(C_i) x_i }{ \sum_i w(C_i) } \right]
+\end{align}
+to not depend on $\lambda$ for any sequence $x_i$ (that may correlate with $c_i$).
+If the $C_i$ are independent, this holds for $w(C_i)=C_i$, 
+since by the ``coloring'' property of Poisson random variables, the expression
+is equal to 
+\begin{align}
+    \frac{ \sum_i \lambda c_i x_i }{ \sum_i \lambda c_i }  =
+    \frac{ \sum_i c_i x_i }{ \sum_i c_i }  .
+\end{align}
+Unfortunately, we need $w(0)=w(1)=0$, so this doesn't work.
+
+A valid choice is $w(c)=c(c-1)$; since $\E[C_i(C_i-1)] = \lambda^2 c_i^2$,
+\begin{align}
+    \E\left[ \frac{ \sum_i C_i(C_i-1) x_i }{ \sum_i C_i(C_i-1) } \right] 
+        &\approx \frac{ \E\left[ \sum_i C_i(C_i-1) \right] x_i }{ \E\left[ \sum_i C_i(C_i-1) \right] } \\
+        &= \frac{ \sum_i c_i^2 x_i }{ \sum_i c_i^2 } .
+\end{align}
+
+
+%%%%%%%%%%%%%%
+\section*{Divergence}
+
+Now suppose we have sequence as above from two samples,
+where $C_i^k$ is marginally Poisson with mean $\lambda_k c_i$,
+and given $C_i^k$, the allele counts $N_i^k(a)$ are Multinomial
+with probabilities $p_i^k(a)$.
+Suppose that coverages and counts are independent between samples, given $p$ and $c$.
+The probability that a pair of reads drawn from those at site $i$,
+one drawn uniformly at random from each sample,
+both have allele $a$ is $Y_i(a) = N_i^1(a) N_i^2(a) / C_i^1 C_i^2$,
+and so on $\{C_i^1 C_i^2 > 0\}$,
+\begin{align}
+    \E[ Y_i(a) \given C_i^1, C_i^2 ]  =  p_i^1(a) p_i^2(a) .
+\end{align}
+
+Given a weighting function $w$ with $w(0,n)=w(n,0)=0$ for each $n$,
+an estimator of divergence is 
+\begin{align}
+    D(w) = \frac{ \sum_{i=1}^L w(C_i^1,C_i^2) (1-\sum_a Y_i(a)) }{ \sum_{i=1}^L w(C_i^1,C_i^2) }  .
+\end{align}
+As above, the expection of $D(w)$ is then
+\begin{align}
+    \E[ D(w) ]  &= \E\left[ \frac{ \sum_{i=1}^L w(C_i^1,C_i^2) (1-\sum_a p_i^1(a) p_i^2(a)) }{ \sum_{i=1}^L w(C_i^1,C_i^2) } \right]  .
+\end{align}
+Also as above, the choice $w(x,y) = x y$ does not satisfy the independence property that would be ideal,
+but does approximately:
+\begin{align}
+    \E[ D(w) ]  &\approx \frac{ \sum_{i=1}^L c_i^1 c_i^2  (1-\sum_a p_i^1(a) p_i^2(a)) }{ \sum_{i=1}^L c_i^1 c_i^2 } .
+\end{align}
+Another choice would be $w(x,y) = x(x-1)y(y-1)$.
+
+
+\end{document}
+
