@@ -81,6 +81,54 @@ png(file="tort_report_figures/IBD_NN_SS_NS_plot.png",res=200,width=6*200,height=
 	#points(diag(tort.dists),diag(tort.pwp),pch=20,cex=0.5)
 dev.off()
 
+png(file="tort_report_figures/IBD_NN_SS_NS_plot_linearregs.png",res=200,width=6*200,height=5*200)
+	plot(tort.dists[index.mat],tort.pwp[index.mat],
+			col=tort.plot.mat.col.3bins[index.mat],
+			pch=20,cex=0.3,xlab="pairwise geographic distance",ylab="pairwise sequence divergence",main = "Isolation by Distance")
+	for(i in 1:length(unique(c(tort.plot.mat.col.3bins)))){
+		use.these <- which(tort.plot.mat.col.3bins == unique(c(tort.plot.mat.col.3bins))[i],arr.ind=TRUE)
+		abline(lm(tort.pwp[use.these] ~ tort.dists[use.these]),col=unique(c(tort.plot.mat.col.3bins))[i],lwd=2)
+	}
+	legend(x="bottomright",lty=1,col=unique(c(tort.plot.mat.col.3bins)),legend=c("North - North","North - South","South - South"))
+	#points(diag(tort.dists),diag(tort.pwp),pch=20,cex=0.5)
+dev.off()
+
+
+
+png(file="tort_report_figures/IBD_NN_SS_NS_plot_insetPCmap_LinearRegress.png",res=200,width=6*200,height=5*200)
+	#quartz(width=6,height=5)
+	slope.coefficients <- c()
+	plot(tort.dists[index.mat],tort.pwp[index.mat],
+			col=tort.plot.mat.col.3bins[index.mat],
+			pch=20,cex=0.3,xlab="pairwise geographic distance",
+			ylab="pairwise sequence divergence",
+			main = "Isolation by Distance",
+			ylim=c(0.160,0.245))
+	for(i in 1:length(unique(c(tort.plot.mat.col.3bins)))){
+		use.these <- which(tort.plot.mat.col.3bins == unique(c(tort.plot.mat.col.3bins))[i],arr.ind=TRUE)
+		abline(lm(tort.pwp[use.these] ~ tort.dists[use.these]),col=unique(c(tort.plot.mat.col.3bins))[i],lwd=2)
+		slope.coefficients  <- c(slope.coefficients ,signif(lm(tort.pwp[use.these] ~ tort.dists[use.these])$coefficients[2],3))
+#		lines(lowess(tort.pwp[use.these] ~ tort.dists[use.these]),col=unique(c(tort.plot.mat.col.3bins))[i],lwd=2)
+	}
+	legend(x="topleft",lty=1,
+			col=unique(c(tort.plot.mat.col.3bins)),
+			legend=c(	paste("North - North, slope = ",slope.coefficients[1],sep=""),
+						paste("North - South, slope = ",slope.coefficients[2],sep=""),
+						paste("South - South, slope = ",slope.coefficients[3],sep=""))
+			,cex=0.7)
+	#rect(-2155000,-5.75e+05,-1872000,-4.2e+05,col="white")
+	TeachingDemos::subplot(fun = {		plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],
+								col=tort.plotting.colors.discrete,pch=20,cex=0.5,xaxt='n',yaxt='n',xlab="",ylab="") ; 
+							abline(v=0,lty=2,lwd=0.5) ; 
+							box(lwd=1.1)
+						},
+					x=c(2.68e+05,4.6e+05),y=c(0.164,0.187))
+	mtext("PC1",side=1,adj=0.8,padj=-2)
+	mtext("PC2",side=1,adj=0.535,padj=-6.7)
+	mtext("North",side=1,adj=0.85,padj=-6.5,cex=0.6)
+	mtext("South",side=1,adj=0.72,padj=-15,cex=0.6)
+dev.off()
+
 ################
 #	IBD colored by
 #		same-diff

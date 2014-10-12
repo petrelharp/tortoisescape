@@ -171,3 +171,25 @@ abline(0,1)
 legend("bottomright",col=rainbow(20)[c(1:8,11:20)], legend=c(paste("low:",lowcoverage),paste("high:",highcoverage)), pch=c(rep(1,length(lowcoverage)),rep(20,length(highcoverage))) )
 
 dev.off()
+
+
+###
+# how is 'unbiased10' without low coverage indivs?
+
+usethese <- with( dists, ! ( ( etort1 %in% lowcoverage ) | ( etort2 %in% lowcoverage ) ) )
+tcols <- rainbow(240)
+lcols <- adjustcolor(rainbow(nlevels(torts$Location_ID)),0.75)
+
+# these ones still weird:
+weirdos <- c("etort-48", "etort-46", "etort-50", "etort-57", "etort-72", "etort-78", "etort-68", "etort-71", "etort-97", "etort-59", "etort-65")
+
+pdf(file="coverage-weirdos.pdf",width=12,height=4)
+
+layout(t(1:2))
+plot( torts$coverage, rowMeans(pimats[["unbiased10"]]), type='n', ylab='mean divergence (unbiased10)' )
+text( torts$coverage, rowMeans(pimats[['unbiased10']]), labels=torts$EM_Tort_ID, col=1+torts$EM_Tort_ID%in%lowcoverage+2*torts$EM_Tort_ID%in%weirdos  )
+plot(elev)
+points( tort.coords.rasterGCS, col=1+torts$EM_Tort_ID%in%lowcoverage+2*torts$EM_Tort_ID%in%weirdos, pch=20  )
+
+dev.off()
+

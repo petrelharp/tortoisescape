@@ -1,13 +1,13 @@
 #!/usr/bin/Rscript
 
 
-if (!interactive()) {
-    subdir <- commandArgs(TRUE)[1]
-    layer.file <- commandArgs(TRUE)[2]
-} else {
+# if (!interactive()) {
+#     subdir <- commandArgs(TRUE)[1]
+#     layer.file <- commandArgs(TRUE)[2]
+# } else {
     subdir <- "10x"
     layer.file <- "../inference/twentyfour-raster-list"
-}
+# }
 layer.names <- scan(layer.file,what="char")
 
 require(raster)
@@ -38,14 +38,26 @@ dists <- merge( dists, edists, by.x=c("etort1","etort2"), by.y=c("tort1","tort2"
 dists$etort1 <- factor( dists$etort1 , levels=torts$EM_Tort_ID )
 dists$etort2 <- factor( dists$etort2 , levels=torts$EM_Tort_ID )
 
+# pcs
+pcs <- read.csv("../covmat/tort-PCs.csv",stringsAsFactors=FALSE)
+names(pcs)[1] <- "etort"
+pcs$etort <- factor( pcs$etort, levels=torts$EM_Tort_ID )
+stopifnot( all(pcs$etort==torts$EM_Tort_ID) )
+torts <- cbind(torts,pcs[,-1])
+
+# same-different groups
+dists$pcgroup <- with(dists, ( (torts$PC1[match(etort1,torts$EM_Tort_ID)]*torts$PC1[match(etort2,torts$EM_Tort_ID)]) > 0 ) )
+dists$PC1 <- with(dists, torts$PC1[match(etort1,torts$EM_Tort_ID)] - torts$PC1[match(etort2,torts$EM_Tort_ID)] )
+
+# residual pi after accounting for geographical distance and PC1 distance
+dists$resid.pi <- with(dists, resid( lm( pi ~ DISTANCE + PC1 ) ) )
 ##
 # look at nearby distances
 dist.cutoff <- 100
-dists <- subset(dists, DISTANCE<dist.cutoff)
 
 edist.lms <- lapply( layer.names, function (layer.name) {
-                z <- dists[[ paste("mean_",layer.name,sep='') ]]
-                lm( dists$npi ~ z )
+                z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.name ]]
+                lm( subset(dists,DISTANCE<dist.cutoff)$pi ~ z )
     } )
 names(edist.lms) <- layer.names
 
@@ -55,16 +67,34 @@ edist.coefs <- t( rbind( sapply( edist.lms, coef ),
     ) )
 edist.coefs <- edist.coefs[ order(edist.coefs[,3]), ]
 
-write.table( edist.coefs, file="envdist-coefficients.tsv", sep='\t', quote=FALSE )
+edist.resid.lms <- lapply( layer.names, function (layer.name) {
+                z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.name ]]
+                lm( subset(dists,DISTANCE<dist.cutoff)$resid.pi ~ z )
+    } )
+names(edist.resid.lms) <- layer.names
+
+edist.resid.coefs <- t( rbind( sapply( edist.resid.lms, coef ), 
+        r.squared=sapply( lapply( edist.resid.lms, summary ), "[[", "r.squared" ),
+        p.value=sapply( lapply( lapply( edist.resid.lms, anova ), "[[", "Pr(>F)" ), "[", 1 ) 
+    ) )
+edist.resid.coefs <- edist.resid.coefs[ order(edist.resid.coefs[,3]), ]
+
+write.table( edist.resid.coefs, file="envdist-coefficients.tsv", sep='\t', quote=FALSE )
 
 pdf(file="envdist-correlations.pdf", width=12, height=8, pointsize=10 )
 layout( matrix(1:24,nrow=4) )
 par(mar=c(0,0,2,0)+.1)
 for (k in seq_along(layer.names)) {
-    z <- dists[[ paste("mean_",layer.names[k],sep='') ]]
-    plot( z, dists$npi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
+    z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.names[k] ]]
+    plot( z, subset(dists,DISTANCE<dist.cutoff)$pi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
         col=adjustcolor("black",.5), xlim=quantile(z,c(0,.98),na.rm=TRUE) )
     abline(coef(edist.lms[[k]]),col='red',lwd=2)
+}
+for (k in seq_along(layer.names)) {
+    z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.names[k] ]]
+    plot( z, subset(dists,DISTANCE<dist.cutoff)$resid.pi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
+        col=adjustcolor("black",.5), xlim=quantile(z,c(0,.98),na.rm=TRUE) )
+    abline(coef(edist.resid.lms[[k]]),col='red',lwd=2)
 }
 dev.off()
 

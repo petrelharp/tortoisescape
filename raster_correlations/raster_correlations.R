@@ -4,8 +4,8 @@
 ################################################################
 ################################################################
 
-if(file.exists("/Volumes/BBURD/100x")){
-	setwd("/Volumes/BBURD/100x")
+if(file.exists("/Volumes/cooplab1/tortoises/100x")){
+	setwd("/Volumes/cooplab1/tortoises/100x")
 }
 require(raster)
 rasterOptions(tmpdir=".")
@@ -100,11 +100,19 @@ raster.correlations <- raster.correlations[-grep(ends,names(raster.correlations)
 	ends <- paste("X_","bedrock_ss2","$",sep="")
 raster.correlations <- raster.correlations[-grep(starts,names(raster.correlations))]
 raster.correlations <- raster.correlations[-grep(ends,names(raster.correlations))]
+	starts <- paste("^","tree_err_30","_X",sep="")
+	ends <- paste("X_","tree_err_30","$",sep="")
+raster.correlations <- raster.correlations[-grep(starts,names(raster.correlations))]
+raster.correlations <- raster.correlations[-grep(ends,names(raster.correlations))]
+
+
+
 
 raster.names <- raster.names[-grep("summer_precip",raster.names)]
 raster.names <- raster.names[-grep(paste("pr_ss2","$",sep=""),raster.names)]
 raster.names <- raster.names[-grep(paste("bd_ss2_30","$",sep=""),raster.names)]
 raster.names <- raster.names[-grep(paste("bedrock_ss2","$",sep=""),raster.names)]
+raster.names <- raster.names[-grep(paste("tree_err_30","$",sep=""),raster.names)]
 
 x <- length(raster.names)
 correlation.matrix <- matrix(0,nrow=x,ncol=x)
@@ -126,6 +134,7 @@ for(i in 1:x){
 	}
 }
 
+save(correlation.matrix,file="raster_correlation_matrix.Robj")
 #then visualize the result
 #	first using the raw correlation values,
 #	then the abs(corr.values)
@@ -175,7 +184,7 @@ png(file="abs_correlation_matrix_heatmap.png",res=200,width=10*200,height=10*200
 						horizontal=FALSE,graphics.reset=TRUE,
 						legend.only=TRUE,col=heat.colors(nrow(correlation.matrix)),
 						smallplot=c(0.975,0.990,0.25,0.68),				
-						axis.args=list(at=c(-82,84),labels=leg.lab.vals))
+						axis.args=list(at=c(-81,83),labels=leg.lab.vals))
 dev.off()
 
 

@@ -122,7 +122,9 @@ plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
 			box(lwd=3)
 		rect(-2155000,-5.75e+05,-1872000,-4.2e+05,col="white")
 		subplot(fun = {		plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],
-								col=tort.plotting.colors.continuous,pch=tort.plotting.pch,cex=0.5,xaxt='n',yaxt='n',xlab="",ylab="")
+								col=tort.plotting.colors.continuous,pch=tort.plotting.pch,cex=0.5,xaxt='n',yaxt='n',xlab="",ylab="",ylim=c(-0.16,0.16)) ;
+								abline(v=0,col="gray",lty=2) ;
+								lines(x=c(-5,0),y=c(0,0),col="gray",lty=2)
 						},
 					x=c(-2155000,-1872000),y=c(-5.75e+05,-4.2e+05))
 	mtext(side=1,text="PC 1",cex=0.75,adj=0.215,padj=-3)
@@ -147,7 +149,7 @@ png(file="tort_report_figures/PC1_map.png",res=200,width=5*200,height=5*200)
 		eig.covmat$vectors[,2],
 		col=tort.plotting.colors.continuous,
 		pch=tort.plotting.pch,
-		cex=1.5,main="Tortoise Principal Componennts Analysis",
+		cex=1.5,main="Tortoise Principal Components Analysis",
 		xlab=paste("PC1 (",
 					100*round(eig.covmat$values[1]/sum(eig.covmat$values),3)
 					,"%)",sep=""),
@@ -155,6 +157,25 @@ png(file="tort_report_figures/PC1_map.png",res=200,width=5*200,height=5*200)
 					100*round(eig.covmat$values[2]/sum(eig.covmat$values),3)
 					,"%)",sep=""),
 		cex.axis=0.8)
+dev.off()
+
+png(file="tort_report_figures/PC1_map_partitioned.png",res=200,width=5*200,height=5*200)
+	#quartz(width=5,height=5)
+	plot(eig.covmat$vectors[,1],
+		eig.covmat$vectors[,2],
+		col=tort.plotting.colors.continuous,
+		pch=tort.plotting.pch,
+		cex=1.5,main="Tortoise Principal Components Analysis",
+		xlab=paste("PC1 (",
+					100*round(eig.covmat$values[1]/sum(eig.covmat$values),3)
+					,"%)",sep=""),
+		ylab=paste("PC2 (",
+					100*round(eig.covmat$values[2]/sum(eig.covmat$values),3)
+					,"%)",sep=""),
+		cex.axis=0.8,
+		ylim=c(-0.16,0.16))
+		abline(v=0,col="gray",lty=2)
+		lines(x=c(-5,0),y=c(0,0),col="gray",lty=2)
 dev.off()
 
 
