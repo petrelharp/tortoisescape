@@ -15,6 +15,7 @@ read.pimat <- function (filename,tri) {
 }
 
 pimats <- list( 
+        new.robust = read.pimat("new/1millionALLsites.newpwp",tri=lower.tri), 
         robust = read.pimat("alleleCounts_1millionloci.pwp",tri=lower.tri), 
         angsd = read.pimat("350000.pwp",tri=upper.tri), 
         unbiased10 = read.pimat("unbiased/10millionALLsites.pwp",tri=upper.tri), 
