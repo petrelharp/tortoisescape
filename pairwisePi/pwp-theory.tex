@@ -119,5 +119,29 @@ but does approximately:
 Another choice would be $w(x,y) = x(x-1)y(y-1)$.
 
 
+
+
+%%%%%%%%%%%%%%
+\section*{Mapping errors}
+
+We can model the situation with mapping errors explicitly:
+suppose that a fraction of $q_k$ of the sites in the genome
+in fact have mapping multiplicity $k$.
+Assuming the locations map equally well,
+a pair of reads at a site of multiplicity $k$ 
+in fact map to the same location with probability $1/k$.
+If $\pi$ is the mean divergence between homologous sites,
+$\nu$ is the mean divergence between paralogous sites,
+and $\epsilon$ is the error rate,
+then the mean divergence between reads at sites with multiplicity $k$ 
+is $\pi/k + (1-1/k) \nu + \epsilon$.
+Therefore, $D$ estimates
+\begin{align}
+  D \approx \epsilon + \sum_k q_k \left( \pi/k + (1-1/k) \nu ) .
+\end{align}
+
+It might be possible to esimate $q_k$, $\pi$, and $\nu$ by looking at mean divergence as a function of coverage.
+
+
 \end{document}
 
