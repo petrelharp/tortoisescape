@@ -19,32 +19,27 @@ while (my $line = <>) { # Read from STDIN
         my $locusDepth = sum(@individualDepths);
         my $maxDepth = max(@individualDepths);
         my $remainingDepth = $locusDepth - $maxDepth;
-        
-        $tortReadHash{$etortNumbers[$tortCounter]}{$locusDepth}++;
+        print $maxDepth . "\t" . $remainingDepth . "\t";
+        #$tortReadHash{$etortNumbers[$tortCounter]}{$locusDepth}++;
         $tortCounter++;   
-    }    
+    }
+    print "\n";
 }
 
 # print Dumper(\%tortReadHash);
 
 
 
-foreach my $tortNumber (sort {$a <=> $b} keys %tortReadHash) {
-    print "etort-$tortNumber\t";
-    my $counter = 0;
-    foreach my $readDepth (sort {$a <=> $b} keys %{$tortReadHash{$tortNumber}}) {
-        if ($readDepth != $counter) {
-            print "0\t";
-            $counter++;
-            next;
-            # die "There is a coverage number skipped for etort-$tortNumber. This will break things!\n";
-        }
-        print $tortReadHash{$tortNumber}{$readDepth} . "\t";
-        $counter++;
-    }
-    print "\n";
-    
-}
+
+
+
+
+
+
+
+
+
+
 
 
 
