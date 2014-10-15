@@ -9,8 +9,9 @@
             P[N] = $(2*N-1) / D[N];  # major allele freq
             if ( D[N] > 1 ) {
                 if (D[N] < 10) { # Set a maximum of 9 reads for N
-                    W[N,N] += D[N]*(D[N]-1) ;   # weights
-                    PI[N,N] += 2 * D[N] * P[N] * ( D[N] - $(2*N-1) ) / (D[N]-1) ;  # prob of difference
+                    WW = D[N]*(D[N]-1) ;   # weights
+                    W[N,N] += WW;
+                    PI[N,N] += 2 * WW * P[N] * ( D[N] - $(2*N-1) ) / (D[N]-1) ;  # prob of difference
                 }
             }
             for ( M=1; M<N; M++ ) {

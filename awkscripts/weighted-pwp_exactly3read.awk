@@ -9,8 +9,9 @@
         D[N] = ( $(2*N-1) + $(2*N)  );  # total coverage
         if ( D[N] == 3 ) {
             P[N] = $(2*N-1) / D[N];  # major allele freq
-            W[N,N] += D[N];   # weights
-            PI[N,N] += 2 * D[N] * P[N] * ( D[N] - $(2*N-1) ) / (D[N]-1) ;  # prob of difference
+            WW = ( D[N] * (D[N]-1) );
+            W[N,N] += WW;   # weights
+            PI[N,N] += 2 * WW * P[N] * ( D[N] - $(2*N-1) ) / (D[N]-1) ;  # prob of difference
             for ( M=1; M<N; M++ ) {
                 if (D[M] == 3) {
                     WW = sqrt(D[N]*D[M]);
