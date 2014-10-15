@@ -14,10 +14,18 @@ read.pimat <- function (filename,tri) {
     return( pimat )
 }
 
+# use the following to check that we're reading into the right triangle (label that stuff!)
+testit <- function (pname,...) { upper <- read.pimat(pname,tri=upper.tri); lower <- read.pimat(pname,tri=lower.tri); uvec <- upper[ cbind( dists$etort1, dists$etort2 ) ]; lvec <- lower[ cbind( dists$etort1, dists$etort2 ) ]; plot( dists$DISTANCE, uvec, main='upper', ... ); plot( dists$DISTANCE, lvec, main='lower', ... ) }
+# testit("350000.pwp")
+
 pimats <- list( 
-        new.robust = read.pimat("new/1millionALLsites.newpwp",tri=lower.tri), 
-        robust = read.pimat("alleleCounts_1millionloci.pwp",tri=lower.tri), 
-        angsd = read.pimat("350000.pwp",tri=upper.tri), 
+        million.max900 = read.pimat("maxReadDepth/1st_1million_900readmax.pwp",tri=upper.tri), 
+        tenmil.max900 = read.pimat("maxReadDepth/first10mil_max900_weighted.pwp",tri=upper.tri), 
+        poly.maxdepth5 = read.pimat("maxReadDepth/max5reads_1milpolymorphicsites.pwp",tri=upper.tri), 
+        poly.maxdepth8 = read.pimat("maxReadDepth/max8reads_1milpolymorphicsites.pwp",tri=upper.tri), 
+        poly.maxdepth9 = read.pimat("maxReadDepth/max9reads_1milpolymorphicsites.pwp",tri=upper.tri), 
+        robust = read.pimat("alleleCounts_1millionloci.pwp",tri=upper.tri), 
+        angsd = read.pimat("350000.pwp",tri=lower.tri), 
         unbiased10 = read.pimat("unbiased/10millionALLsites.pwp",tri=upper.tri), 
         read2 = read.pimat("unbiased/1millionALLsites_exactly2reads.pwp",tri=upper.tri), 
         read3 = read.pimat("unbiased/1millionALLsites_exactly3reads.pwp",tri=upper.tri)
@@ -55,7 +63,7 @@ dists <- cbind( dists, do.call( cbind, lapply( pimats, function (x) {
 
 # compare the methods
 ut <- upper.tri(tort.dists,diag=FALSE) 
-pdf(file="pi-methods-comparison.pdf",width=12,height=12,pointsize=10)
+png(file="pi-methods-comparison.png",width=12*144,height=12*144,pointsize=10,res=144)
 lcols <- adjustcolor(rainbow(nlevels(torts$Location_ID)),0.75)
 pairs( dists[,-(1:2)], pch=20, cex=0.5, 
         upper.panel=function (x,y,...) points(x,y,col=lcols[torts$Location_ID][row(tort.dists)[ut]],...),
