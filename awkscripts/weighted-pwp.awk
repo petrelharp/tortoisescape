@@ -8,14 +8,15 @@
         if ( D[N] > 0 ) {
             P[N] = $(2*N-1) / D[N];  # major allele freq
             if ( D[N] > 1 ) {
-                W[N,N] += D[N]*(D[N]-1) ;   # weights
-                PI[N,N] += 2 * D[N] * P[N] * ( D[N] - $(2*N-1) ) / (D[N]-1) ;  # prob of difference
+                WW = D[N]*(D[N]-1) ;
+                W[N,N] += WW ;   # weights
+                PI[N,N] += WW * ( 2 * P[N] * ( D[N] - $(2*N-1) ) / (D[N]-1) ) ;  # prob of difference
             }
             for ( M=1; M<N; M++ ) {
                 if (D[M] > 0) {
                     WW = D[N]*D[M] ;
                     W[N,M] += WW;
-                    PI[N,M] += ( P[N]*(1-P[M]) + P[M]*(1-P[N]) ) * WW;
+                    PI[N,M] += WW * ( P[N]*(1-P[M]) + P[M]*(1-P[N]) ) ;
                 }
             }
         }
