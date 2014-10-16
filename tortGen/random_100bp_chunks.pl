@@ -22,22 +22,22 @@ GetOptions  ("in=s"       => \$inFile,
              "keep=f"     => \$keepFraction,
              "help|man"   => \$help) || die "Couldn't get options with GetOpt::Long: $!\n";
 
-if (!$inFile or !$outFile or !$keepFraction or $help) {
+if (!$outFile or !$keepFraction or $help) {
     die "Must supply --in and --out and --keep.\n";
 }
 
-open(my $inFH, "<", $inFile) or die "Couldn't open $inFile for reading: $!\n";
+# open(my $inFH, "<", $inFile) or die "Couldn't open $inFile for reading: $!\n"; # We'll just read from STDIN for now
 open(my $outFH, ">", $outFile) or die "Couldn't open $outFile for writing: $!\n";
 
 my $counter = 0;
-while (my $line = <$inFH>) {
+while (my $line = <>) { # Can change this to <$inFH> if we don't want to use pipes later...
     if ($counter != 0) {
         print $outFH $line;
         $counter++;
         if ($counter == 100) {
             $counter = 0;       # These lines just check to see if we've reached the 100 bp that we want to dump yet
         }
-    } elsif (rand() < $keepFraction) {  # We only reach this point if the $counter is 0
+    } elsif (rand() < $keepFraction) {  # We only reach this point if the $counter is 0. Generates a random number and checks if it's under user-set threshold
         print $outFH $line;
         $counter++;
     }
