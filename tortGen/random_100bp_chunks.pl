@@ -30,6 +30,9 @@ if (!$outFile or !$keepFraction or $help) {
 open(my $outFH, ">", $outFile) or die "Couldn't open $outFile for writing: $!\n";
 
 my $counter = 0;
+my $firstLine = <>;
+print $outFH $firstLine; # Print the header line to the output file, also so the following loop starts on second line
+
 while (my $line = <>) { # Can change this to <$inFH> if we don't want to use pipes later...
     if ($counter != 0) {
         print $outFH $line;
