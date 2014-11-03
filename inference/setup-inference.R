@@ -9,11 +9,12 @@ if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
+    pimat.file <- commandArgs(TRUE)[4]
 } else {
     layer.prefix <- c("../geolayers/TIFF/500x/500x_")
     subdir <- "500x"
     layer.file <- "six-raster-list"
-    # layer.names <- c("imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st")
+    pimat.file <- "../pairwisePi/alleleCounts_1millionloci.pwp"
 }
 layer.names <- scan(layer.file,what="char") 
 
@@ -37,7 +38,7 @@ na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]
 
 # pairwise divergence values
-pimat.vals <- scan("../pairwisePi/alleleCounts_1millionloci.pwp") # has UPPER with diagonal
+pimat.vals <- scan(pimat.file) # has UPPER with diagonal
 pimat <- numeric(nind^2)
 dim(pimat) <- c(nind,nind)
 pimat[upper.tri(pimat,diag=TRUE)] <- pimat.vals
@@ -47,4 +48,7 @@ pimat <- pimat[-na.indiv,-na.indiv]
 # scale to actual pairwise divergence, and then by 1/mutation rate
 pimat <- pimat * .018 * 1e8
 
-save(list=setdiff(ls(),source.ls), file=paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep='') )
+outfile <- paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep='')
+save(list=setdiff(ls(),source.ls), file=outfile)
+
+cat("Saved to ", outfile, " .\n")

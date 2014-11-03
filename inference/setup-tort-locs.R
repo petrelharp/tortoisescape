@@ -34,7 +34,9 @@ orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissing.RData",sep=''))
 locs <- match(orig.locs,nonmissing)
 
-save( locs, file=paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='') )
+locs.outfile <- paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='') 
+save( locs, file=locs.outfile )
+cat("Saved to ", locs.outfile, " .\n")
 
 ###
 # and distances from all nonmissing locations to torts
@@ -58,6 +60,11 @@ neighborhoods <- mclapply( seq_along(tort.coords.rasterGCS) , function (k) {
         match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
     }, mc.cores=numcores )
 
-save(neighborhoods, file=paste( subdir, "/", basename(layer.prefix), "_", basename(layer.file), "_neighborhoods.RData", sep='' ) )
+outfile <- paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' )
+save(neighborhoods, file=outfile )
+
+cat("Saved to ", outfile, " .\n")
 
 stopifnot( all( sapply( seq_along(locs), function(k) { locs[k] %in% neighborhoods[[k]] } ) ) )
+
+

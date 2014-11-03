@@ -30,7 +30,7 @@ do
     Rscript make-overlap-na-layer.R ${PREFIX} ${LAYERS}
     echo "   setup G"
     echo "----------------------------"
-    Rscript setup-real-G.R ${PREFIX} ${LAYERS} ${RES}
+    Rscript setup-real-G.R ${PREFIX} ${RES} ${LAYERS}
     echo "   setup locations"
     echo "----------------------------"
     Rscript setup-tort-locs.R ${PREFIX} ${RES} ${LAYERS}

@@ -48,7 +48,7 @@ layer.names <- scan(layer.file,what="char")
 load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
-load( paste( subdir, "/", basename(layer.prefix), "_", basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
+load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
 load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
 
 # REMOVE MISSING INDIV

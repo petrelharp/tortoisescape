@@ -18,6 +18,8 @@ fi
 set -eu
 set -o pipefail
 
+PIFILE="../pairwisePi/alleleCounts_1millionloci.pwp"
+
 for RES in 500x 100x 10x # masked
 do
     echo $RES
@@ -32,7 +34,7 @@ do
         Rscript make-overlap-na-layer.R ${PREFIX} ${LAYERS}
         echo "   setup G"
         echo "----------------------------"
-        Rscript setup-real-G.R ${PREFIX} ${LAYERS} ${RES}
+        Rscript setup-real-G.R ${PREFIX} ${RES} ${LAYERS}
         echo "   setup locations"
         echo "----------------------------"
         Rscript setup-tort-locs.R ${PREFIX} ${RES} ${LAYERS}
@@ -48,6 +50,6 @@ do
         echo $LAYERS
         echo "----------------------------"
         PREFIX=$(ls ../geolayers/TIFF/${RES}/*agp_250.gri | sed -e 's/agp_250.*//')
-        Rscript setup-inference.R ${PREFIX} ${RES} ${LAYERS}
+        Rscript setup-inference.R ${PREFIX} ${RES} ${LAYERS} ${PIFILE}
     done
 done

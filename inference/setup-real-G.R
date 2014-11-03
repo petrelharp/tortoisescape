@@ -6,12 +6,12 @@ rasterOptions(tmpdir=".")
 
 if (!interactive()) { 
     layer.prefix <- commandArgs(TRUE)[1] 
-    layer.file <- commandArgs(TRUE)[2]
-    subdir <- commandArgs(TRUE)[3]
+    subdir <- commandArgs(TRUE)[2]
+    layer.file <- commandArgs(TRUE)[3]
 } else {
     layer.prefix <- c("../geolayers/TIFF/500x/500x_")
-    layer.file <- "six-raster-list"
     subdir <- "500x"
+    layer.file <- "six-raster-list"
 }
 
 # for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_", "../geolayers/TIFF/masked/crop_resampled_masked_" ) ) {
@@ -61,6 +61,10 @@ if (!interactive()) {
 
     G@x <- update.G(init.params)
 
-    save( G, update.G, ndelta, ngamma, transfn, valfn, layers, file=paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep=''))
-    save( nonmissing, file=paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","nonmissing.RData",sep=''))
+    G.outfile <- paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='')
+    save( G, update.G, ndelta, ngamma, transfn, valfn, layers, file=G.outfile )
+    cat("Saved to G, updating info to ", G.outfile, " .\n")
+    nonmissing.outfile <- paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","nonmissing.RData",sep='')
+    save( nonmissing, file=nonmissing.outfile)
+    cat("Saved nonmissing info to ", nonmissing.outfile, " .\n")
     # }
