@@ -6,6 +6,8 @@
 
 source("resistance-fns.R")
 require(raster)
+rasterOptions(tmpdir=".")
+
 
 require(parallel)
 numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
