@@ -19,7 +19,7 @@ fi
 set -eu
 set -o pipefail
 
-BASEDIR="geolayers/masked"
+BASEDIR="geolayers/1x"
 
 for RES in 2 4 8 16 32 64 128 256 512
 do
