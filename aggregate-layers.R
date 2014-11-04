@@ -24,7 +24,7 @@ mclapply( infiles, function (infile) {
         tryCatch({
                 cat("Beginning on ", infile, " .\n")
                 raster2crop <- raster(infile)
-                outname <- paste(outdir,gsub("\\.((tif)|(grd))$","",basename(infile)),sep="")
+                outname <- file.path(outdir,gsub("\\.((tif)|(grd))$","",basename(infile)))
                 cat("   writing to ", outname, " .\n")
                 aggregate(raster2crop,
                             fact=agfact,
