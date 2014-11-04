@@ -1,18 +1,16 @@
 #!/usr/bin/Rscript
 
-###
-# Get hitting times with a landscape layer
-#   e.g.
-#     Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ annual_precip
-# (note the space!)                                                                           ---->^
+usage <- '
+    Get hitting times with a list of landscape layers:
+        Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
+      e.g.
+        Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv CG
 
-source("resistance-fns.R")
-require(raster)
-
-require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+    Here `method` is either "analytic" or "CG".
+'
 
 if (!interactive()) {
+    if (length(commandArgs(TRUE))<5) { cat(usage) }
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
@@ -37,9 +35,17 @@ if (!interactive()) {
     # param.file <- "simple-init-params-six-raster-list.tsv"
     # method <- "analytic"
     # prev.ht <- NULL
-    # maxtime <- 1*60
+    # maxtime <- NULL
     # outfile <- NULL
 }
+
+if (! method %in% c("analytic","CG")) { stop(usage) }
+
+source("resistance-fns.R")
+require(raster)
+
+require(parallel)
+numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
 
 if (is.null(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
@@ -70,11 +76,15 @@ G@x <- update.G(init.params)
 
 if (method=="analytic") {
 
-    hts <- hitting.analytic( locs, G-diag(rowSums(G)), numcores=numcores )
+    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
 
 } else if (method=="CG") {
 
-    init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
+    orig.init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
+    init.hts <- sapply( 1:ncol(orig.init.hts), function (k) {
+                x <- orig.init.hts[,k]
+                x[neighborhoods[[k]]] <- 0
+                return(x) } )
 
     stopifnot( nrow(init.hts) == nrow(G) )
     # solve for hitting times
@@ -99,6 +109,25 @@ if (method=="analytic") {
         z[loc] <- 0
         return( 2 * as.vector(z) / length(z) )
     }
+    # ht <- numeric(nrow(init.hts))
+    # H <- function (sub.ht,loc) {
+    #     # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
+    #     # where S = I except S[loc,loc]=0
+    #     ht[-loc] <- sub.ht
+    #     z <- G%*%ht - dG*ht + 1
+    #     z[loc] <- 0
+    #     return( ( sum( z^2 ) )/length(z) )
+    # }
+    # dH <- function (sub.ht,loc) {
+    #     # 2 (G-D)^T S ( (G-D) ht + 1 )
+    #     ht[-loc] <- sub.ht
+    #     z <- G%*%ht - dG*ht + 1
+    #     z[loc] <- 0
+    #     z <- (crossprod(G,z) - dG*z)
+    #     z[loc] <- 0
+    #     return( 2 * as.vector(z) / length(z) )
+    # }
+
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
     parscale <- rep( mean(init.hts), nrow(init.hts) )
@@ -109,7 +138,7 @@ if (method=="analytic") {
     maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
     maxit <- min( 1e4, maxit )
 
-    optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
+    optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
                 optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
                     method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit ), lower=0, upper=Inf ) 
             }, mc.cores=numcores )
@@ -135,9 +164,10 @@ if (method=="analytic") {
         ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
         loc.ind <- 10
-        oht.list <- vector( mode='list', length=6 )
+        nreps <- 20
+        oht.list <- vector( mode='list', length=nreps+1 )
         oht.list[[1]] <- list( par=init.hts[,loc.ind] )
-        for (k in 2:10) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=locs[loc.ind], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  }
+        for (k in 2:(nreps+1)) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  }
 
         layout( matrix(1:6,nrow=2) )
         for (k in 2:length(oht.list)) { 
@@ -146,6 +176,14 @@ if (method=="analytic") {
             ph( dH( oht.list[[k-1]]$par, loc=locs[loc.ind] ) )
             if (is.null(locator(1))) break
         }
+
+        # overall difference
+        oht.diff <- oht.list[[nreps]]$par-init.hts[,loc.ind]
+        layout( matrix(1:6,nrow=2) )
+        ph(oht.list[[nreps]]$par)
+        ph(oht.diff)
+        ph(log(-oht.diff*(oht.diff<0)))
+        ph(log(oht.diff*(oht.diff>0)))
 
         layout( matrix(1:6,nrow=2) )
         ph( dH( oht.list[[length(oht.list)]]$par, loc=locs[loc.ind] ) )
@@ -161,7 +199,6 @@ if (method=="analytic") {
 
         # compare answers to initial values
         layout( matrix(1:6,nrow=2) )
-        par(mar=c(5,4,4,5)+.1)
         for (k in 1:ncol(hts)) {
             diff.hts <- hts[,k] - init.hts[,k]
             diff.hts[ (diff.hts<quantile(diff.hts,.05,na.rm=TRUE)) | (diff.hts>quantile(diff.hts,.95,na.rm=TRUE)) ] <- NA
@@ -176,9 +213,11 @@ if (method=="analytic") {
 
 colnames( hts ) <- locs
 write.table( hts, file=outfile, row.names=FALSE )
+cat("Writing output to ", outfile, " .\n")
 
 if (FALSE) {
 
+    # look at results:
     load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
     ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 

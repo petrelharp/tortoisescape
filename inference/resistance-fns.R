@@ -104,14 +104,22 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
 
 hitting.analytic <- function (locs, G, numcores=as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1) {
     # compute analytical expected hitting times
+    #   here `locs` is a vector of (single) locations
+    #   or a list of vectors
     if ( numcores>1 && "parallel" %in% .packages()) {
         this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
     hts <- this.apply( locs, function (k) { 
-                z <- solve( G[-k,-k], rep.int(-1.0,nrow(G)-1L) ) 
-                return( c( z[seq.int(1,length.out=k-1L)], 0, z[seq.int(k,length.out=length(z)-k+1L)] ) )
+                klocs <- k[!is.na(k)]
+                if (length(klocs)>0) {
+                    z <- numeric(nrow(G))
+                    z[-klocs] <- as.vector( solve( G[-klocs,-klocs], rep.int(-1.0,nrow(G)-length(klocs)) ) )
+                    return( z )
+                } else {
+                    return(NA)
+                }
             } )
     return(hts)
 }
@@ -177,7 +185,7 @@ plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,homedir="..") {
     load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
     ph <- function (x,...) { 
         values(layer)[nonmissing] <- x
-        opar <- par()  # plotting layers messes up margins
+        opar <- par(mar=c(5,4,4,7)+.1)  # plotting layers messes up margins
         plot(layer,...)
         points(tort.coords.rasterGCS,pch=20,cex=.25)
         # par(opar[setdiff(names(opar), c("cin", "cra", "csi", "cxy", "din", "page") )])

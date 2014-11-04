@@ -63,7 +63,9 @@ new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
     }, mc.cores=numcores ) )
 colnames(new.hts) <- colnames(hts)
 
-write.table( new.hts, file=paste( subdir.2, "/", basename(subdir.1), "-aggregated-hitting-times.tsv", sep=''), row.names=FALSE )
+outfile <- paste( subdir.2, "/", basename(subdir.1), "-aggregated-hitting-times.tsv", sep='')
+write.table( new.hts, file=outfile, row.names=FALSE )
+cat("Writing output to ", outfile, " .\n")
 
 if (FALSE) {
     layout(t(1:4))

@@ -45,12 +45,31 @@ will save everything plus the kitchen sink to:
 - `500x/six-raster-list-500x_setup.RData`
 
 
+Computing resistance distances
+==============================
+
+To find mean hitting times on a fine grid at a given set of parameters, as in `dem-hitting-time.sh`, after running `setup-dem-inference.sh`:
+1. Use `make-resistance-distances.R` on a small grid to find initial guesses with analytic inference, e.g.
+```
+Rscript make-resistance-distances.R ../geolayers/TIFF/500x/500x_ 500x ../inference/six-raster-list simple-init-params-six-raster-list.tsv analytic 
+```
+2. Push these up to a finer grid, using `disaggregate-ht.R`, e.g.
+```
+Rscript disaggregate-ht.R ../geolayers/TIFF/500x/500x_ ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 500x 100x six-raster-list 500x/six-raster-list-hitting-times.tsv 5
+```
+which produces `./100x/500x-aggregated-hitting-times.tsv`.
+3. Use these as a starting point for inference on the finer grid, e.g.
+```
+Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv CG 100x/500x-aggregated-hitting-times.tsv 120
+```
+
+
 
 Inference
 =========
 
-General outline is as follows:
-0. Begin with reasonable guess at parameter values, and construct `G` matrix.
+**Outline:**
+0. Begin with reasonable guess at parameter values, by solving very-low-resolution problem exactly, and construct `G` matrix.
 1. Interpolate observed mean pairwise divergence times using `G` to get estimate of full matrix of divergence times, as in `interp-inference.R`.
   1. use `initial-hitting-times.R` as e.g.
 ```
