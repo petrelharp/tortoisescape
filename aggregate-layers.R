@@ -2,7 +2,7 @@
 
 # Create a set of new layers with a different resolution
 
-if (!interactive) {
+if (!interactive()) {
     agfact <- as.numeric( commandArgs(TRUE)[1] )
     outdir <- commandArgs(TRUE)[2]
     infiles <- commandArgs(TRUE)[-(1:2)]
