@@ -24,11 +24,13 @@ mclapply( infiles, function (infile) {
         tryCatch({
                 cat("Beginning on ", infile, " .\n")
                 raster2crop <- raster(infile)
+                outname <- paste(outdir,gsub("\\.((tif)|(grd))$","",basename(infile)),sep="")
+                cat("   writing to ", outname, " .\n")
                 aggregate(raster2crop,
                             fact=agfact,
                             fun=mean,
                             na.rm=TRUE,
-                            filename=paste(outdir,gsub("\\.((tif)|(grd))$","",basename(infile)),sep=""),
+                            filename=outname,
                             overwrite=TRUE)
 			 },error=function(e){cat("problem with",infile,"\n")})
         removeTmpFiles()
