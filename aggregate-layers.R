@@ -28,7 +28,7 @@ mclapply( infiles, function (infile) {
                             fact=agfact,
                             fun=mean,
                             na.rm=TRUE,
-                            filename=paste(outdir,gsub("(tif)|(grd)$","",basename(infile)),sep=""),
+                            filename=paste(outdir,gsub("\\.((tif)|(grd))$","",basename(infile)),sep=""),
                             overwrite=TRUE)
 			 },error=function(e){cat("problem with",infile,"\n")})
         removeTmpFiles()
