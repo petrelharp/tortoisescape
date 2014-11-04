@@ -109,24 +109,28 @@ if (method=="analytic") {
         z[loc] <- 0
         return( 2 * as.vector(z) / length(z) )
     }
-    # ht <- numeric(nrow(init.hts))
-    # H <- function (sub.ht,loc) {
-    #     # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
-    #     # where S = I except S[loc,loc]=0
-    #     ht[-loc] <- sub.ht
-    #     z <- G%*%ht - dG*ht + 1
-    #     z[loc] <- 0
-    #     return( ( sum( z^2 ) )/length(z) )
-    # }
-    # dH <- function (sub.ht,loc) {
-    #     # 2 (G-D)^T S ( (G-D) ht + 1 )
-    #     ht[-loc] <- sub.ht
-    #     z <- G%*%ht - dG*ht + 1
-    #     z[loc] <- 0
-    #     z <- (crossprod(G,z) - dG*z)
-    #     z[loc] <- 0
-    #     return( 2 * as.vector(z) / length(z) )
-    # }
+
+    # objective function
+    pivec <- 1/transfn(valfn(init.params[1 + (1:ngamma)]))
+    GG <- G; GG@x <- G@x * pivec[G@i+1L]
+    dGG <- dG*pivec
+    H1 <- function (ht,loc) {
+        # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
+        # where S = I except S[loc,loc]=0
+        ht[loc] <- 0
+        z <- GG%*%ht - dGG*ht + pivec
+        z[loc] <- 0
+        return( ( sum( z^2 ) )/length(z) )
+    }
+    dH1 <- function (ht,loc) {
+        # 2 (G-D)^T S ( (G-D) ht + 1 )
+        ht[loc] <- 0
+        z <- GG%*%ht - dGG*ht + pivec
+        z[loc] <- 0
+        z <- (crossprod(GG,z) - dGG*z)
+        z[loc] <- 0
+        return( 2 * as.vector(z) / length(z) )
+    }
 
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
@@ -182,8 +186,9 @@ if (method=="analytic") {
         layout( matrix(1:6,nrow=2) )
         ph(oht.list[[nreps]]$par)
         ph(oht.diff)
-        ph(log(-oht.diff*(oht.diff<0)))
-        ph(log(oht.diff*(oht.diff>0)))
+        ph(log10(-oht.diff*(oht.diff<0)))
+        ph(log10(oht.diff*(oht.diff>0)))
+        ph(log10(abs(oht.diff/oht.list[[nreps]]$par)))
 
         layout( matrix(1:6,nrow=2) )
         ph( dH( oht.list[[length(oht.list)]]$par, loc=locs[loc.ind] ) )
