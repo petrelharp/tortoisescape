@@ -28,7 +28,7 @@ fi
 set -eu
 set -o pipefail
 
-RESLIST="512x 256x 128x" # 64x 32x 16x 8x 4x # 2x 1x"
+RESLIST="512x 256x 128x" 64x 32x 16x 8x 4x # 2x 1x"
 PIFILE="../pairwisePi/alleleCounts_1millionloci.pwp"
 
 for RES in $RESLIST
