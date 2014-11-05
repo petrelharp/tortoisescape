@@ -30,12 +30,14 @@ Rscript make-resistance-distances.R ../geolayers/multigrid/${RES}/crm_ ${RES} $L
 
 for NEXTRES in $RESLIST
 do
-    echo "Pushing these up to ${NEXTRES}."
+    echo "-------------------------------------"
+    echo "Pushing from ${RES} up to ${NEXTRES}."
     # push these up to the next grid
     Rscript disaggregate-ht.R ../geolayers/multigrid/${RES}/crm_ ../geolayers/multigrid/${NEXTRES}/crm_ ${RES} ${NEXTRES} ${LAYERLIST} ${RES}/${LAYERLIST}-hitting-times.tsv 2
 
+    echo "----------------------------"
     echo "Hitting times at ${NEXTRES}."
-    Rscript make-resistance-distances.R ../geolayers/multigrid/${NEXTRES}/crm_ ${NEXTRES} $LAYERLIST $PARAMFILE numeric ${NEXTRES}/${RES}-${LAYERLIST}-aggregated-hitting-times.tsv
+    Rscript make-resistance-distances.R ../geolayers/multigrid/${NEXTRES}/crm_ ${NEXTRES} $LAYERLIST $PARAMFILE numeric ${NEXTRES}/${RES}-${LAYERLIST}-aggregated-hitting-times.tsv 100
 
     # iterate
     RES=$NEXTRES

@@ -18,7 +18,7 @@ if (!interactive()) {
     param.file <- commandArgs(TRUE)[4] 
     method <- commandArgs(TRUE)[5] 
     prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
-    maxit <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { 100 } 
+    maxit <- if (length(commandArgs(TRUE))>6) { as.numeric(commandArgs(TRUE)[7]) } else { 100 } 
     outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
 } else {
     layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
@@ -121,7 +121,7 @@ if (method=="analytic") {
     }
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
-    parscale <- (mean(init.hts)+init.hts)/2
+    parscale <- rep(mean(init.hts),nrow(init.hts)) # (mean(init.hts)+init.hts)/2
 
     # First get the overall scaling right:
     #  (d/da) | a Ax - b |^2 = 2 x^T A^T ( a Ax - b )
