@@ -152,6 +152,13 @@ if (method=="analytic") {
         eps <- 1e-5 * runif(length(ht))
         c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
 
+        bdry <- ( abs(dH(ht,loc=loc)) > 1e-4 )
+        eps <- 1e-5 * ifelse( bdry, runif(length(ht)), 0 )
+        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+        eps <- 1e-5 * ifelse( seq_along(ht) == sample(which(bdry),1), 1, 0 )
+        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
         # look at convergence
         load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
         ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
