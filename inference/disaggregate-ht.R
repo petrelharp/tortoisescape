@@ -54,7 +54,7 @@ checkit <- ( subdir.1 == "500x" )
 # do the disaggregation
 new.hts <- upsample.hts( hts, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit, numcores=numcores )
 
-outfile <- paste( subdir.2, "/", basename(subdir.1), "-aggregated-hitting-times.tsv", sep='')
+outfile <- paste( subdir.2, "/", basename(subdir.1), "-", basename(layer.file), "-aggregated-hitting-times.tsv", sep='')
 write.table( new.hts, file=outfile, row.names=FALSE )
 cat("Writing output to ", outfile, " .\n")
 

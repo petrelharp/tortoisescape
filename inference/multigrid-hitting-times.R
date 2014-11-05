@@ -50,7 +50,7 @@ res.envs <- lapply( dirnames, function (subdir) {
         # REMOVE MISSING INDIV
         na.indiv <- which( is.na( get("locs",env) ) )
         assign("locs", get("locs",env)[-na.indiv], env) 
-        assign("neighborhoods", get("neighborhoods",env)[-na.indiv], env)
+        assign("neighborhoods", lapply(get("neighborhoods",env)[-na.indiv],function (x) { x[!is.na(x)] }), env)
         assign("dG", rowSums(get("G",env)), env) 
         assign("layer", raster(paste(file.path(layer.dir,subdir,layer.prefix),"annual_precip",sep='')), env)
         # provides nonmissing

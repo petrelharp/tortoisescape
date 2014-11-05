@@ -26,7 +26,7 @@ if (!interactive()) {
     layer.file <- "six-raster-list"
     param.file <- "simple-init-params-six-raster-list.tsv"
     method <- "numeric"
-    prev.ht <- "100x/500x-aggregated-hitting-times.tsv"
+    prev.ht <- "100x/500x-six-raster-list-aggregated-hitting-times.tsv"
     maxit <- 100
     outfile <- NULL
 
@@ -62,7 +62,6 @@ if (!exists("outfile")||is.null(outfile)||is.na(outfile)) { outfile <- paste( su
 layer.names <- scan(layer.file,what="char") 
 
 load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
-# Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )  # this is necessary for update.G
 
 load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
 load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
@@ -70,7 +69,7 @@ load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provide
 # REMOVE MISSING INDIV
 na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]
-neighborhoods <- neighborhoods[-na.indiv]
+neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
 
 
 ##
@@ -122,22 +121,34 @@ if (method=="analytic") {
     }
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
-    parscale <- rep( mean(init.hts), nrow(init.hts) )
+    parscale <- (mean(init.hts)+init.hts)/2
 
     # First get the overall scaling right:
     #  (d/da) | a Ax - b |^2 = 2 x^T A^T ( a Ax - b )
     #    = 0  =>  a = x^T A b / | A x |^2
+    scale.ht <- function (x, loc) {
+        Ax <- G%*%x - dG*x
+        Ax[loc] <- 0
+        omitthese <- ( abs(scale(Ax,median(Ax),mad(Ax))) > 2 )
+        Ax[omitthese] <- 0
+        return( (-1)*sum(Ax)/sum(Ax^2) )
+    }
     scale.ht.list <- unlist( mclapply( seq_along(neighborhoods), function (loc.ind) {
                 loc <- neighborhoods[[loc.ind]]
-                x <- init.hts[,loc.ind]
-                dHvals <- abs(dH(x,loc=loc))
-                bdry <- ( dHvals < quantile(dHvals,.8) )
-                Ax <- G%*%x - dG*x
-                Ax[loc] <- 0
-                Ax[!bdry] <- 0
-                return( (-1)*sum(Ax)/sum(Ax^2) )
+                scale.ht(init.hts[,loc.ind],neighborhoods[[loc.ind]])
             }, mc.cores=numcores ) )
     scale.ht.fac <- mean( scale.ht.list, trim=.2 )
+
+    #  (d/dc) | A(x + c 1) - b |^2 = 2 1^T A^T ( A(x + c 1) - b )
+    #    = 0  =>  c = - 1^T A^T (Ax-b) / 1^T A^T A 1
+    shift.ht <- function (x, loc) {
+        numerator <- G%*%x - dG*x + 1
+        numerator[loc] <- 0
+        numerator <- crossprod(G,numerator) - dG*numerator
+        numerator[loc] <- 0
+        denom <- sum( G[-loc,loc]^2 )
+        return( (-1)*sum(numerator)/denom )
+    }
 
     init.hts <- init.hts*scale.ht.fac
 
@@ -150,8 +161,15 @@ if (method=="analytic") {
     # maxit <- min( 1e4, maxit )
 
     optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
-                optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
-                    method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit ), lower=0, upper=Inf ) 
+                new.ht <- list(par=init.hts[,loc.ind])
+                for (k in 1:10) {
+                    aval <- if (k<4) { scale.ht(new.ht$par, neighborhoods[[loc.ind]]) } else { 1 }
+                    bval <- if (k<4) { shift.ht(aval*new.ht$par, neighborhoods[[loc.ind]]) } else { 0 }
+                    new.ht <- optim( par=pmax(0,aval*new.ht$par+bval), fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
+                        method="L-BFGS-B", control=list( parscale=parscale, maxit=ceiling(maxit/10) ), lower=0, upper=Inf ) 
+                    new.ht$par[neighborhoods[[loc.ind]]] <- 0
+                }
+                return(new.ht)
             }, mc.cores=numcores )
 
     convergences <- sapply(optim.ht.list,"[[","convergence")
@@ -161,195 +179,138 @@ if (method=="analytic") {
 
     hts <- sapply( optim.ht.list, "[[", "par" )
 
-    if (FALSE) {
-        # check gradient
-        loc.ind <- 10
-        loc <- locs[loc.ind]
-        ht <- init.hts[,loc.ind]
-
-        eps <- 1e-5 * runif(length(ht))
-        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
-
-        bdry <- ( abs(dH(ht,loc=loc)) > 1e-4 )
-        eps <- 1e-5 * ifelse( bdry, runif(length(ht)), 0 )
-        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
-
-        eps <- 1e-5 * ifelse( seq_along(ht) == sample(which(bdry),1), 1, 0 )
-        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
-
-
-        # look at convergence
-        load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
-        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
-
-        loc.ind <- 10
-        nreps <- 40
-        parscale <- pmax(.01*mean(init.hts[,loc.ind]),init.hts[,loc.ind])
-        oht.list <- vector( mode='list', length=nreps+1 )
-        oht.list[[1]] <- list( par=init.hts[,loc.ind] )
-        for (k in 2:(nreps+1)) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  }
-
-        tmpenv <- new.env()
-        load( paste("512x", "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep=''), envir=tmpenv ) # provides nonmissing
-        nonmissing.1 <- get("nonmissing",tmpenv)
-        layer.1 <- raster(paste("../geolayers/multigrid/512x/crm_","annual_precip",sep=''))
-        layer.2 <- raster(paste("../geolayers/multigrid/256x/crm_","annual_precip",sep=''))
-        dn <- function (x) { downsample( x, 2, layer.1, nonmissing.1, layer.2, nonmissing ) }
-        up <- function (x) { upsample( x, 2, layer.1, nonmissing.1, layer.2, nonmissing ) }
-        oht.list.1 <- vector( mode='list', length=nreps+1 )
-        oht.list.1[[1]] <- list( par=dn(init.hts[,loc.ind]) )
-        oht.list.2 <- vector( mode='list', length=nreps+1 )
-        oht.list.2[[1]] <- list( par=init.hts[,loc.ind] )
-        for (k in 2:(nreps+1)) { 
-            oht.list.2[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
-            oht.list.1[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
-        }
-
-        oht.mat <- sapply(oht.list, "[[", "par")
-        oht.dH.mat <- sapply( lapply(oht.list, "[[", "par"), dH, loc=neighborhoods[[loc.ind]])
-        bdry <- ( abs(dH(oht.list[[1]]$par,loc=neighborhoods[[loc.ind]])) > quantile(abs(oht.dH.mat),.999) )
-        plot.locs <- c( which(bdry), sample.int(nrow(oht.mat),100) )
-        layout(matrix(1:4,nrow=2))
-        matplot( t(oht.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
-        matplot( t((oht.mat-oht.mat[,1])[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
-        matplot( t(oht.dH.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
-        matplot( abs(t(oht.dH.mat[plot.locs,])), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))], log='y' )
-
-        layout( matrix(1:6,nrow=2) )
-        for (k in 2:length(oht.list)) { 
-            ph( oht.list[[k]]$par )
-            ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
-            ph( dH( oht.list[[k-1]]$par, loc=neighborhoods[[loc.ind]] ) )
-            if (is.null(locator(1))) break
-        }
-
-        # overall difference
-        oht.diff <- oht.list[[nreps]]$par-init.hts[,loc.ind]
-        layout( matrix(1:6,nrow=2) )
-        ph(oht.list[[nreps]]$par)
-        ph(oht.diff)
-        ph(log10(-oht.diff*(oht.diff<0)))
-        ph(log10(oht.diff*(oht.diff>0)))
-        ph(log10(abs(oht.diff/oht.list[[nreps]]$par)))
-
-        layout( matrix(1:6,nrow=2) )
-        ph( dH( oht.list[[length(oht.list)]]$par, loc=neighborhoods[[loc.ind]] ) )
-        for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
-            ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
-        }
-
-        # look at inferred layer
-        ph( (transfn(valfn(init.params[1 + (1:ngamma)]))) )
-        ph( log(transfn(valfn(init.params[1 + (1:ngamma)]))) )
-        ph( (transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
-        ph( log(transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
-
-        # compare answers to initial values
-        layout( matrix(1:6,nrow=2) )
-        for (k in 1:ncol(hts)) {
-            diff.hts <- hts[,k] - init.hts[,k]
-            diff.hts[ (diff.hts<quantile(diff.hts,.05,na.rm=TRUE)) | (diff.hts>quantile(diff.hts,.95,na.rm=TRUE)) ] <- NA
-            ph( init.hts[,k] )
-            ph( hts[,k] )
-            ph( diff.hts )
-            if (is.null(locator(1))) break
-        }
-
-    }
 }
 
 colnames( hts ) <- locs
 write.table( hts, file=outfile, row.names=FALSE )
 cat("Writing output to ", outfile, " .\n")
 
+## look at results
 if (FALSE) {
+        load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
+        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
-    # look at results:
+        layout(matrix(1:6,nrow=2))
+        for (k in 1:ncol(hts)) {
+            ph(hts[,k])
+            if (k%%6 == 0 && is.null(locator(1))) break
+        }
+}
+
+if (FALSE) {  ## DEBUGGING/EXPLORATION
+    # check gradient
+    loc.ind <- 10
+    loc <- locs[loc.ind]
+    ht <- init.hts[,loc.ind]
+
+    eps <- 1e-5 * runif(length(ht))
+    c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+    bdry <- ( abs(dH(ht,loc=loc)) > 1e-4 )
+    eps <- 1e-5 * ifelse( bdry, runif(length(ht)), 0 )
+    c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+    eps <- 1e-5 * ifelse( seq_along(ht) == sample(which(bdry),1), 1, 0 )
+    c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+
+    # look at convergence
     load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
     ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
+
+    loc.ind <- 10
+    nreps <- 20
+    parscale <- pmax(.01*mean(init.hts[,loc.ind]),init.hts[,loc.ind])
+    oht.list <- vector( mode='list', length=nreps+1 )
+    oht.list[[1]] <- list( par=init.hts[,loc.ind] )
+    for (k in 2:(nreps+1)) { 
+        oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
+    }
+
+    oht.mat <- sapply(oht.list, "[[", "par")
+    oht.dH.mat <- sapply( lapply(oht.list, "[[", "par"), dH, loc=neighborhoods[[loc.ind]])
+    bdry <- ( abs(dH(oht.list[[1]]$par,loc=neighborhoods[[loc.ind]])) > quantile(abs(oht.dH.mat),.999) )
+    plot.locs <- c( which(bdry), sample.int(nrow(oht.mat),100) )
+    layout(matrix(1:4,nrow=2))
+    matplot( t(oht.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t((oht.mat-oht.mat[,1])[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t(oht.dH.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( abs(t(oht.dH.mat[plot.locs,])), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))], log='y' )
+
     layout( matrix(1:6,nrow=2) )
-    for (k in 1:ncol(hts)) { ph( hts[,k] ); if ((k%%6==0) && is.null(locator(1))) break }
-
-}
-
-if (FALSE) {
-
-    ####
-    ## FIRST
-    # infer parameters that better match these hitting times
-
-    # Massage the numerics.
-    zeros <- which( row(init.hts) == locs[col(init.hts)] )
-    scaling <- sqrt(nrow(G) * length(locs))
-    init.hts <- init.hts/scaling
-    init.hts[zeros] <- 0
-    sc.one <- 1/scaling
-
-    dG <- rowSums(G)
-    GH <- G %*% init.hts - dG*init.hts
-    GH[zeros] <- 0
-
-    init.beta <- init.params[1]
-
-    L <- function (params) {
-        if (any(params != get("params",parent.env(environment()) ) ) ) { 
-            assign("params", params, parent.env(environment()) )
-            evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
-            evalq( dG <- rowSums(G), parent.env(environment()) )
-            GH <- G %*% init.hts - dG*init.hts
-            GH[zeros] <- 0
-            assign("GH", GH, parent.env(environment()) )
-        }
-        ans <- ( sum( (GH+sc.one)^2 ) - length(zeros)*sc.one^2 )
-        if (!is.finite(ans)) { browser() }
-        return(ans)
-    }
-    dL <- function (params) {
-        if (any(params != get("params", parent.env(environment()) ) ) ) { 
-            assign("params", params, parent.env(environment()) )
-            evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
-            evalq( dG <- rowSums(G), parent.env(environment()) )
-            GH <- G %*% init.hts - dG*init.hts
-            GH[zeros] <- 0
-            assign("GH", GH, parent.env(environment()) )
-        }
-        ggrads <- sapply( 1:ncol(layers), function (kk) {
-                2 * sum( layers[,kk] * GH * (GH+sc.one) )
-            } )
-        dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
-                GL <- G
-                GL@x <- G@x * layers[Gjj,kk]
-                dGL <- rowSums(GL)
-                GLH <- GL %*% init.hts - dGL*init.hts
-                GLH[zeros] <- 0
-                return( 2 * sum( GLH * (GH+sc.one)  ) )
-            } )
-        ans <- ( c(ggrads, dgrads) )
-        if (any(!is.finite(ans))) { browser() }
-        return(ans)
-    }
-    environment(L) <- environment(dL) <- fun.env <- list2env( list(
-                    G=G,
-                    dG=dG,
-                    params=init.params[-1],
-                    GH=GH), 
-            parent=environment() )
-
-    L(init.params[-1])
-    dL(init.params[-1])
-
-    L(init.params[-1]+.01)
-    dL(init.params[-1]+.01)
-
-    parscale <- c( rep(0.1,length(init.params)-1) )
-    results <- optim( par=init.params[-1], fn=L, gr=dL, control=list(parscale=parscale), method="BFGS" )
-    if (results$convergence != 0) {
-        results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale/10), method="BFGS" )
+    for (k in 2:length(oht.list)) { 
+        ph( oht.list[[k]]$par )
+        ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
+        ph( dH( oht.list[[k-1]]$par, loc=neighborhoods[[loc.ind]] ) )
+        if (is.null(locator(1))) break
     }
 
 
-    ####
-    ## THEN
+
+    Gcheck <- function (x,loc.ind) { z <- as.vector(G%*%x-dG*x+1); z[neighborhoods[[loc.ind]]] <- 0; ph(z); invisible(z) }
+    layout(t(1:2))
+    aval <- scale.ht(init.hts[,loc.ind],neighborhoods[[loc.ind]]); 
+    bval <- shift.ht(init.hts[,loc.ind],neighborhoods[[loc.ind]]); 
+    plot( hts[,loc.ind], init.hts[,loc.ind] ); 
+    abline(0,1); abline(0,1/aval,col='red')
+    abline(-bval,1,col='green')
+    Gcheck( init.hts[,loc.ind], loc.ind )
+    Gcheck( aval*init.hts[,loc.ind], loc.ind )
+    Gcheck( pmax(0,init.hts[,loc.ind]+bval), loc.ind )
+
+    oht.list.1 <- vector( mode='list', length=nreps+1 )
+    oht.list.1[[1]] <- list( par=init.hts[,loc.ind] )
+    avec <- bvec <- numeric(nreps)
+    for (k in 2:(nreps+1)) { 
+        avec[k-1] <- if (TRUE) { scale.ht(oht.list.1[[k-1]]$par,neighborhoods[[loc.ind]]) } else { 1 }
+        bvec[k-1] <- if (TRUE) { shift.ht(avec[k-1]*oht.list.1[[k-1]]$par,neighborhoods[[loc.ind]]) } else { 0 }
+        oht.list.1[[k]] <- optim( par=pmax(0,avec[k-1]*oht.list.1[[k-1]]$par+bvec[k-1]), fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
+    }
+
+    resids <- sapply(1:(nreps+1), function (k) { sum( ( hts[-neighborhoods[[loc.ind]],loc.ind] - oht.list.1[[k]]$par[-neighborhoods[[loc.ind]]] )^2 ) } )
+    cbind(seq_along(resids),resids,c(0,avec),c(0,bvec))
+
+    ##
+    # THE GOOD STUFF:
+    layout( matrix(1:6,nrow=2) )
+    for (k in 2:length(oht.list.1)) { 
+        ph( oht.list.1[[k]]$par - oht.list.1[[k-1]]$par, main=k )
+        ph( dH( oht.list.1[[k-1]]$par, loc=neighborhoods[[loc.ind]] ) )
+        plot( hts[-neighborhoods[[loc.ind]],loc.ind], oht.list.1[[k]]$par[-neighborhoods[[loc.ind]]] ); abline(0,1)
+        points( hts[-neighborhoods[[loc.ind]],loc.ind], oht.list[[k]]$par[-neighborhoods[[loc.ind]]], col='green', pch=20 )
+        if (is.null(locator(1))) break
+    }
+
+    oht.mat <- sapply(oht.list.1, "[[", "par")
+    oht.dH.mat <- sapply( lapply(oht.list.1, "[[", "par"), dH, loc=neighborhoods[[loc.ind]])
+    bdry <- ( abs(dH(oht.list.1[[1]]$par,loc=neighborhoods[[loc.ind]])) > quantile(abs(oht.dH.mat),.999) )
+    plot.locs <- c( which(bdry), sample.int(nrow(oht.mat),100) )
+    layout(matrix(1:4,nrow=2))
+    matplot( t(oht.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t((oht.mat-oht.mat[,1])[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t(oht.dH.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( abs(t(oht.dH.mat[plot.locs,])), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))], log='y' )
+
+    # overall difference
+    oht.diff <- oht.list[[nreps]]$par-init.hts[,loc.ind]
+    layout( matrix(1:6,nrow=2) )
+    ph(oht.list[[nreps]]$par)
+    ph(oht.diff)
+    ph(log10(-oht.diff*(oht.diff<0)))
+    ph(log10(oht.diff*(oht.diff>0)))
+    ph(log10(abs(oht.diff/oht.list[[nreps]]$par)))
+
+    layout( matrix(1:6,nrow=2) )
+    ph( dH( oht.list[[length(oht.list)]]$par, loc=neighborhoods[[loc.ind]] ) )
+    for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
+        ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
+    }
+
+    # look at inferred layer
+    ph( (transfn(valfn(init.params[1 + (1:ngamma)]))) )
+    ph( log(transfn(valfn(init.params[1 + (1:ngamma)]))) )
+    ph( (transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
+    ph( log(transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
 
 }

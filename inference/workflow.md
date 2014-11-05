@@ -57,10 +57,10 @@ Rscript make-resistance-distances.R ../geolayers/TIFF/500x/500x_ 500x ../inferen
 ```
 Rscript disaggregate-ht.R ../geolayers/TIFF/500x/500x_ ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 500x 100x six-raster-list 500x/six-raster-list-hitting-times.tsv 5
 ```
-which produces `./100x/500x-aggregated-hitting-times.tsv`.
+which produces `./100x/500x-six-raster-list-aggregated-hitting-times.tsv`.
 3. Use these as a starting point for inference on the finer grid, e.g.
 ```
-Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv CG 100x/500x-aggregated-hitting-times.tsv 120
+Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv CG 100x/500x-six-raster-list-aggregated-hitting-times.tsv 120
 ```
 
 
