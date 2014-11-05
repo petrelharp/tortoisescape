@@ -2,76 +2,168 @@
 
 usage <- '
     Get hitting times with a list of landscape layers:
-        Rscript multiscale-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
+        Rscript multigrid-hitting-times.R (layer file) (parameter file) (initial guess) (output file) (dir.1) [dir.2] ...
       e.g.
-        Rscript multiscale-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv CG
+        Rscript multigrid-hitting-times.R six-raster-list simple-init-params-six-raster-list.tsv multigrid-hts.tsv 
 
-    Here `method` is either "analytic" or "CG".
 '
 
 if (!interactive()) {
-    if (length(commandArgs(TRUE))<5) { cat(usage) }
-    layer.prefix <- commandArgs(TRUE)[1]
-    subdir <- commandArgs(TRUE)[2]
+    if (length(commandArgs(TRUE))<8) { cat(usage) }
+    layer.dir <- commandArgs(TRUE)[1]
+    layer.prefix <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
     param.file <- commandArgs(TRUE)[4] 
-    method <- commandArgs(TRUE)[5] 
-    prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
-    maxtime <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { 6*60*60 } 
-    outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
+    prev.ht <- commandArgs(TRUE)[5]
+    outfile <- commandArgs(TRUE)[6]
+    dirnames <- commandArgs(TRUE)[-(1:6)]
 } else {
-    layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
-    subdir <- "100x"
-    layer.file <- "../inference/six-raster-list"
+    layer.dir <- "../geolayers/multigrid/"
+    layer.prefix <- "crm_"
+    layer.file <- "six-raster-list"
     param.file <- "simple-init-params-six-raster-list.tsv"
-    method <- "CG"
-    prev.ht <- "100x/500x-aggregated-hitting-times.tsv"
-    maxtime <- 2*60
-    outfile <- NULL
-
-    # layer.prefix <- "../geolayers/TIFF/500x/500x_"
-    # subdir <- "500x"
-    # layer.file <- "../inference/six-raster-list"
-    # param.file <- "simple-init-params-six-raster-list.tsv"
-    # method <- "analytic"
-    # prev.ht <- NULL
-    # maxtime <- NULL
-    # outfile <- NULL
+    prev.ht <- "512x/six-raster-list-hitting-times.tsv"
+    outfile <- "temp-hitting.tsv"
+    dirnames <- c("512x","256x","128x")
 }
+names(dirnames) <- dirnames
 
-if (! method %in% c("analytic","CG")) { stop(usage) }
+ag.fact <- 2
 
 source("resistance-fns.R")
 require(raster)
 
 require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
-
-if (is.null(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
+numcores<-getcores()
 
 layer.names <- scan(layer.file,what="char") 
 
-load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
-Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
-
-load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
-
-# REMOVE MISSING INDIV
-na.indiv <- which( is.na( locs ) )
-locs <- locs[-na.indiv]
-neighborhoods <- neighborhoods[-na.indiv]
+res.envs <- lapply( dirnames, function (subdir) { 
+        env <- new.env(parent=.GlobalEnv)
+        assign("subdir",subdir,env)
+        #   provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
+        load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep=''), envir=env ) 
+        # provides 'neighborhoods'
+        load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ), envir=env ) 
+        # provides 'locs'
+        load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep=''), envir=env) 
+        # REMOVE MISSING INDIV
+        na.indiv <- which( is.na( get("locs",env) ) )
+        assign("locs", get("locs",env)[-na.indiv], env) 
+        assign("neighborhoods", get("neighborhoods",env)[-na.indiv], env)
+        assign("dG", rowSums(get("G",env)), env) 
+        assign("layer", raster(paste(file.path(layer.dir,subdir,layer.prefix),"annual_precip",sep='')), env)
+        # provides nonmissing
+        load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep=''), envir=env ) 
+        return(env)
+    } )
 
 
 ##
-# initial parameters?
+#  Parameters
 #   in time t, 1D RW with rate r does t*r jumps, displacement has variance t*r
 #   so time to move N grid sites away is sqrt(N)/r
 #   so if hitting times are of order T, want r of order sqrt(N)/T
-
 init.param.table <- read.table( param.file, header=TRUE )
-init.params <- unlist( init.param.table[ match( subdir, init.param.table[,1] ), -1 ] )
+for (k in 1:nrow(init.param.table)) {
+    subdir <- init.param.table[k,1]
+    if (subdir %in% names(res.envs)) {
+        assign("G@x", update.G(init.param.table[k,-1]),res.envs[[subdir]])
+    }
+}
 
-G@x <- update.G(init.params)
+
+##
+# Initial hitting times
+orig.init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
+init.hts <- sapply( 1:ncol(orig.init.hts), function (k) {
+            x <- orig.init.hts[,k]
+            x[get("neighborhoods",res.envs[[1]])[[k]]] <- 0  # these are from FIRST resolution
+            return(x) } )
 
 
+# objective function
+H <- function (ht,loc.ind) {
+    # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
+    # where S = I except S[loc,loc]=0
+    loc <- neighborhoods[[loc.ind]]
+    ht[loc] <- 0
+    z <- G%*%ht - dG*ht + 1
+    z[loc] <- 0
+    return( ( sum( z^2 ) )/length(z) )
+}
+dH <- function (ht,loc.ind) {
+    # 2 (G-D)^T S ( (G-D) ht + 1 )
+    loc <- neighborhoods[[loc.ind]]
+    ht[loc] <- 0
+    z <- G%*%ht - dG*ht + 1
+    z[loc] <- 0
+    z <- (crossprod(G,z) - dG*z)
+    z[loc] <- 0
+    return( 2 * as.vector(z) / length(z) )
+}
+
+loc.ind <- 10
+
+stepupdn <- function (init.hts,oldpos,newpos) {
+    return( if (newpos>oldpos) {
+        upsample( init.hts, ag.fact, 
+            get("layer",res.envs[[oldpos]]), get("nonmissing",res.envs[[oldpos]]), 
+            get("layer",res.envs[[newpos]]), get("nonmissing",res.envs[[newpos]]) )
+    } else if (newpos<oldpos) {
+        downsample( init.hts, ag.fact, 
+            get("layer",res.envs[[newpos]]), get("nonmissing",res.envs[[newpos]]), 
+            get("layer",res.envs[[oldpos]]), get("nonmissing",res.envs[[oldpos]]) )
+    } else {
+        init.hts
+    } )
+}
+
+step <- function (init.hts,oldpos,newpos,maxit) {
+    ihts <- stepupdn(init.hts,oldpos,newpos)
+    environment(H) <- environment(dH) <- res.envs[[newpos]]
+
+    parscale <- (mean(ihts)+ihts)/2
+
+    # optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
+            optim( par=ihts, fn=H, gr=dH, loc=loc.ind, 
+                method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit ), lower=0, upper=Inf ) 
+    #   }, mc.cores=numcores )
+    # return(sapply( optim.ht.list, "[[", "par" ))
+}
+
+# for plotting
+phs <- lapply( res.envs, function (env) { with(env, plot.ht.fn(file.path(layer.dir,subdir,layer.prefix),"annual_precip",nonmissing)) } )
+
+stepres <- rep(c(1,2),20)
+maxits <- c(10,100)[stepres[-1]]
+steps <- vector( length(stepres), mode="list" )
+steps[[1]] <- list( par=init.hts[,loc.ind] )
+for (k in seq_along(stepres)[-1]) {
+    cat(k,"\n")
+    steps[[k]] <- step( steps[[k-1]]$par, stepres[k-1], stepres[k], maxits[k-1] )
+}
+
+# differences
+layout(matrix(1:6,nrow=2))
+for (k in seq_along(stepres)[-1]) {
+    prev <- stepupdn( steps[[k-1]]$par, stepres[k-1], stepres[k] )
+    phs[[stepres[k]]](steps[[k]]$par,main=paste(k,":",dirnames[stepres[k]]))
+    phs[[stepres[k]]](steps[[k]]$par-prev,main=paste(k,":",dirnames[stepres[k]]))
+    environment(dH) <- res.envs[[stepres[k]]]
+    phs[[stepres[k]]](dH(steps[[k]]$par,loc.ind),main=paste(k,":",dirnames[stepres[k]]))
+    environment(dH) <- .GlobalEnv
+    if (is.null(locator(1))) break
+}
+
+hts.mat <- sapply( steps[stepres==2], "[[", "par" )
+environment(dH) <- res.envs[[2]]
+dH.mat <- sapply( lapply( steps[stepres==2], "[[", "par" ), dH, loc=loc.ind)
+environment(dH) <- .GlobalEnv
+bdry <- ( abs(dH.mat[,1]) > quantile(abs(dH.mat),.995) )
+plot.locs <- c( which(bdry), sample.int(nrow(hts.mat),60) )
+layout(matrix(1:4,nrow=2))
+matplot( t(hts.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+matplot( t((hts.mat-hts.mat[,1])[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+matplot( t(dH.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+matplot( abs(t(dH.mat[plot.locs,])), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))], log='y' )

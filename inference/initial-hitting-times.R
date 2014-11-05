@@ -10,7 +10,7 @@ source("resistance-fns.R")
 require(raster)
 
 require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+numcores<-getcores()
 
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]

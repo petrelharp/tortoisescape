@@ -182,6 +182,49 @@ iterate.aa <- function (aa,hts,locs,AA) {
     estimate.aa(interp.hts,locs,AA)
 }
 
+########
+# Raster whatnot
+
+
+upsample <- function ( layer.vals, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit=FALSE ) {
+    # moves from layer.1 to layer.2, which must be related by a factor of ag.fact
+    values(layer.1)[nonmissing.1] <- layer.vals
+    layer.1.dis <- crop( disaggregate( layer.1, fact=ag.fact, method='bilinear' ), layer.2 )
+    stopifnot( all( dim(layer.1.dis)==dim(layer.2) ) )
+    # can skip this step, hopefully
+    if (checkit) {
+        layer.1.dis.res <- resample( layer.1.dis, layer.2 )
+        stopifnot( all( abs( values(layer.1.dis)[nonmissing.2] - values(layer.1.dis.res)[nonmissing.2] ) < 1e-3 ) )
+    }
+    # get values out
+    return( values(layer.1.dis)[nonmissing.2] )
+}
+
+upsample.hts <- function ( hts, ..., numcores=getcores() ) {
+    new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
+                upsample( hts[,k], ... )
+        }, mc.cores=numcores ) )
+    colnames(new.hts) <- colnames(hts)
+    return(new.hts)
+}
+
+downsample <- function ( layer.vals, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit=FALSE ) {
+    # moves from layer.2 to layer.1, which must be related by a factor of ag.fact
+    values(layer.2)[nonmissing.2] <- layer.vals
+    layer.2.ag <- crop( aggregate( layer.2, fact=ag.fact, fun=mean, na.rm=TRUE ), layer.1 )
+    stopifnot( all( dim(layer.2.ag)==dim(layer.1) ) )
+    # get values out
+    return( values(layer.2.ag)[nonmissing.1] )
+}
+
+downsample.hts <- function ( hts, ..., numcores=getcores() ) {
+    new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
+                downsample( hts[,k], ... )
+        }, mc.cores=numcores ) )
+    colnames(new.hts) <- colnames(hts)
+    return(new.hts)
+}
+
 ##
 # misc
 

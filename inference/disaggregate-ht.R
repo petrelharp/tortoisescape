@@ -10,7 +10,7 @@ rasterOptions(tmpdir=".")
 
 
 require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+numcores<-getcores()
 
 
 if (!interactive()) {
@@ -51,19 +51,8 @@ values(layer.2)[-nonmissing.2] <- NA
 # omit aggregation error check for larger grids
 checkit <- ( subdir.1 == "500x" )
 
-new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
-        values(layer.1)[nonmissing.1] <- hts[,k]
-        layer.1.dis <- crop( disaggregate( layer.1, fact=ag.fact, method='bilinear' ), layer.2 )
-        stopifnot( all( dim(layer.1.dis)==dim(layer.2) ) )
-        # can skip this step, hopefully
-        if (checkit) {
-            layer.1.dis.res <- resample( layer.1.dis, layer.2 )
-            stopifnot( all( abs( values(layer.1.dis)[nonmissing.2] - values(layer.1.dis.res)[nonmissing.2] ) < 1e-3 ) )
-        }
-        # get values out
-        return( values(layer.1.dis)[nonmissing.2] )
-    }, mc.cores=numcores ) )
-colnames(new.hts) <- colnames(hts)
+# do the disaggregation
+new.hts <- upsample.hts( hts, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit, numcores=numcores )
 
 outfile <- paste( subdir.2, "/", basename(subdir.1), "-aggregated-hitting-times.tsv", sep='')
 write.table( new.hts, file=outfile, row.names=FALSE )

@@ -62,7 +62,7 @@ if (!interactive()) {
     G@x <- update.G(init.params)
 
     G.outfile <- paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='')
-    save( G, update.G, ndelta, ngamma, transfn, valfn, layers, file=G.outfile )
+    save( G, Gjj, update.G, ndelta, ngamma, transfn, valfn, layers, file=G.outfile )
     cat("Saved to G, updating info to ", G.outfile, " .\n")
     nonmissing.outfile <- paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","nonmissing.RData",sep='')
     save( nonmissing, file=nonmissing.outfile)

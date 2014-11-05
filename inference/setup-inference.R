@@ -21,7 +21,7 @@ layer.names <- scan(layer.file,what="char")
 # get precomputed G
 load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_G.RData",sep=''))
 load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissing.RData",sep=''))
-Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+# Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
 ###
 # layer whatnot

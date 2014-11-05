@@ -57,12 +57,12 @@ require(raster)
 require(parallel)
 numcores <- getcores()
 
-if (is.null(outfile)||is.na(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
+if (!exists("outfile")||is.null(outfile)||is.na(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
 layer.names <- scan(layer.file,what="char") 
 
-load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
-Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
+# Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )  # this is necessary for update.G
 
 load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
 load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
@@ -97,6 +97,8 @@ if (method=="analytic") {
                 return(x) } )
 
     stopifnot( nrow(init.hts) == nrow(G) )
+
+    ###
     # solve for hitting times
 
     dG <- rowSums(G)
@@ -119,9 +121,25 @@ if (method=="analytic") {
         return( 2 * as.vector(z) / length(z) )
     }
 
-
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
     parscale <- rep( mean(init.hts), nrow(init.hts) )
+
+    # First get the overall scaling right:
+    #  (d/da) | a Ax - b |^2 = 2 x^T A^T ( a Ax - b )
+    #    = 0  =>  a = x^T A b / | A x |^2
+    scale.ht.list <- unlist( mclapply( seq_along(neighborhoods), function (loc.ind) {
+                loc <- neighborhoods[[loc.ind]]
+                x <- init.hts[,loc.ind]
+                dHvals <- abs(dH(x,loc=loc))
+                bdry <- ( dHvals < quantile(dHvals,.8) )
+                Ax <- G%*%x - dG*x
+                Ax[loc] <- 0
+                Ax[!bdry] <- 0
+                return( (-1)*sum(Ax)/sum(Ax^2) )
+            }, mc.cores=numcores ) )
+    scale.ht.fac <- mean( scale.ht.list, trim=.2 )
+
+    init.hts <- init.hts*scale.ht.fac
 
     H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
     dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
@@ -159,27 +177,49 @@ if (method=="analytic") {
         eps <- 1e-5 * ifelse( seq_along(ht) == sample(which(bdry),1), 1, 0 )
         c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
 
+
         # look at convergence
         load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
         ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
-
         loc.ind <- 10
-        nreps <- 10
+        nreps <- 40
+        parscale <- pmax(.01*mean(init.hts[,loc.ind]),init.hts[,loc.ind])
         oht.list <- vector( mode='list', length=nreps+1 )
         oht.list[[1]] <- list( par=init.hts[,loc.ind] )
         for (k in 2:(nreps+1)) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  }
 
+        tmpenv <- new.env()
+        load( paste("512x", "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep=''), envir=tmpenv ) # provides nonmissing
+        nonmissing.1 <- get("nonmissing",tmpenv)
+        layer.1 <- raster(paste("../geolayers/multigrid/512x/crm_","annual_precip",sep=''))
+        layer.2 <- raster(paste("../geolayers/multigrid/256x/crm_","annual_precip",sep=''))
+        dn <- function (x) { downsample( x, 2, layer.1, nonmissing.1, layer.2, nonmissing ) }
+        up <- function (x) { upsample( x, 2, layer.1, nonmissing.1, layer.2, nonmissing ) }
+        oht.list.1 <- vector( mode='list', length=nreps+1 )
+        oht.list.1[[1]] <- list( par=dn(init.hts[,loc.ind]) )
+        oht.list.2 <- vector( mode='list', length=nreps+1 )
+        oht.list.2[[1]] <- list( par=init.hts[,loc.ind] )
+        for (k in 2:(nreps+1)) { 
+            oht.list.2[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
+            oht.list.1[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
+        }
+
         oht.mat <- sapply(oht.list, "[[", "par")
-        layout(t(1:2))
-        matplot( t(oht.mat[sample.int(nrow(oht.mat),100),]), type='l' )
-        matplot( t((oht.mat-oht.mat[,1])[sample.int(nrow(oht.mat),100),]), type='l' )
+        oht.dH.mat <- sapply( lapply(oht.list, "[[", "par"), dH, loc=neighborhoods[[loc.ind]])
+        bdry <- ( abs(dH(oht.list[[1]]$par,loc=neighborhoods[[loc.ind]])) > quantile(abs(oht.dH.mat),.999) )
+        plot.locs <- c( which(bdry), sample.int(nrow(oht.mat),100) )
+        layout(matrix(1:4,nrow=2))
+        matplot( t(oht.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+        matplot( t((oht.mat-oht.mat[,1])[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+        matplot( t(oht.dH.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+        matplot( abs(t(oht.dH.mat[plot.locs,])), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))], log='y' )
 
         layout( matrix(1:6,nrow=2) )
         for (k in 2:length(oht.list)) { 
             ph( oht.list[[k]]$par )
             ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
-            ph( dH( oht.list[[k-1]]$par, loc=locs[loc.ind] ) )
+            ph( dH( oht.list[[k-1]]$par, loc=neighborhoods[[loc.ind]] ) )
             if (is.null(locator(1))) break
         }
 
@@ -193,7 +233,7 @@ if (method=="analytic") {
         ph(log10(abs(oht.diff/oht.list[[nreps]]$par)))
 
         layout( matrix(1:6,nrow=2) )
-        ph( dH( oht.list[[length(oht.list)]]$par, loc=locs[loc.ind] ) )
+        ph( dH( oht.list[[length(oht.list)]]$par, loc=neighborhoods[[loc.ind]] ) )
         for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
             ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
         }
