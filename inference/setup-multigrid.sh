@@ -20,9 +20,10 @@ set -o pipefail
 
 PIFILE="../pairwisePi/alleleCounts_1millionloci.pwp"
 
-for RES in 215x 256x 128x 64x 32x # 16x 8x 4x 2x 1x
+for RES in 512x 256x 128x 64x 32x # 16x 8x 4x 2x 1x
 do
     echo $RES
+    mkdir -p $RES
     echo "----------------------------"
     for LAYERS in six-raster-list twelve-raster-list twentyfour-raster-list
     do
@@ -41,7 +42,7 @@ do
     done
 done
 
-for RES in 215x 256x 128x 64x 32x # 16x 8x 4x 2x 1x
+for RES in 512x 256x 128x 64x 32x # 16x 8x 4x 2x 1x
 do
     echo $RES
     echo "----------------------------"

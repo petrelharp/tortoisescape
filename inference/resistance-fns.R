@@ -1,5 +1,17 @@
 #!/usr/bin/Rscript
 
+# number of cores for parallel
+getcores <- function () {
+    if ( "parallel" %in% .packages()) {
+        cpupipe <- pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")
+        numcores <- 1+as.numeric(scan(cpupipe))
+        close(cpupipe)
+    } else {
+        numcores <- 1
+    }
+    return(numcores)
+}
+
 # move @p to @j in dgCMatrix
 p.to.j <- function (p) { rep( seq.int( length(p)-1 ), diff(p) ) }
 

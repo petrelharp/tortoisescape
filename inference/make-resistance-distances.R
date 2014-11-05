@@ -2,31 +2,32 @@
 
 usage <- '
     Get hitting times with a list of landscape layers:
-        Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
+        Rscript make-resistance-distances.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
       e.g.
-        Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv CG
+        Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv numeric
 
-    Here `method` is either "analytic" or "CG".
+    Here `method` is either "analytic" or "numeric".
 '
 
 if (!interactive()) {
-    if (length(commandArgs(TRUE))<5) { cat(usage) }
+    if (length(commandArgs(TRUE))<5) { stop(usage) }
+    print(commandArgs(TRUE))
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
     param.file <- commandArgs(TRUE)[4] 
     method <- commandArgs(TRUE)[5] 
     prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
-    maxtime <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { 6*60*60 } 
+    maxit <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { 100 } 
     outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
 } else {
     layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
     subdir <- "100x"
-    layer.file <- "../inference/six-raster-list"
+    layer.file <- "six-raster-list"
     param.file <- "simple-init-params-six-raster-list.tsv"
-    method <- "CG"
+    method <- "numeric"
     prev.ht <- "100x/500x-aggregated-hitting-times.tsv"
-    maxtime <- 2*60
+    maxit <- 100
     outfile <- NULL
 
     # layer.prefix <- "../geolayers/TIFF/500x/500x_"
@@ -35,19 +36,28 @@ if (!interactive()) {
     # param.file <- "simple-init-params-six-raster-list.tsv"
     # method <- "analytic"
     # prev.ht <- NULL
-    # maxtime <- NULL
+    # maxit <- NULL
     # outfile <- NULL
+    argvec <- scan(what='char')
+    layer.prefix <- argvec[1]
+    subdir <- argvec[2]
+    layer.file <- argvec[3]
+    param.file <- argvec[4]
+    method <- argvec[5]
+    prev.ht <- argvec[6]
+    maxit <- argvec[7]
+    outfile <- argvec[8]
 }
 
-if (! method %in% c("analytic","CG")) { stop(usage) }
+if (! method %in% c("analytic","numeric")) { stop(usage) }
 
 source("resistance-fns.R")
 require(raster)
 
 require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+numcores <- getcores()
 
-if (is.null(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
+if (is.null(outfile)||is.na(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
 layer.names <- scan(layer.file,what="char") 
 
@@ -78,7 +88,7 @@ if (method=="analytic") {
 
     hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
 
-} else if (method=="CG") {
+} else if (method=="numeric") {
 
     orig.init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
     init.hts <- sapply( 1:ncol(orig.init.hts), function (k) {
@@ -90,7 +100,6 @@ if (method=="analytic") {
     # solve for hitting times
 
     dG <- rowSums(G)
-    cG <- colSums(G)
     # objective function
     H <- function (ht,loc) {
         # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
@@ -110,37 +119,17 @@ if (method=="analytic") {
         return( 2 * as.vector(z) / length(z) )
     }
 
-    # objective function
-    pivec <- 1/transfn(valfn(init.params[1 + (1:ngamma)]))
-    GG <- G; GG@x <- G@x * pivec[G@i+1L]
-    dGG <- dG*pivec
-    H1 <- function (ht,loc) {
-        # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
-        # where S = I except S[loc,loc]=0
-        ht[loc] <- 0
-        z <- GG%*%ht - dGG*ht + pivec
-        z[loc] <- 0
-        return( ( sum( z^2 ) )/length(z) )
-    }
-    dH1 <- function (ht,loc) {
-        # 2 (G-D)^T S ( (G-D) ht + 1 )
-        ht[loc] <- 0
-        z <- GG%*%ht - dGG*ht + pivec
-        z[loc] <- 0
-        z <- (crossprod(GG,z) - dGG*z)
-        z[loc] <- 0
-        return( 2 * as.vector(z) / length(z) )
-    }
-
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
     parscale <- rep( mean(init.hts), nrow(init.hts) )
 
     H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
     dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
+    est.time <- ( maxit * (H.time[1] + dH.time[1]) / numcores * ncol(init.hts) )
+    cat("Estimated time: ", est.time, " .\n")
 
-    maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
-    maxit <- min( 1e4, maxit )
+    # maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
+    # maxit <- min( 1e4, maxit )
 
     optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
                 optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
@@ -150,7 +139,7 @@ if (method=="analytic") {
     convergences <- sapply(optim.ht.list,"[[","convergence")
     unconverged <- which(convergences != 0)
 
-    save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
+    # save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
 
     hts <- sapply( optim.ht.list, "[[", "par" )
 
@@ -167,11 +156,17 @@ if (method=="analytic") {
         load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
         ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
+
         loc.ind <- 10
-        nreps <- 20
+        nreps <- 10
         oht.list <- vector( mode='list', length=nreps+1 )
         oht.list[[1]] <- list( par=init.hts[,loc.ind] )
         for (k in 2:(nreps+1)) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  }
+
+        oht.mat <- sapply(oht.list, "[[", "par")
+        layout(t(1:2))
+        matplot( t(oht.mat[sample.int(nrow(oht.mat),100),]), type='l' )
+        matplot( t((oht.mat-oht.mat[,1])[sample.int(nrow(oht.mat),100),]), type='l' )
 
         layout( matrix(1:6,nrow=2) )
         for (k in 2:length(oht.list)) { 
