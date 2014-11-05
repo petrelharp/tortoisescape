@@ -7,11 +7,16 @@
 #PBS -l vmem=120gb
 #PBS -l pmem=7500mb
 
-if [[ -z "$ARGS" || -r "$ARGS" ]]
-    echo "USAGE:    qsub -vARGS=\"raster-list-file\" setup-multigrid.sh"
+if [[ -z "${PBS_O_WORKDIR-}" ]]  # not run through pbs
+then
+    LAYERFILE=$1
 fi
 
-LAYERFILE="$ARGS"
+if [[ -z "${LAYERFILE-}" || ! -r "$LAYERFILE" ]]
+then
+    echo "USAGE:    qsub -vLAYERFILE=\"raster-list-file\" setup-multigrid.sh"
+fi
+
 echo "raster list file:  $LAYERFILE"
 
 if [ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]
@@ -23,7 +28,7 @@ fi
 set -eu
 set -o pipefail
 
-RESLIST="256x 128x 64x 32x 16x 8x 4x" # 2x 1x"
+RESLIST="512x 256x 128x" # 64x 32x 16x 8x 4x # 2x 1x"
 PIFILE="../pairwisePi/alleleCounts_1millionloci.pwp"
 
 for RES in $RESLIST

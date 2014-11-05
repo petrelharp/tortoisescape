@@ -21,8 +21,8 @@ fi
 LAYERLIST="dem-layer-list"
 PARAMFILE="params-dem-layer-list.tsv"
 
-LASTRES="512x"
-RESLIST="256x 128x 64x 32x 16x 8x 4x" # 2x 1x"
+RES="512x"
+RESLIST="256x 128x" # 64x 32x 16x 8x 4x" # 2x 1x"
 
 echo "Hitting times at ${RES}."
 # get initial hitting times 
