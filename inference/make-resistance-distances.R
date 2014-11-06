@@ -89,9 +89,9 @@ if (method=="analytic") {
 
 } else if (method=="numeric") {
 
-    orig.init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
-    init.hts <- sapply( 1:ncol(orig.init.hts), function (k) {
-                x <- orig.init.hts[,k]
+    init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
+    init.hts <- sapply( 1:ncol(init.hts), function (k) {
+                x <- init.hts[,k]
                 x[neighborhoods[[k]]] <- 0
                 return(x) } )
 

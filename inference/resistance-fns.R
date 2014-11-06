@@ -233,18 +233,18 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 ##
 # plotting whatnot
 
-plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,homedir="..") {
+plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
     # use this to make a quick plotting function
     layer <- raster(paste(layer.prefix,layer.name,sep=''))
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
     ph <- function (x,...) { 
         values(layer)[nonmissing] <- x
-        opar <- par(mar=c(5,4,4,7)+.1)  # plotting layers messes up margins
+        opar <- par(par.args)  # plotting layers messes up margins
         plot(layer,...)
         points(tort.coords.rasterGCS,pch=20,cex=.25)
         # par(opar[setdiff(names(opar), c("cin", "cra", "csi", "cxy", "din", "page") )])
-        par(mar=opar$mar)
+        par(opar)
     }
     environment(ph) <- new.env()
     assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
