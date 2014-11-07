@@ -11,8 +11,6 @@ require(raster)
 require(parallel)
 numcores <- getcores()
 
-if (!exists("outfile")||is.null(outfile)||is.na(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
-
 layer.names <- scan(layer.file,what="char") 
 
 load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
@@ -50,6 +48,7 @@ newparams <- function (dothese) {
 }
 
 layout(matrix(1:4,nrow=2))
+
 params <- c(1,-4,-4); hts <- newparams(83)
 params <- c(1,-1,0); hts <- newparams(83)
 params <- c(1,0,-1); hts <- newparams(83)
@@ -66,6 +65,7 @@ params <- c(1e-4,-1,-10); hts <- newparams(c(10,83))
 params <- c(1e-4,-2,-10); hts <- newparams(c(10,83))
 params <- c(1e-4,-2,-8); hts <- newparams(c(10,83))
 
+# looks pretty good!
 params <- c(1e-4,-2,-9); hts <- newparams(c(10,83))
 
 plot( exp((-2)*dem) )
