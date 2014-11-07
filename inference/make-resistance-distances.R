@@ -49,6 +49,11 @@ if (!interactive()) {
     outfile <- argvec[8]
 }
 
+# number of scaling & shifting steps
+nscale <- 0
+
+cat(paste(commandArgs()),"\n")
+
 if (! method %in% c("analytic","numeric")) { stop(usage) }
 
 source("resistance-fns.R")
@@ -133,11 +138,6 @@ if (method=="analytic") {
         Ax[omitthese] <- 0
         return( (-1)*sum(Ax)/sum(Ax^2) )
     }
-    scale.ht.list <- unlist( mclapply( seq_along(neighborhoods), function (loc.ind) {
-                loc <- neighborhoods[[loc.ind]]
-                scale.ht(init.hts[,loc.ind],neighborhoods[[loc.ind]])
-            }, mc.cores=numcores ) )
-    scale.ht.fac <- mean( scale.ht.list, trim=.2 )
 
     #  (d/dc) | A(x + c 1) - b |^2 = 2 1^T A^T ( A(x + c 1) - b )
     #    = 0  =>  c = - 1^T A^T (Ax-b) / 1^T A^T A 1
@@ -150,8 +150,6 @@ if (method=="analytic") {
         return( (-1)*sum(numerator)/denom )
     }
 
-    init.hts <- init.hts*scale.ht.fac
-
     H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
     dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
     est.time <- ( maxit * (H.time[1] + dH.time[1]) / numcores * ncol(init.hts) )
@@ -163,8 +161,8 @@ if (method=="analytic") {
     optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
                 new.ht <- list(par=init.hts[,loc.ind])
                 for (k in 1:10) {
-                    aval <- if (k<4) { scale.ht(new.ht$par, neighborhoods[[loc.ind]]) } else { 1 }
-                    bval <- if (k<4) { shift.ht(aval*new.ht$par, neighborhoods[[loc.ind]]) } else { 0 }
+                    aval <- if (k<nscale) { scale.ht(new.ht$par, neighborhoods[[loc.ind]]) } else { 1 }
+                    bval <- if (k<nscale) { shift.ht(aval*new.ht$par, neighborhoods[[loc.ind]]) } else { 0 }
                     new.ht <- optim( par=pmax(0,aval*new.ht$par+bval), fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
                         method="L-BFGS-B", control=list( parscale=parscale, maxit=ceiling(maxit/10) ), lower=0, upper=Inf ) 
                     new.ht$par[neighborhoods[[loc.ind]]] <- 0
