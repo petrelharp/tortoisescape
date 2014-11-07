@@ -21,12 +21,12 @@ if (!interactive()) {
     maxit <- if (length(commandArgs(TRUE))>6) { as.numeric(commandArgs(TRUE)[7]) } else { 100 } 
     outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
 } else {
-    layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
-    subdir <- "100x"
-    layer.file <- "six-raster-list"
-    param.file <- "simple-init-params-six-raster-list.tsv"
-    method <- "numeric"
-    prev.ht <- "100x/500x-six-raster-list-aggregated-hitting-times.tsv"
+    layer.prefix <- "../geolayers/multigrid/128x/crm_"
+    subdir <- "128x"
+    layer.file <- "dem-layer-list"
+    param.file <- "params-dem-layer-list.tsv"
+    method <- "analytic"
+    prev.ht <- NULL
     maxit <- 100
     outfile <- NULL
 

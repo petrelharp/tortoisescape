@@ -243,7 +243,6 @@ plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,homedir="..",par.args
         opar <- par(par.args)  # plotting layers messes up margins
         plot(layer,...)
         points(tort.coords.rasterGCS,pch=20,cex=.25)
-        # par(opar[setdiff(names(opar), c("cin", "cra", "csi", "cxy", "din", "page") )])
         par(opar)
     }
     environment(ph) <- new.env()
