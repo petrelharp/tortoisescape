@@ -50,9 +50,7 @@ hts <- as.matrix( read.table(ht.file,header=TRUE) )
 dir.create(file.path(subdir,dirname(outbase)),recursive=TRUE)
 
 for (k in 1:ncol(hts)) {
-    png( file=file.path(subdir,paste(outbase,"_",tort.nums[k],".png",sep="")), res=144, width=10*144, height=4*144, pointsize=10 )
-    layout(t(1:2))
-    ph( pmin(1e6,hts[,k]), main=paste("Tortoise",tort.nums[k]) )
-    ph( pmin(6,log10(hts[,k])), main=paste("Tortoise",tort.nums[k]) )
+    png( file=file.path(subdir,paste(outbase,"_",tort.nums[k],".png",sep="")), res=144, width=5*144, height=4*144, pointsize=10 )
+    ph( pmin(1e8,hts[,k]), main=paste("Tortoise",tort.nums[k]) )
     dev.off()
 }
