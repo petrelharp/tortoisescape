@@ -1,12 +1,15 @@
 #!/usr/bin/Rscript
 
 # number of cores for parallel
-getcores <- function () {
+getcores <- function (subdir) {
     if ( "parallel" %in% .packages()) {
         cpupipe <- pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")
         numcores <- 1+as.numeric(scan(cpupipe))
         close(cpupipe)
     } else {
+        numcores <- 1
+    }
+    if ( !missing(subdir) && ( as.numeric(gsub("x","",subdir)) < 50 ) ) {
         numcores <- 1
     }
     return(numcores)
