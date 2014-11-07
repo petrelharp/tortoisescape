@@ -18,6 +18,23 @@ pcs$X <- factor( pcs$X, levels=torts$EM_Tort_ID )
 pc.cols <- adjustcolor( ifelse( pcs$PC1 > 0, "blue", "purple" ), .75 )
 stopifnot( all(pcs$X==torts$EM_Tort_ID) )
 
+# overall
+png( file="pngs/everyone-ibd.png", width=12*144, height=4*144, pointsize=10, res=144 )
+    thiscolors <- with(dists, ifelse( ( pcs$PC1[match(etort1,pcs$X)] > 0 ), 
+                    ifelse ( ( pcs$PC1[match(etort2,pcs$X)] > 0 ), "green", "black" ),
+                    ifelse ( ( pcs$PC1[match(etort2,pcs$X)] > 0 ), "black", "blue" ) ) )
+    layout(t(1:3))
+    plot(layer)
+    points(tort.coords.rasterGCS,pch=20,cex=1,col=pc.cols)
+    plot( dists$DISTANCE, dists$pi, pch=20, cex=.5, 
+        col=adjustcolor("black",.25), xlab="geographic distance (km)", ylab="raw pairwise divergence" )
+    points( dists$DISTANCE, dists$pi, pch=20, col=thiscolors, cex=1.5 )
+    plot( dists$DISTANCE, dists$npi, pch=20, cex=.5, 
+        col=adjustcolor("black",.25), xlab="geographic distance (km)", ylab="adjusted pairwise divergence" )
+    points( dists$DISTANCE, dists$npi, pch=20, col=thiscolors, cex=1.5 )
+dev.off()
+
+# highlighted by individual
 for (k in 1:nind) { 
     png( file=paste("pngs/",torts$EM_Tort_ID[k],"-ibd.png",sep=''), width=12*144, height=4*144, pointsize=10, res=144 )
     usethese <- ( dists$etort1 == torts$EM_Tort_ID[k] ) | ( dists$etort2 == torts$EM_Tort_ID[k] )

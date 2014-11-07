@@ -4,10 +4,12 @@ usage <- '
     Read in and plot fitted hitting times.  Usage:
         Rscript plot-hts.R (layer prefix) (subdirectory) (layer file name) (tsv of hitting times) (base name for output pngs)
     e.g.
-        Rscript plot-hts.R ../geolayers/multigrid/64x/crm_ 64x dem-layer-list 64x/dem-layer-list-hitting-times.tsv 64x/dem-layer-list-hitting-times-plots
+        Rscript plot-hts.R ../geolayers/multigrid/64x/crm_ 64x dem-layer-list 64x/dem-layer-list-hitting-times.tsv dem/64x_hts_
+
 '
 
 if (!interactive()) {
+    if (length(commandArgs(TRUE))<5) { cat(usage); q() }
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
@@ -18,7 +20,7 @@ if (!interactive()) {
     subdir <- "64x"
     layer.file <- "dem-layer-list"
     ht.file <- "64x/dem-layer-list-hitting-times.tsv"
-    outbase <- "dem/hts"
+    outbase <- "dem/64x_hts_"
 }
 
 source("resistance-fns.R")
