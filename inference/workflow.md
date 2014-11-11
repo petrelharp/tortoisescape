@@ -42,7 +42,7 @@ will produce the following files, each in the same order as tortoise locations i
 Rscript setup-inference.R ../geolayers/TIFF/500x/500x_ 500x six-raster-list ../pairwisePi/alleleCounts_1millionloci.pwp
 ```
 will save everything plus the kitchen sink to:
-- `500x/six-raster-list-500x_setup.RData`
+- `500x/500x_six-raster-list-setup.RData`
 
 
 Computing resistance distances
