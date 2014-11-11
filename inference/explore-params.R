@@ -43,29 +43,31 @@ newparams <- function (dothese) {
     G@x <- update.G(params)
     hts <- hitting.analytic( neighborhoods[dothese], G-diag(rowSums(G)), numcores=numcores )
     hts[hts<0] <- NA
-    for (k in seq_along(dothese)) { ph(pmin(1e6,hts[,k])); ph(pmin(6,log10(hts[,k])))  }
+    ymax <- 1.5*max(hts[locs,])
+    for (k in seq_along(dothese)) { ph(pmin(ymax,hts[,k])); } # ph(pmin(6,log10(hts[,k])))  }
     invisible(hts)
 }
 
 layout(matrix(1:4,nrow=2))
-
-params <- c(1,-4,-4); hts <- newparams(83)
-params <- c(1,-1,0); hts <- newparams(83)
-params <- c(1,0,-1); hts <- newparams(83)
-params <- c(1,0,-2); hts <- newparams(83)
-params <- c(1,0,-3); hts <- newparams(83)
-params <- c(1,0,-4); hts <- newparams(83)
-params <- c(1,0,-7); hts <- newparams(83)
-params <- c(1,0,-12); hts <- newparams(83)
-params <- c(1,0,-20); hts <- newparams(83)
-
-params <- c(1e-2,-1,-10); hts <- newparams(83)
-params <- c(1e-4,-1,-10); hts <- newparams(c(10,83))
-
-params <- c(1e-4,-2,-10); hts <- newparams(c(10,83))
-params <- c(1e-4,-2,-8); hts <- newparams(c(10,83))
-
-# looks pretty good!
 params <- c(1e-4,-2,-9); hts <- newparams(c(10,83))
+params <- c(.01,0,-1); hts <- newparams(c(10,83))
+params <- c(.01,0,-3); hts <- newparams(c(10,83))
+params <- c(.01,-.1,-3); hts <- newparams(c(10,83))
 
 plot( exp((-2)*dem) )
+
+# for talk
+params <- c(.01,0,-1); hts1<- newparams(c(10,83))
+params <- c(.01,0,-3); hts2 <- newparams(c(10,83))
+
+ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing,par.args=list(mai=c(.7,.7,.1,.15),mar=c(3,3,0,0)+.1))
+
+# see raster:::.rasterImagePlot
+
+pdf(file="../../talks/images/example-hts.pdf", width=5, height=3.5, pointsize=10)
+layout(matrix(1:4,nrow=2,byrow=TRUE))
+for (k in 1:2) {
+    ph(pmin(ymax,hts[,k]),legend.mar=0,legend=FALSE)
+    ph(pmin(ymax,hts[,k]),legend.mar=0,legend=FALSE)
+}
+dev.off()

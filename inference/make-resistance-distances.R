@@ -21,8 +21,8 @@ if (!interactive()) {
     maxit <- if (length(commandArgs(TRUE))>6) { as.numeric(commandArgs(TRUE)[7]) } else { 100 } 
     outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
 } else {
-    layer.prefix <- "../geolayers/multigrid/128x/crm_"
-    subdir <- "128x"
+    layer.prefix <- "../geolayers/multigrid/256x/crm_"
+    subdir <- "256x"
     layer.file <- "dem-layer-list"
     param.file <- "params-dem-layer-list.tsv"
     method <- "analytic"
