@@ -117,7 +117,7 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
     return(hts)
 }
 
-hitting.analytic <- function (locs, G, numcores=as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1) {
+hitting.analytic <- function (locs, G, numcores=getcores()) {
     # compute analytical expected hitting times
     #   here `locs` is a vector of (single) locations
     #   or a list of vectors
@@ -163,6 +163,23 @@ make.G <- function (aa,AA) {
         G <- G + aa[k] * AA[[k]]
     }
     return(G)
+}
+
+estimate.expl <- function (hts, neighborhoods, layers, G, dG=rowSums(G), numcores=getcores() ) {
+    # estimate parameters using the exponential transform
+    ## deriv wrt gamma and delta : eqn:expl_deriv_gamma and eqn:expl_deriv_delta
+    GH <- G %*% hts - dG * hts
+    zeros <- unlist(neighborhoods) + rep((seq_along(neighborhoods)-1)*nrow(hts),sapply(neighborhoods,length))
+    dd <- mclapply( 1:ncol(layers), function (k) {
+                Z <- layers[,k] * GH * (GH+1)
+                Z[zeros] <- 0
+                dgamma <- 2*sum(Z)
+                GLH <- G %*% ( layers[,k] * hts ) + dG * ((G>0)%*%layers[,k]) * hts 
+                GLH[zeros] <- 0
+                ddelta <- dgamma + 2*sum(GLH)
+                return(c(dgamma,ddelta))
+            } )
+
 }
 
 estimate.aa <- function (hts,locs,AA) {

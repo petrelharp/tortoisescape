@@ -234,11 +234,11 @@ Then, again with
 \end{align}
 and
 \begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z \rho'(\gamma L_z) \sum_{x \neq z} g(\delta L_z, \delta L_x) (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+  \partial_{\gamma_k} F(\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z \rho'(\gamma L_z) \sum_{x \neq z} g(\delta L_z, \delta L_x) (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
 \end{align}
 and
 \begin{align}
-  \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} 
+  \partial_{\delta_k} F(\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} 
     \left( \sum_x G_{zx} H_{xy} + 1 \right) 
   \left( \rho(\gamma L_z) 
     \sum_{x \neq z} (L^k_z + L^k_x) g'(\delta L_z, \delta L_x) ( H_{xy} - H_{zy} ) 
@@ -264,20 +264,20 @@ might run into numerical difficulties.
 
 Then
 \begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 
+  \partial_{\gamma_k} F(\gamma,\delta) &= 
     2 \sum_{i=1}^m \sum_{z \neq y_i} 
-    \left( L^k_z \sum_x G_{zx} H_{xy}\right) 
-    \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+    \left( L^k_z \sum_x G_{zx} H_{xy_i}\right) 
+    \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  
 \end{align}
 and
 \begin{align}
-  \partial_{\delta_k} F(\gamma) &= 
+  \partial_{\delta_k} F(\gamma,\delta) &= 
     2 \sum_{i=1}^m \sum_{z \neq y_i} 
-    \left( L^k_z \sum_x G_{zx} H_{xy}
-      + \sum_{x \neq z} G_{zx} L^k_x H_{xy}
-      + G_{zz} ( \sum_{w \sim z} L^k_w )  H_{zy}
+    \left( L^k_z \sum_x G_{zx} H_{xy_i}
+      + \sum_{x \neq z} G_{zx} L^k_x H_{xy_i}
+      + G_{zz} ( \sum_{w \sim z} L^k_w )  H_{zy_i}
     \right) 
-    \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
+    \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  \\
 \end{align}
 
 
@@ -294,11 +294,11 @@ but even so, what we care about more is $\rho$ and $g$, which will be well-deter
 Note that $\rho'(u) = \rho(u) (1-\rho(u))$,
 so that
 \begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z (1-\rho(\gamma L_z)) G_{zx} H_{xy}\right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+  \partial_{\gamma_k} F(\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z (1-\rho(\gamma L_z)) G_{zx} H_{xy_i}\right) \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  
 \end{align}
 and
 \begin{align}
-  \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_{x \neq z} (L^k_z + L^k_x) (1-\rho(\delta(L_z+L_x))) G_{zx} (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
+  \partial_{\delta_k} F(\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_{x \neq z} (L^k_z + L^k_x) (1-\rho(\delta(L_z+L_x))) G_{zx} (H_{xy_i}-H_{zy_i}) \right) \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  \\
 \end{align}
 
 \end{document}

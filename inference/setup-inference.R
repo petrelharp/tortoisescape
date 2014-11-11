@@ -37,6 +37,10 @@ nind <- length(locs)
 na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]
 
+# and neighborhoods
+load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
+neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
+
 # pairwise divergence values
 pimat.vals <- scan(pimat.file) # has UPPER with diagonal
 pimat <- numeric(nind^2)
@@ -48,7 +52,7 @@ pimat <- pimat[-na.indiv,-na.indiv]
 # scale to actual pairwise divergence, and then by 1/mutation rate
 pimat <- pimat * .018 * 1e8
 
-outfile <- paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep='')
+outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep='')
 save(list=setdiff(ls(),source.ls), file=outfile)
 
 cat("Saved to ", outfile, " .\n")

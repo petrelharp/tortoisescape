@@ -21,7 +21,7 @@ ht.id <- gsub( paste(basename(layer.prefix),basename(layer.file),sep=""), "", gs
 if (nchar(ht.id)>0) { ht.id <- paste("_",ht.id) }
 outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),ht.id,"-fit-params.RData",sep='')
 
-load(paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))
 load(ht.file)
 
 source("resistance-fns.R")

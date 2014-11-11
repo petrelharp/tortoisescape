@@ -26,7 +26,7 @@ if (!interactive()) {
 }
 layer.names <- scan(layer.file,what="char") 
 
-load(paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))
 
 ##
 # initial parameters?
