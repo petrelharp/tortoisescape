@@ -36,7 +36,8 @@ zeros <- unlist(neighborhoods) + rep((seq_along(neighborhoods)-1)*nrow(hts),sapp
 scaling <- sqrt(nrow(G) * length(locs))
 hts <- hts/scaling
 hts[zeros] <- 0
-usethese <- setdiff( which( hts < quantile(hts,.9) ), zeros )
+usethese <- which( rowMeans(hts) < quantile(hts,.5) )  # indexes locations; note may overlap with zeros
+nomitted <- ncol(hts)*length(usethese) + length( which(! row(hts)[zeros] %in% usethese) )
 sc.one <- 1/scaling
 
 # setup: evaluating L and dL will CHANGE THESE (once, for efficiency)
@@ -55,7 +56,7 @@ L <- function (params) {
         GH[zeros] <- 0
         assign("GH", GH, parent.env(environment()) )
     }
-    ans <- ( sum( (GH+sc.one)[usethese]^2 ) - length(usethese)*sc.one^2 )
+    ans <- ( sum( (GH+sc.one)[usethese,]^2 ) - (nomitted)*sc.one^2 )
     if (!is.finite(ans)) { browser() }
     return(ans)
 }
@@ -68,9 +69,9 @@ dL <- function (params) {
         GH[zeros] <- 0
         assign("GH", GH, parent.env(environment()) )
     }
-    bgrad <- ( 2 / params[1] )* sum( GH[usethese] * (GH+sc.one)[usethese] )
+    bgrad <- ( 2 / params[1] )* sum( GH[usethese,] * (GH+sc.one)[usethese,] )
     ggrads <- sapply( 1:ncol(layers), function (kk) {
-            2 * sum( (layers[,kk] * GH)[usethese] * (GH+sc.one)[usethese] )
+            2 * sum( (layers[,kk] * GH)[usethese,] * (GH+sc.one)[usethese,] )
         } )
     dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
             GL <- G
@@ -78,7 +79,7 @@ dL <- function (params) {
             dGL <- rowSums(GL)
             GLH <- GL %*% hts - dGL*hts
             GLH[zeros] <- 0
-            return( 2 * sum( GLH[usethese] * (GH+sc.one)[usethese]  ) )
+            return( 2 * sum( GLH[usethese,] * (GH+sc.one)[usethese,]  ) )
         } )
     ans <- ( c(bgrad, ggrads, dgrads) )
     if (any(!is.finite(ans))) { browser() }
@@ -111,13 +112,14 @@ if (FALSE) {
     L0 <- L(init.params)
     dL0 <- dL(init.params)
     L1 <- L(init.params+dp)
-    c( L1-L0, sum(dp*dL0) )
+    dL1 <- dL(init.params+dp)
+    c( L1-L0, sum(dp*dL0), sum(dp*dL1) )
 
 
     # check answer
     layout(t(seq_along(init.params)))
     for (k in seq_along(init.params)) {
-        parvals <- seq( results$par[k]/2, results$par[k]*2, length.out=20 )
+        parvals <- seq( results$par[k]/1.02, results$par[k]*1.02, length.out=20 )
         Lvals <- sapply(parvals, function (x) L(ifelse(seq_along(init.params)==k,x,results$par)) )
         yrange <- range(Lvals,L(results$par))
         plot( parvals, Lvals, ylim=yrange, main=names(init.params)[k] )
@@ -136,7 +138,7 @@ if (FALSE) {
     params <- init.params
     G@x <- update.G(params)
     dG <- rowSums(G)
-    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores ) / scaling
+    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=getcores() ) / scaling
     GH <- G %*% hts - dG*hts
     GH[zeros] <- 0
 
