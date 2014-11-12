@@ -170,6 +170,11 @@ estimate.expl <- function (hts, neighborhoods, layers, G, dG=rowSums(G), numcore
     ## deriv wrt gamma and delta : eqn:expl_deriv_gamma and eqn:expl_deriv_delta
     GH <- G %*% hts - dG * hts
     zeros <- unlist(neighborhoods) + rep((seq_along(neighborhoods)-1)*nrow(hts),sapply(neighborhoods,length))
+
+    fn <- function (params) {
+
+    }
+
     dd <- mclapply( 1:ncol(layers), function (k) {
                 Z <- layers[,k] * GH * (GH+1)
                 Z[zeros] <- 0

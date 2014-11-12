@@ -79,3 +79,4 @@ dev.off()
 
 
 
+hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
