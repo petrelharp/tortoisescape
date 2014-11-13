@@ -23,6 +23,7 @@ if (nchar(ht.id)>0) { ht.id <- paste("_",ht.id,sep='') }
 outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),ht.id,"_fit-params.RData",sep='')
 
 load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))
+
 hts <- as.matrix(read.table(ht.file,header=TRUE))
 
 init.params.table <- read.table(param.file,header=TRUE)
@@ -33,45 +34,38 @@ source("resistance-fns.R")
 
 # Massage the numerics.
 zeros <- unlist(neighborhoods) + rep((seq_along(neighborhoods)-1)*nrow(hts),sapply(neighborhoods,length))
-scaling <- sqrt(nrow(G) * length(locs))
+scaling <- 1 # sqrt(nrow(G) * length(locs))
+sc.one <- 1/scaling
 hts <- hts/scaling
 hts[zeros] <- 0
-usethese <- which( rowMeans(hts) < quantile(hts,.5) )  # indexes locations; note may overlap with zeros
-nomitted <- ncol(hts)*length(usethese) + length( which(! row(hts)[zeros] %in% usethese) )
-sc.one <- 1/scaling
 
-# setup: evaluating L and dL will CHANGE THESE (once, for efficiency)
-params <- init.params
-G@x <- update.G(params)
-dG <- rowSums(G)
-GH <- G %*% hts - dG*hts
-GH[zeros] <- 0
-
-L <- function (params) {
-    if (any(params != get("params",parent.env(environment()) ) ) ) { 
-        assign("params", params, parent.env(environment()) )
-        evalq( G@x <- update.G(params), parent.env(environment()) )
-        evalq( dG <- rowSums(G), parent.env(environment()) )
+# setup: evaluating L and dL will CHANGE THESE GLOBALLY (once, for efficiency)
+update.aux <- function (params,env,check=TRUE) {
+    if ( (!check) || any(params != get("params", env ) ) ) { 
+        assign("params", params,  env )
+        evalq( G@x <- update.G(params),  env )
+        evalq( dG <- rowSums(G),  env )
         GH <- G %*% hts - dG*hts
         GH[zeros] <- 0
-        assign("GH", GH, parent.env(environment()) )
+        assign("GH", GH, env )
     }
-    ans <- ( sum( (GH+sc.one)[usethese,]^2 ) - (nomitted)*sc.one^2 )
+}
+
+update.aux(init.params,environment(),check=FALSE)
+weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
+nomitted <- sum( weightings[row(hts)[zeros]] )
+
+L <- function (params) {
+    update.aux(params,parent.env(environment()))
+    ans <- ( sum( weightings*rowSums((GH+sc.one)^2) ) - (nomitted)*sc.one^2 )
     if (!is.finite(ans)) { browser() }
     return(ans)
 }
 dL <- function (params) {
-    if (any(params != get("params", parent.env(environment()) ) ) ) { 
-        assign("params", params, parent.env(environment()) )
-        evalq( G@x <- update.G(params), parent.env(environment()) )
-        evalq( dG <- rowSums(G), parent.env(environment()) )
-        GH <- G %*% hts - dG*hts
-        GH[zeros] <- 0
-        assign("GH", GH, parent.env(environment()) )
-    }
-    bgrad <- ( 2 / params[1] )* sum( GH[usethese,] * (GH+sc.one)[usethese,] )
+    update.aux(params,parent.env(environment()))
+    bgrad <- ( 2 / params[1] )* sum( weightings * rowSums(GH * (GH+sc.one)) )
     ggrads <- sapply( 1:ncol(layers), function (kk) {
-            2 * sum( (layers[,kk] * GH)[usethese,] * (GH+sc.one)[usethese,] )
+            2 * sum( weightings * rowSums( (layers[,kk] * GH) * (GH+sc.one)) )
         } )
     dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
             GL <- G
@@ -79,18 +73,12 @@ dL <- function (params) {
             dGL <- rowSums(GL)
             GLH <- GL %*% hts - dGL*hts
             GLH[zeros] <- 0
-            return( 2 * sum( GLH[usethese,] * (GH+sc.one)[usethese,]  ) )
+            return( 2 * sum( weightings * rowSums( GLH * (GH+sc.one) )  ) )
         } )
     ans <- ( c(bgrad, ggrads, dgrads) )
     if (any(!is.finite(ans))) { browser() }
     return(ans)
 }
-# environment(L) <- environment(dL) <- fun.env <- list2env( list(
-#                 G=G,
-#                 dG=dG,
-#                 params=init.params,
-#                 GH=GH), 
-#         parent=environment() )
 
 L(init.params)
 dL(init.params)
@@ -107,30 +95,31 @@ write( results$par, file=outfile )
 
 if (FALSE) {
 
-    # check gradient  (VERY STEEP ?!?!?!)
-    dp <- 1e-8 * runif(length(init.params))
-    L0 <- L(init.params)
-    dL0 <- dL(init.params)
-    L1 <- L(init.params+dp)
-    dL1 <- dL(init.params+dp)
-    c( L1-L0, sum(dp*dL0), sum(dp*dL1) )
+    gcheck <- function (eps=1e-8) {
+        # check gradient  (VERY STEEP ?!?!?!)
+        dp <- eps * runif(length(init.params))
+        L0 <- L(init.params)
+        dL0 <- dL(init.params)
+        L1 <- L(init.params+dp)
+        dL1 <- dL(init.params+dp)
+        c( L0, L1-L0, sum(dp*dL0), sum(dp*dL1) )
+    }
 
 
     # check answer
-    layout(t(seq_along(init.params)))
-    for (k in seq_along(init.params)) {
-        parvals <- seq( results$par[k]/1.02, results$par[k]*1.02, length.out=20 )
-        Lvals <- sapply(parvals, function (x) L(ifelse(seq_along(init.params)==k,x,results$par)) )
-        yrange <- range(Lvals,L(results$par))
-        plot( parvals, Lvals, ylim=yrange, main=names(init.params)[k] )
-        abline(v=results$par[k])
-        abline(h=L(results$par))
+    layout(matrix(1:(2*length(init.params)),nrow=2,byrow=TRUE))
+    for (fac in c(1.02,10)) {
+        for (k in seq_along(init.params)) {
+            parvals <- seq( results$par[k]/fac, results$par[k]*fac, length.out=20 )
+            Lvals <- sapply(parvals, function (x) L(ifelse(seq_along(init.params)==k,x,results$par)) )
+            yrange <- range(Lvals,L(results$par))
+            plot( parvals, Lvals, ylim=yrange, main=names(init.params)[k] )
+            abline(v=results$par[k])
+            abline(h=L(results$par))
+        }
     }
 
-    G@x <- update.G(results$par)
-    dG <- rowSums(G)
-    GH <- G %*% hts - dG*hts
-    GH[zeros] <- 0
+    update.aux(results$par)
     range(GH*scaling)
 
     # CHECK AGAINST RIGHT ANSWER
@@ -139,7 +128,7 @@ if (FALSE) {
     G@x <- update.G(params)
     dG <- rowSums(G)
     hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=getcores() )
-    GH <- G %*% hts - dG*hts
-    GH[zeros] <- 0
+
+    results <- optim( par=init.params*1.1, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )
 
 }
