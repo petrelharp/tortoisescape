@@ -52,7 +52,8 @@ update.aux <- function (params,env,check=TRUE) {
 }
 
 update.aux(init.params,environment(),check=FALSE)
-weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
+# weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
+weightings <- ifelse( 1:nrow(hts) %in% locs, 1, 0 )
 nomitted <- sum( weightings[row(hts)[zeros]] )
 
 L <- function (params) {
@@ -82,6 +83,7 @@ dL <- function (params) {
 
 L(init.params)
 dL(init.params)
+
 
 parscale <- c( abs(init.params[1]/10), rep(0.1,length(init.params)-1) )
 results <- optim( par=init.params, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )
