@@ -49,7 +49,9 @@ if (!interactive()) {
     stopifnot(nrow(layers)==nrow(G))
 
     transfn <- exp
-    valfn <- function (gamma) { ( rowSums( layers * gamma[col(layers)], na.rm=TRUE ) ) }
+    # valfn <- function (gamma) { ( rowSums( layers * gamma[col(layers)], na.rm=TRUE ) ) }
+    # this is faster if we don't have to worry about NAs (we shouldn't?)
+    valfn <- function (gamma) { ans <- layers[,1]*gamma[1]; for (k in (1:NCOL(layers))[-1]) { ans <- ans+layers[,k]*gamma[k] }; return(ans) }
 
     ndelta <- ngamma <- length(layer.names)
     update.G <- function(params) {
