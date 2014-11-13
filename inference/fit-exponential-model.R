@@ -138,7 +138,7 @@ if (FALSE) {
     params <- init.params
     G@x <- update.G(params)
     dG <- rowSums(G)
-    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=getcores() ) / scaling
+    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=getcores() )
     GH <- G %*% hts - dG*hts
     GH[zeros] <- 0
 
