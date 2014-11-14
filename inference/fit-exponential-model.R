@@ -51,10 +51,11 @@ update.aux <- function (params,env,check=TRUE) {
     }
 }
 
-update.aux(init.params,environment(),check=FALSE)
 # weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
-weightings <- ifelse( 1:nrow(hts) %in% locs, 1, 0 )
+# weightings <- ifelse( 1:nrow(hts) %in% locs, 1, 0 )
+weightings <- 1/rowMeans(hts,na.rm=TRUE)
 nomitted <- sum( weightings[row(hts)[zeros]] )
+update.aux(init.params,environment(),check=FALSE)
 
 L <- function (params) {
     update.aux(params,parent.env(environment()))
@@ -97,16 +98,14 @@ write( results$par, file=outfile )
 
 if (FALSE) {
 
-    gcheck <- function (eps=1e-8) {
+    gcheck <- function (params=jitter(init.params),eps=1e-8,dp=eps*dirn,dirn=runif(length(params))) {
         # check gradient  (VERY STEEP ?!?!?!)
-        dp <- eps * runif(length(init.params))
-        L0 <- L(init.params)
-        dL0 <- dL(init.params)
-        L1 <- L(init.params+dp)
-        dL1 <- dL(init.params+dp)
+        L0 <- L(params)
+        dL0 <- dL(params)
+        L1 <- L(params+dp)
+        dL1 <- dL(params+dp)
         c( L0, L1-L0, sum(dp*dL0), sum(dp*dL1) )
     }
-
 
     # check answer
     layout(matrix(1:(2*length(init.params)),nrow=2,byrow=TRUE))
@@ -130,6 +129,7 @@ if (FALSE) {
     G@x <- update.G(params)
     dG <- rowSums(G)
     hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=getcores() )
+    update.aux(params,environment(),check=FALSE)
 
     results <- optim( par=init.params*1.1, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )
 

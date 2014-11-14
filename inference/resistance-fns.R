@@ -228,26 +228,96 @@ iterate.aa <- function (aa,hts,locs,AA) {
     estimate.aa(interp.hts,locs,AA)
 }
 
-########
-# Raster whatnot
+###
+# objective functions
 
-get.neighborhoods <- function ( ndist, locations, nonmissing, layer, numcores=getcores() ) {
-    mclapply( seq_along(locations) , function (k) {
-        d_tort <- distanceFromPoints( layer, locations[k] )
-        match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
-    }, mc.cores=numcores )
+# the integral equation
+integral.objective <- function (env=environment()) {
+    IL <- function (params) {
+        # integral.hts is the mean hitting time of each neighborhood to its boundary,
+        #  plus the mean hitting time to each neighborhood (including itself)
+        update.aux(params,parent.env(environment()))
+        hitting.probs <- get.hitting.probs( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+        hitting.times <- get.hitting.times( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+        integral.hts <- do.call( rbind, mclapply( seq_along(neighborhoods[nonoverlapping]), function (k) {
+                ihs <- hitting.times[[k]] + hitting.probs[[k]] %*% hts[boundaries[[nonoverlapping[k]]],nonoverlapping] 
+                ihs[,k] <- 0
+                return(ihs)
+            }, mc.cores=numcores ) )
+        ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] / integral.hts - 1 )^2, na.rm=TRUE )  # RATIO!
+        # ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] - integral.hts )^2, na.rm=TRUE )
+        if (!is.finite(ans)) { browser() }
+        return(ans)
+    }
+    environment(IL) <- env
+    return(IL)
+}
+
+# the differential equation
+differential.objective <- function (env=environment) {
+    L <- function (params) {
+        update.aux(params,parent.env(environment()))
+        ans <- ( sum( weightings*rowSums((GH+sc.one)^2) ) - (nomitted)*sc.one^2 )
+        if (!is.finite(ans)) { browser() }
+        return(ans)
+    }
+    dL <- function (params) {
+        update.aux(params,parent.env(environment()))
+        bgrad <- ( 2 / params[1] )* sum( weightings * rowSums(GH * (GH+sc.one)) )
+        ggrads <- sapply( 1:ncol(layers), function (kk) {
+                2 * sum( weightings * rowSums( (layers[,kk] * GH) * (GH+sc.one)) )
+            } )
+        dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
+                GL <- G
+                GL@x <- G@x * layers[Gjj,kk]
+                dGL <- rowSums(GL)
+                GLH <- GL %*% hts - dGL*hts
+                GLH[zeros] <- 0
+                return( 2 * sum( weightings * rowSums( GLH * (GH+sc.one) )  ) )
+            } )
+        ans <- ( c(bgrad, ggrads, dgrads) )
+        if (any(!is.finite(ans))) { browser() }
+        return(ans)
+    }
+    environment(L) <- environment(dL)  <- env
+    return(list(L=L,dL=dL))
 }
 
 
-get.boundaries <- function ( neighborhoods, nonmissing, layer, numcores=getcores() ) {
-    mclapply( neighborhoods, function (nh) {
+########
+# Raster whatnot
+
+get.neighborhoods <- function ( ndist, locations, nonmissing, layer, numcores=getcores(), na.rm=TRUE ) {
+    neighborhoods <- mclapply( seq_along(locations) , function (k) {
+        d_tort <- distanceFromPoints( layer, locations[k] )
+        match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
+    }, mc.cores=numcores )
+    if (na.rm) { neighborhoods <- lapply(neighborhoods,function (x) { x[!is.na(x)] }) }
+    return(neighborhoods)
+}
+
+
+get.boundaries <- function ( neighborhoods, nonmissing, layer, numcores=getcores(), na.rm=TRUE ) {
+    boundaries <- mclapply( neighborhoods, function (nh) {
         values(layer) <- TRUE
         values(layer)[nonmissing][nh] <- NA
         bdry <- boundaries(layer,directions=4)
         match( which( (!is.na(values(bdry))) & (values(bdry)==1) ), nonmissing )
     }, mc.cores=numcores )
+    if (na.rm) { boundaries <- lapply(boundaries,function (x) { x[!is.na(x)] }) }
+    return(boundaries)
 }
 
+which.nonoverlapping <- function (neighborhoods) {
+    # find a set of neighborhoods that are mutually nonoverlapping
+    perm <- sample(length(neighborhoods))
+    goodones <- rep(FALSE,length(perm))
+    goodones[1] <- TRUE
+    for (k in seq_along(perm)[-1]) {
+        goodones[k] <- ( 0 == length( intersect( neighborhoods[[k]], unlist(neighborhoods[goodones]) ) ) )
+    }
+    return( which(goodones) )
+}
 
 upsample <- function ( layer.vals, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit=FALSE ) {
     # moves from layer.1 to layer.2, which must be related by a factor of ag.fact

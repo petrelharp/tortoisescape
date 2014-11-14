@@ -16,7 +16,7 @@ navals <- sample(length(values(layer.list[[1]])),10)
 for (k in 1:nlayers) { values(layer.list[[k]])[navals] <- NA }
 layer <- layer.list[[1]]
 
-nlocs <- 4
+nlocs <- 40
 locs <- SpatialPoints( cbind( 
         sample(seq(bbox(layer)[1,1],bbox(layer)[1,2],length.out=100),nlocs),
         sample(seq(bbox(layer)[2,1],bbox(layer)[2,2],length.out=100),nlocs)
@@ -27,16 +27,25 @@ nonmissing <- which(!is.na(values(layer)))
 ndist <- 10
 
 neighborhoods <- get.neighborhoods( ndist, locs, nonmissing, layer, numcores )
-nlayer <- layer
-values(nlayer)[nonmissing] <- ( ! seq_along(nonmissing) %in% unlist(neighborhoods) )
 boundaries <- get.boundaries( neighborhoods, nonmissing, layer, numcores )
-blayer <- layer
-values(blayer)[nonmissing] <- ( ! seq_along(nonmissing) %in% unlist(boundaries) )
+nonoverlapping <- which.nonoverlapping( neighborhoods )
 
+nlayer <- nlayer.2 <- layer
+values(nlayer)[nonmissing] <- ( ! seq_along(nonmissing) %in% unlist(neighborhoods) )
+values(nlayer.2)[nonmissing] <- ( ! seq_along(nonmissing) %in% unlist(neighborhoods[nonoverlapping]) )
+blayer <- blayer.2 <- layer
+values(blayer)[nonmissing] <- ( ! seq_along(nonmissing) %in% unlist(boundaries) )
+values(blayer.2)[nonmissing] <- ( ! seq_along(nonmissing) %in% unlist(boundaries[nonoverlapping]) )
+
+layout(t(1:2))
 plot(layer)
 points(locs,pch="*",cex=2)
 plot(nlayer,add=TRUE,col=adjustcolor(c("black",NA),.5))
 plot(blayer,add=TRUE,col=adjustcolor(c("red",NA),.5))
+plot(layer)
+points(locs,pch="*",cex=2)
+plot(nlayer.2,add=TRUE,col=adjustcolor(c("black",NA),.5))
+plot(blayer.2,add=TRUE,col=adjustcolor(c("red",NA),.5))
 
 layers <- sapply( layer.list, function (ll) { values(ll)[nonmissing] } )
 
@@ -158,14 +167,15 @@ IL <- function (params) {
     # integral.hts is the mean hitting time of each neighborhood to its boundary,
     #  plus the mean hitting time to each neighborhood (including itself)
     update.aux(params,parent.env(environment()))
-    hitting.probs <- get.hitting.probs( G, dG, neighborhoods, boundaries, numcores=numcores )
-    hitting.times <- get.hitting.times( G, dG, neighborhoods, boundaries, numcores=numcores )
-    integral.hts <- do.call( rbind, mclapply( seq_along(neighborhoods), function (k) {
-            ihs <- hitting.times[[k]] + hitting.probs[[k]] %*% hts[boundaries[[k]],] 
+    hitting.probs <- get.hitting.probs( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+    hitting.times <- get.hitting.times( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+    integral.hts <- do.call( rbind, mclapply( seq_along(neighborhoods[nonoverlapping]), function (k) {
+            ihs <- hitting.times[[k]] + hitting.probs[[k]] %*% hts[boundaries[[nonoverlapping[k]]],nonoverlapping] 
             ihs[,k] <- 0
             return(ihs)
         }, mc.cores=numcores ) )
-    ans <- sum( ( hts[unlist(neighborhoods),] - integral.hts )^2 )
+    ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] / integral.hts - 1 )^2, na.rm=TRUE )
+    # ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] - integral.hts )^2, na.rm=TRUE )
     if (!is.finite(ans)) { browser() }
     return(ans)
 }
@@ -175,13 +185,13 @@ IL(true.params)
 
 # compare steepness
 layout(matrix(1:(2*length(init.params)),nrow=2))
-fac <- 5
+fac <- 3
 for (k in seq_along(init.params)) {
     parvals <- seq( init.params[k]-fac, init.params[k]+fac, length.out=20 )
     for (fn in list(L,IL)) {
         Lvals <- sapply(parvals, function (x) fn(ifelse(seq_along(init.params)==k,x,init.params)) )
-        yrange <- range(Lvals,fn(init.params))
-        plot( parvals, Lvals, ylim=yrange, main=names(init.params)[k] )
+        yrange <- range(1+Lvals,fn(init.params)+1)
+        plot( parvals, 1+Lvals, ylim=yrange, main=names(init.params)[k], log='y' )
         abline(v=init.params[k])
         abline(h=fn(init.params))
     }
