@@ -55,10 +55,11 @@ if (FALSE) {
 
 ndist <- 15000  # 15 km
 
-neighborhoods <- mclapply( seq_along(tort.coords.rasterGCS) , function (k) {
-        d_tort <- distanceFromPoints( onelayer, tort.coords.rasterGCS[k] )
-        match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
-    }, mc.cores=numcores )
+neighborhoods <- get.neighborhoods( neighborhoods, tort.coords.rasterGCS, nonmissing, onelayer, numcores )
+# mclapply( seq_along(tort.coords.rasterGCS) , function (k) {
+#         d_tort <- distanceFromPoints( onelayer, tort.coords.rasterGCS[k] )
+#         match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
+#     }, mc.cores=numcores )
 
 outfile <- paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' )
 save(neighborhoods, file=outfile )

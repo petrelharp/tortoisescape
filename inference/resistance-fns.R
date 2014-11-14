@@ -139,6 +139,27 @@ hitting.analytic <- function (locs, G, numcores=getcores()) {
     return(hts)
 }
 
+get.hitting.probs <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
+    # returns a list of matrices of with the [[k]]th has [i,j]th entry
+    # the hitting probabilty from the i-th element of neighborhoods[[k]] to the j-th element of boundaries[[k]]
+    mclapply( seq_along(neighborhoods), function (k) {
+            nh <- neighborhoods[[k]]
+            bd <- boundaries[[k]]
+            as.matrix( solve( G[nh,nh]-Diagonal(n=length(nh),x=dG[nh]), -G[nh,bd,drop=FALSE] ) )
+        }, mc.cores=numcores )
+}
+
+get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
+    # returns a list of vectors with the [[k]]th has [i]th entry
+    # the hitting times from the i-th element of neighborhoods[[k]] to boundaries[[k]]
+    #  (like hitting.analytic but different syntax)
+    mclapply( seq_along(neighborhoods), function (k) {
+            nh <- neighborhoods[[k]]
+            bd <- boundaries[[k]]
+            as.vector( solve( G[nh,nh]-Diagonal(n=length(nh),x=dG[nh]), rep.int(-1.0,length(nh)) ) )
+        }, mc.cores=numcores )
+}
+
 interp.hitting <- function ( G, locs, obs.hts, gamma=1 ) {
     # interpolate hitting times by minimizing squared error:
     #       G is a generator matrix
@@ -210,6 +231,23 @@ iterate.aa <- function (aa,hts,locs,AA) {
 ########
 # Raster whatnot
 
+get.neighborhoods <- function ( ndist, locations, nonmissing, layer, numcores=getcores() ) {
+    mclapply( seq_along(locations) , function (k) {
+        d_tort <- distanceFromPoints( layer, locations[k] )
+        match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
+    }, mc.cores=numcores )
+}
+
+
+get.boundaries <- function ( neighborhoods, nonmissing, layer, numcores=getcores() ) {
+    mclapply( neighborhoods, function (nh) {
+        values(layer) <- TRUE
+        values(layer)[nonmissing][nh] <- NA
+        bdry <- boundaries(layer,directions=4)
+        match( which( (!is.na(values(bdry))) & (values(bdry)==1) ), nonmissing )
+    }, mc.cores=numcores )
+}
+
 
 upsample <- function ( layer.vals, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit=FALSE ) {
     # moves from layer.1 to layer.2, which must be related by a factor of ag.fact
@@ -258,9 +296,8 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 ##
 # plotting whatnot
 
-plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
+plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
     # use this to make a quick plotting function
-    layer <- raster(paste(layer.prefix,layer.name,sep=''))
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
     ph <- function (x,...) { 
