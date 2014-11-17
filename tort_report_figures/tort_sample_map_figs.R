@@ -56,7 +56,30 @@ par(mfrow=c(1,2))
 		mtext(side=3,font=2,text="Ivanpah Sample Map",padj=-1)
 	scalebar(d=20000,xy=c(x.min+2000,y.max-15000),type="line",below="meters",lwd=1.1,label="20km")
 dev.off()
-		
+
+load("~/Desktop/Dropbox/tortoisescape/tort272.coords.raster.GCS.Robj")
+
+png(file="tort_report_figures/black&white_272_sample.map.png",res=200,width=10*200,height=5*200)
+#quartz(width=10,height=5)
+par(mfrow=c(1,2))
+	plot(tort.coords.272.rasterGCS,pch=20,cex=0.7,ylab="",xlab="",col="orange")
+		points(tort.coords.rasterGCS,pch=20,cex=0.7)
+		lines(county_lines,lwd=0.5)
+		lines(state.lines.spobj,lwd=2)
+		polygon(x=c(x.min,x.max,x.max,x.min,x.min),y=c(y.min,y.min,y.max,y.max,y.min),lty=2,lwd=0.5)
+		box(lwd=3)
+		mtext(side=3,font=2,text="Tortoise Sample Map",padj=-1)
+	scalebar(d=100000,xy=c(-1590000,y=-460000),type="line",below="meters",lwd=1.5,label="100km")
+	plot(tort.coords.272.rasterGCS,pch=20,cex=0.7,ylab="",xlab="",xlim=c(x.min,x.max),ylim=c(y.min,y.max),col="orange")
+		points(tort.coords.rasterGCS,pch=20,cex=0.7)
+		lines(county_lines,lwd=0.5)
+		lines(state.lines.spobj,lwd=2)
+		box(lwd=3)
+		mtext(side=3,font=2,text="Ivanpah Sample Map",padj=-1)
+	scalebar(d=20000,xy=c(x.min+2000,y.max-15000),type="line",below="meters",lwd=1.1,label="20km")
+dev.off()
+
+
 # do PCA on tortoise genetic covariance
 #	and use it to make plotting color & symbol options
 nind <- nrow(tort.coords.rasterGCS@coords)
@@ -67,7 +90,9 @@ tort.plotting.colors.discrete <- rep("red",nrow(tort.coords.rasterGCS@coords))
 	tort.plotting.colors.discrete[eig.covmat$vectors[,1] > 0] <- "purple"
 tort.plotting.colors.continuous <- rev(rainbow(nind,start=4/6,end=6/6))[as.numeric(cut(eig.covmat$vectors[,1],nind))]
 tort.plotting.pch <- rep(20,nrow(tort.coords.rasterGCS@coords))
-	tort.plotting.pch[eig.covmat$vectors[,2] > 0 & eig.covmat$vectors[,1] < 0] <- 18
+	tort.plotting.pch[eig.covmat$vectors[,2] > 0 & eig.covmat$vectors[,1] < 0] <- 17
+		xlab=,
+		ylab=,
 
 
 # make a map of tortoise samples colored
@@ -86,11 +111,17 @@ plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
 		rect(-2155000,-5.75e+05,-1872000,-4.2e+05,col="white")
 		subplot(fun = {		plot(eig.covmat$vectors[,1],eig.covmat$vectors[,2],
 								col=tort.plotting.colors.discrete,pch=tort.plotting.pch,cex=0.5,xaxt='n',yaxt='n',xlab="",ylab="") ; 
-							abline(v=0,lty=2,lwd=0.5)
+								abline(v=0,col="gray",lty=2) ;
+								lines(x=c(-5,0),y=c(0,0),col="gray",lty=2)
 						},
 					x=c(-2155000,-1872000),y=c(-5.75e+05,-4.2e+05))
-	mtext(side=1,text="PC 1",cex=0.75,adj=0.215,padj=-3)
-		mtext(side=1,text="PC 2",cex=0.75,adj=-1.85,padj=-19.5,las=2)
+		mtext(side=1,text=paste("PC1 (",
+					100*round(eig.covmat$values[1]/sum(eig.covmat$values),3)
+					,"%)",sep=""),cex=0.75,adj=0.215,padj=-3)
+		mtext(side=1,text=paste("PC2 (",
+					100*round(eig.covmat$values[2]/sum(eig.covmat$values),3)
+					,"%)",sep=""),cex=0.75,adj=-0.55,padj=-19.5,las=2)
+		mtext("meters",side=4,las=2,padj=-8.5,adj=-0.25)
 	scalebar(d=100000,xy=c(-1570000,y=-560000),type="line",below="meters",lwd=1.5,label="100km")
 	zoom.ext <- extent(dem)
 		zoom.ext@xmin <- x.min - 1e6
@@ -103,6 +134,7 @@ plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
 		lines(county_lines,lwd=0.5)
 		lines(state.lines.spobj,lwd=1)
 		box(lwd=3)
+	mtext("meters",side=4,las=2,padj=-8.5,adj=-0.25)
 	scalebar(d=20000,xy=c(x.min+10000,y.max-15000),type="line",below="meters",lwd=1.1,label="20km")
 dev.off()
 
@@ -127,8 +159,13 @@ plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
 								lines(x=c(-5,0),y=c(0,0),col="gray",lty=2)
 						},
 					x=c(-2155000,-1872000),y=c(-5.75e+05,-4.2e+05))
-	mtext(side=1,text="PC 1",cex=0.75,adj=0.215,padj=-3)
-		mtext(side=1,text="PC 2",cex=0.75,adj=-1.85,padj=-19.5,las=2)
+		mtext(side=1,text=paste("PC1 (",
+					100*round(eig.covmat$values[1]/sum(eig.covmat$values),3)
+					,"%)",sep=""),cex=0.75,adj=0.215,padj=-3)
+		mtext(side=1,text=paste("PC2 (",
+					100*round(eig.covmat$values[2]/sum(eig.covmat$values),3)
+					,"%)",sep=""),cex=0.75,adj=-0.55,padj=-19.5,las=2)
+		mtext("meters",side=4,las=2,padj=-8.5,adj=-0.25)
 	scalebar(d=100000,xy=c(-1570000,y=-560000),type="line",below="meters",lwd=1.5,label="100km")
 	zoom.ext <- extent(dem)
 		zoom.ext@xmin <- x.min - 1e6
@@ -141,6 +178,7 @@ plot(dem,ylab="",xlab="",main="Tortoise Sample Map",xaxt='n',yaxt='n')
 		lines(county_lines,lwd=0.5)
 		lines(state.lines.spobj,lwd=1)
 		box(lwd=3)
+	mtext("meters",side=4,las=2,padj=-8.5,adj=-0.25)
 	scalebar(d=20000,xy=c(x.min+10000,y.max-15000),type="line",below="meters",lwd=1.1,label="20km")
 dev.off()
 

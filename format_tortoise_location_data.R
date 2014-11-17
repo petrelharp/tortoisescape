@@ -78,5 +78,4 @@ tort.coords.272.rasterGCS <- rbind(tort.coords.272_zone11_rasterGCS[1:(grep("12"
 								tort.coords.272_zone11_rasterGCS[grep("12",tort.zone.272):(length(tort.zone.272)-1),])
 
 row.names(tort.coords.272.rasterGCS) <- tort.coord.data$EM_Tort_ID
-
-plot(tort.coords.rasterGCS)
+save(tort.coords.272.rasterGCS,file="tort272.coords.raster.GCS.Robj")
