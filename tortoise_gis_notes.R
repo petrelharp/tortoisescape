@@ -13,6 +13,31 @@ if(file.exists("/Volumes/BBURD/tortTestGIS")){
 	setwd("/Volumes/BBURD/tortTestGIS")
 }
 
+if(file.exists("/Volumes/cooplab1/tortoises/geolayers/10x")){
+	setwd("/Volumes/cooplab1/tortoises/geolayers/10x")
+}
+
+# go through all rasters and get the value range for each one
+raster.list <- list.files()[grep("*.gri",list.files(pattern="_10x"))]
+raster.list.values <- vector("list",length=length(raster.list))
+for(i in 1:length(raster.list)){
+	tmp.raster <- raster(raster.list[i])
+	raster.list.values[[i]] <- list(min = tmp.raster@data@min, 
+									max = tmp.raster@data@max,
+									nodatavalue = tmp.raster@file@nodatavalue)
+}
+raster.names <- gsub("crop_resampled_masked_aggregated_10x_","",raster.list)
+	raster.names <- gsub(".gri","",raster.names)
+	raster.names <- gsub("crop_masked_aggregated_10x_","",raster.names)
+names(raster.list.values) <- raster.names
+raster.value.dataframe <- data.frame("min.value" = unlist(lapply(raster.list.values,"[[",1)),
+									"max.value" = unlist(lapply(raster.list.values,"[[",2)),
+									"no.data.value" = unlist(lapply(raster.list.values,"[[",3)),
+									row.names=raster.names)
+save(raster.value.dataframe,file="raster.value.dataframe.Robj")
+
+	
+	
 # everything below in the if(FALSE) statement
 #	was exploratory code I made for working
 #	with rasters.  Doesn't have to be run
@@ -356,3 +381,6 @@ sort( sapply(mget(ls()),object.size) )
 lsos <- function(..., n=10) {
     .ls.objects(..., order.by="Size", decreasing=TRUE, head=TRUE, n=n)
 }
+
+
+
