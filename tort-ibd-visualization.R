@@ -78,6 +78,8 @@ ivanpah_within_lm <- lm( pi ~ DISTANCE, data=subset(ivanpah_dists,loc1==loc2) )
 
 infl <- function (x,fac=.5) { as.vector(mean(x) + (1+fac)*(x-mean(x))) }
 
+require(plotrix)
+
 pdf(file="ivanpah-ibd.pdf", width=10, height=6, pointsize=10)
 layout(t(1:2))
 plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],.8), ylim=infl(ivanpah_coords@bbox["coords.x2",]), main="Ivanpah valley", xaxt='n', yaxt='n' )
@@ -92,3 +94,19 @@ with(ivanpah_dists, plot( DISTANCE, pi, xlab="geographic distance (km)", ylab="g
 abline( coef( ivanpah_within_lm ), col='green' )
 addtable2plot( "bottomright", table=round(summary(ivanpah_within_lm)$coefficients,digits=6), display.rownames=TRUE)
 dev.off()
+
+
+png(file="tort_report_figures/within-ivanpah-ibd.png",res=200,width=6*200,height=4*200)
+layout(t(1:2))
+    opar <- par(mar=c(5,4,3,1)+.1)
+    with(ivanpah_dists, plot( DISTANCE, pi, 
+			pch=20, cex=0.3,
+            xlab="geographic distance (km)", ylab="genetic distance (divergence)") )
+    title( main="Isolation by Distance", line=1 )
+    abline( coef( ivanpah_lm ), col='red' )
+    par(mar=c(5,1,3,1)+.1)
+    plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],.8), ylim=infl(ivanpah_coords@bbox["coords.x2",]), xaxt='n', yaxt='n' )
+    title( main="in the Ivanpah valley", line=1 )
+    points( ivanpah_coords, pch=20 ) #, col=torts$Location_ID[torts$Location_ID %in% ivanpah_locs] )
+dev.off()
+

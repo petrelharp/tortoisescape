@@ -54,10 +54,11 @@ dists$resid.pi <- with(dists, resid( lm( pi ~ DISTANCE + PC1 ) ) )
 ##
 # look at nearby distances
 dist.cutoff <- 100
+usethese <- with( dists, DISTANCE<dist.cutoff & pcgroup )
 
 edist.lms <- lapply( layer.names, function (layer.name) {
-                z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.name ]]
-                lm( subset(dists,DISTANCE<dist.cutoff)$pi ~ z )
+                z <- subset(dists,usethese)[[ layer.name ]]
+                lm( subset(dists,usethese)$pi ~ z )
     } )
 names(edist.lms) <- layer.names
 
@@ -68,8 +69,8 @@ edist.coefs <- t( rbind( sapply( edist.lms, coef ),
 edist.coefs <- edist.coefs[ order(edist.coefs[,3]), ]
 
 edist.resid.lms <- lapply( layer.names, function (layer.name) {
-                z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.name ]]
-                lm( subset(dists,DISTANCE<dist.cutoff)$resid.pi ~ z )
+                z <- subset(dists,usethese)[[ layer.name ]]
+                lm( subset(dists,usethese)$resid.pi ~ z )
     } )
 names(edist.resid.lms) <- layer.names
 
@@ -77,23 +78,29 @@ edist.resid.coefs <- t( rbind( sapply( edist.resid.lms, coef ),
         r.squared=sapply( lapply( edist.resid.lms, summary ), "[[", "r.squared" ),
         p.value=sapply( lapply( lapply( edist.resid.lms, anova ), "[[", "Pr(>F)" ), "[", 1 ) 
     ) )
-edist.resid.coefs <- edist.resid.coefs[ order(edist.resid.coefs[,3]), ]
+layer.order <- rev(order(edist.resid.coefs[,3]))
+edist.resid.coefs <- edist.resid.coefs[ layer.order, ]
 
-write.table( edist.resid.coefs, file="envdist-coefficients.tsv", sep='\t', quote=FALSE )
+options(scipen=5)
+tmp.tex <- apply(edist.resid.coefs,2,format,digits=2)
+write.table( tmp.text, file="envdist-coefficients.tsv", sep='\t', quote=FALSE )
 
-pdf(file="envdist-correlations.pdf", width=12, height=8, pointsize=10 )
-layout( matrix(1:24,nrow=4) )
+# pdf(file="envdist-correlations.pdf", width=12, height=8, pointsize=10 )
+png(file="envdist-correlations.png", width=12*288, height=8*288, res=288, pointsize=10 )
+layout( matrix(1:24,nrow=4,byrow=TRUE) )
 par(mar=c(0,0,2,0)+.1)
-for (k in seq_along(layer.names)) {
-    z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.names[k] ]]
-    plot( z, subset(dists,DISTANCE<dist.cutoff)$pi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
-        col=adjustcolor("black",.5), xlim=quantile(z,c(0,.98),na.rm=TRUE) )
-    abline(coef(edist.lms[[k]]),col='red',lwd=2)
-}
-for (k in seq_along(layer.names)) {
-    z <- subset(dists,DISTANCE<dist.cutoff)[[ layer.names[k] ]]
-    plot( z, subset(dists,DISTANCE<dist.cutoff)$resid.pi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
-        col=adjustcolor("black",.5), xlim=quantile(z,c(0,.98),na.rm=TRUE) )
+# cols <- adjustcolor("black",0.5)
+cols <- adjustcolor( ifelse( abs(subset(dists,usethese)$PC1)<0.1, "black", "red" ), 0.5 )
+# for (k in seq_along(layer.names)) {
+#     z <- subset(dists,usethese)[[ layer.names[k] ]]
+#     plot( z, subset(dists,usethese)$pi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
+#         col=cols, xlim=quantile(z,c(0,.98),na.rm=TRUE) )
+#     abline(coef(edist.lms[[k]]),col='red',lwd=2)
+# }
+for (k in seq_along(layer.names)[layer.order]) {
+    z <- subset(dists,usethese)[[ layer.names[k] ]]
+    plot( z, subset(dists,usethese)$resid.pi, main=layer.names[k], xlab='', ylab='', xaxt='n', yaxt='n', pch=20, cex=.5, 
+        col=cols, xlim=quantile(z,c(0,.98),na.rm=TRUE) )
     abline(coef(edist.resid.lms[[k]]),col='red',lwd=2)
 }
 dev.off()

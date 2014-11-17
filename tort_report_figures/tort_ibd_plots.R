@@ -65,6 +65,16 @@ tort.plot.mat.col.3bins <- matrix("gray",nrow=nind,ncol=nind)
 index.mat <- upper.tri(tort.dists,diag=FALSE)
 
 ################
+#	IBD, black-and-white
+################
+
+png(file="tort_report_figures/IBD_black_and_white_plot.png",res=200,width=6*200,height=5*200)
+	plot(tort.dists[index.mat],tort.pwp[index.mat],
+			col=adjustcolor("black",0.5),
+			pch=20,cex=0.3,xlab="pairwise geographic distance (km)",ylab="pairwise sequence divergence",main = "Isolation by Distance")
+dev.off()
+
+################
 #	IBD colored by
 #		N-N,N-S,S-S
 ################
@@ -99,7 +109,7 @@ png(file="tort_report_figures/IBD_NN_SS_NS_plot_insetPCmap_LinearRegress.png",re
 	#quartz(width=6,height=5)
 	slope.coefficients <- c()
 	plot(tort.dists[index.mat],tort.pwp[index.mat],
-			col=tort.plot.mat.col.3bins[index.mat],
+			col=adjustcolor(tort.plot.mat.col.3bins[index.mat],0.5),
 			pch=20,cex=0.3,xlab="pairwise geographic distance",
 			ylab="pairwise sequence divergence",
 			main = "Isolation by Distance",
@@ -171,6 +181,8 @@ png(file="tort_report_figures/IBD_PC1dist_plot.png",res=200,width=6*200,height=5
 						axis.args=list(at=c(0.03,35.4),labels=leg.lab.vals))
 				mtext(text="Distance on\n genetic PC1",side=1,padj=-2.7,adj=0.78)
 dev.off()
+
+
 
 
 ################
