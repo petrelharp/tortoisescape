@@ -1,5 +1,20 @@
 #!/usr/bin/Rscript
 
+# number of cores for parallel
+getcores <- function (subdir) {
+    if ( "parallel" %in% .packages()) {
+        cpupipe <- pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")
+        numcores <- 1+as.numeric(scan(cpupipe))
+        close(cpupipe)
+    } else {
+        numcores <- 1
+    }
+    if ( !missing(subdir) && ( as.numeric(gsub("x","",subdir)) < 50 ) ) {
+        numcores <- 1
+    }
+    return(numcores)
+}
+
 # move @p to @j in dgCMatrix
 p.to.j <- function (p) { rep( seq.int( length(p)-1 ), diff(p) ) }
 
@@ -102,18 +117,47 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
     return(hts)
 }
 
-hitting.analytic <- function (locs, G, numcores=as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1) {
+hitting.analytic <- function (locs, G, numcores=getcores()) {
     # compute analytical expected hitting times
+    #   here `locs` is a vector of (single) locations
+    #   or a list of vectors
     if ( numcores>1 && "parallel" %in% .packages()) {
         this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
     hts <- this.apply( locs, function (k) { 
-                z <- solve( G[-k,-k], rep.int(-1.0,nrow(G)-1L) ) 
-                return( c( z[seq.int(1,length.out=k-1L)], 0, z[seq.int(k,length.out=length(z)-k+1L)] ) )
+                klocs <- k[!is.na(k)]
+                if (length(klocs)>0) {
+                    z <- numeric(nrow(G))
+                    z[-klocs] <- as.vector( solve( G[-klocs,-klocs], rep.int(-1.0,nrow(G)-length(klocs)) ) )
+                    return( z )
+                } else {
+                    return(NA)
+                }
             } )
     return(hts)
+}
+
+get.hitting.probs <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
+    # returns a list of matrices of with the [[k]]th has [i,j]th entry
+    # the hitting probabilty from the i-th element of neighborhoods[[k]] to the j-th element of boundaries[[k]]
+    mclapply( seq_along(neighborhoods), function (k) {
+            nh <- neighborhoods[[k]]
+            bd <- boundaries[[k]]
+            as.matrix( solve( G[nh,nh]-Diagonal(n=length(nh),x=dG[nh]), -G[nh,bd,drop=FALSE] ) )
+        }, mc.cores=numcores )
+}
+
+get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
+    # returns a list of vectors with the [[k]]th has [i]th entry
+    # the hitting times from the i-th element of neighborhoods[[k]] to boundaries[[k]]
+    #  (like hitting.analytic but different syntax)
+    mclapply( seq_along(neighborhoods), function (k) {
+            nh <- neighborhoods[[k]]
+            bd <- boundaries[[k]]
+            as.vector( solve( G[nh,nh]-Diagonal(n=length(nh),x=dG[nh]), rep.int(-1.0,length(nh)) ) )
+        }, mc.cores=numcores )
 }
 
 interp.hitting <- function ( G, locs, obs.hts, gamma=1 ) {
@@ -142,6 +186,28 @@ make.G <- function (aa,AA) {
     return(G)
 }
 
+estimate.expl <- function (hts, neighborhoods, layers, G, dG=rowSums(G), numcores=getcores() ) {
+    # estimate parameters using the exponential transform
+    ## deriv wrt gamma and delta : eqn:expl_deriv_gamma and eqn:expl_deriv_delta
+    GH <- G %*% hts - dG * hts
+    zeros <- unlist(neighborhoods) + rep((seq_along(neighborhoods)-1)*nrow(hts),sapply(neighborhoods,length))
+
+    fn <- function (params) {
+
+    }
+
+    dd <- mclapply( 1:ncol(layers), function (k) {
+                Z <- layers[,k] * GH * (GH+1)
+                Z[zeros] <- 0
+                dgamma <- 2*sum(Z)
+                GLH <- G %*% ( layers[,k] * hts ) + dG * ((G>0)%*%layers[,k]) * hts 
+                GLH[zeros] <- 0
+                ddelta <- dgamma + 2*sum(GLH)
+                return(c(dgamma,ddelta))
+            } )
+
+}
+
 estimate.aa <- function (hts,locs,AA) {
     # Estimate alphas given full hitting times
     # don't count these cells:
@@ -162,6 +228,136 @@ iterate.aa <- function (aa,hts,locs,AA) {
     estimate.aa(interp.hts,locs,AA)
 }
 
+###
+# objective functions
+
+# the integral equation
+integral.objective <- function (env=environment()) {
+    IL <- function (params) {
+        # integral.hts is the mean hitting time of each neighborhood to its boundary,
+        #  plus the mean hitting time to each neighborhood (including itself)
+        update.aux(params,parent.env(environment()))
+        hitting.probs <- get.hitting.probs( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+        hitting.times <- get.hitting.times( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+        integral.hts <- do.call( rbind, mclapply( seq_along(neighborhoods[nonoverlapping]), function (k) {
+                ihs <- hitting.times[[k]] + hitting.probs[[k]] %*% hts[boundaries[[nonoverlapping[k]]],nonoverlapping] 
+                ihs[,k] <- 0
+                return(ihs)
+            }, mc.cores=numcores ) )
+        ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] / integral.hts - 1 )^2, na.rm=TRUE )  # RATIO!
+        # ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] - integral.hts )^2, na.rm=TRUE )
+        if (!is.finite(ans)) { browser() }
+        return(ans)
+    }
+    environment(IL) <- env
+    return(IL)
+}
+
+# the differential equation
+differential.objective <- function (env=environment) {
+    L <- function (params) {
+        update.aux(params,parent.env(environment()))
+        ans <- ( sum( weightings*rowSums((GH+sc.one)^2) ) - (nomitted)*sc.one^2 )
+        if (!is.finite(ans)) { browser() }
+        return(ans)
+    }
+    dL <- function (params) {
+        update.aux(params,parent.env(environment()))
+        bgrad <- ( 2 / params[1] )* sum( weightings * rowSums(GH * (GH+sc.one)) )
+        ggrads <- sapply( 1:ncol(layers), function (kk) {
+                2 * sum( weightings * rowSums( (layers[,kk] * GH) * (GH+sc.one)) )
+            } )
+        dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
+                GL <- G
+                GL@x <- G@x * layers[Gjj,kk]
+                dGL <- rowSums(GL)
+                GLH <- GL %*% hts - dGL*hts
+                GLH[zeros] <- 0
+                return( 2 * sum( weightings * rowSums( GLH * (GH+sc.one) )  ) )
+            } )
+        ans <- ( c(bgrad, ggrads, dgrads) )
+        if (any(!is.finite(ans))) { browser() }
+        return(ans)
+    }
+    environment(L) <- environment(dL)  <- env
+    return(list(L=L,dL=dL))
+}
+
+
+########
+# Raster whatnot
+
+get.neighborhoods <- function ( ndist, locations, nonmissing, layer, numcores=getcores(), na.rm=TRUE ) {
+    neighborhoods <- mclapply( seq_along(locations) , function (k) {
+        d_tort <- distanceFromPoints( layer, locations[k] )
+        match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
+    }, mc.cores=numcores )
+    if (na.rm) { neighborhoods <- lapply(neighborhoods,function (x) { x[!is.na(x)] }) }
+    return(neighborhoods)
+}
+
+
+get.boundaries <- function ( neighborhoods, nonmissing, layer, numcores=getcores(), na.rm=TRUE ) {
+    boundaries <- mclapply( neighborhoods, function (nh) {
+        values(layer) <- TRUE
+        values(layer)[nonmissing][nh] <- NA
+        bdry <- boundaries(layer,directions=4)
+        match( which( (!is.na(values(bdry))) & (values(bdry)==1) ), nonmissing )
+    }, mc.cores=numcores )
+    if (na.rm) { boundaries <- lapply(boundaries,function (x) { x[!is.na(x)] }) }
+    return(boundaries)
+}
+
+which.nonoverlapping <- function (neighborhoods) {
+    # find a set of neighborhoods that are mutually nonoverlapping
+    perm <- sample(length(neighborhoods))
+    goodones <- rep(FALSE,length(perm))
+    goodones[1] <- TRUE
+    for (k in seq_along(perm)[-1]) {
+        goodones[k] <- ( 0 == length( intersect( neighborhoods[[k]], unlist(neighborhoods[goodones]) ) ) )
+    }
+    return( which(goodones) )
+}
+
+upsample <- function ( layer.vals, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit=FALSE ) {
+    # moves from layer.1 to layer.2, which must be related by a factor of ag.fact
+    values(layer.1)[nonmissing.1] <- layer.vals
+    layer.1.dis <- crop( disaggregate( layer.1, fact=ag.fact, method='bilinear' ), layer.2 )
+    stopifnot( all( dim(layer.1.dis)==dim(layer.2) ) )
+    # can skip this step, hopefully
+    if (checkit) {
+        layer.1.dis.res <- resample( layer.1.dis, layer.2 )
+        stopifnot( all( abs( values(layer.1.dis)[nonmissing.2] - values(layer.1.dis.res)[nonmissing.2] ) < 1e-3 ) )
+    }
+    # get values out
+    return( values(layer.1.dis)[nonmissing.2] )
+}
+
+upsample.hts <- function ( hts, ..., numcores=getcores() ) {
+    new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
+                upsample( hts[,k], ... )
+        }, mc.cores=numcores ) )
+    colnames(new.hts) <- colnames(hts)
+    return(new.hts)
+}
+
+downsample <- function ( layer.vals, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit=FALSE ) {
+    # moves from layer.2 to layer.1, which must be related by a factor of ag.fact
+    values(layer.2)[nonmissing.2] <- layer.vals
+    layer.2.ag <- crop( aggregate( layer.2, fact=ag.fact, fun=mean, na.rm=TRUE ), layer.1 )
+    stopifnot( all( dim(layer.2.ag)==dim(layer.1) ) )
+    # get values out
+    return( values(layer.2.ag)[nonmissing.1] )
+}
+
+downsample.hts <- function ( hts, ..., numcores=getcores() ) {
+    new.hts <- do.call( cbind, mclapply( 1:ncol(hts), function (k) {
+                downsample( hts[,k], ... )
+        }, mc.cores=numcores ) )
+    colnames(new.hts) <- colnames(hts)
+    return(new.hts)
+}
+
 ##
 # misc
 
@@ -170,18 +366,16 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 ##
 # plotting whatnot
 
-plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,homedir="..") {
+plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
     # use this to make a quick plotting function
-    layer <- raster(paste(layer.prefix,layer.name,sep=''))
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
     ph <- function (x,...) { 
         values(layer)[nonmissing] <- x
-        opar <- par()  # plotting layers messes up margins
+        opar <- par(par.args)  # plotting layers messes up margins
         plot(layer,...)
         points(tort.coords.rasterGCS,pch=20,cex=.25)
-        # par(opar[setdiff(names(opar), c("cin", "cra", "csi", "cxy", "din", "page") )])
-        par(mar=opar$mar)
+        par(opar)
     }
     environment(ph) <- new.env()
     assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))

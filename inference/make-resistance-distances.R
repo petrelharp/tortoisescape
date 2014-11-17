@@ -1,34 +1,33 @@
 #!/usr/bin/Rscript
 
-###
-# Get hitting times with a landscape layer
-#   e.g.
-#     Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ annual_precip
-# (note the space!)                                                                           ---->^
+usage <- '
+    Get hitting times with a list of landscape layers:
+        Rscript make-resistance-distances.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
+      e.g.
+        Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv numeric
 
-source("resistance-fns.R")
-require(raster)
-
-require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+    Here `method` is either "analytic" or "numeric".
+'
 
 if (!interactive()) {
+    if (length(commandArgs(TRUE))<5) { stop(usage) }
+    print(commandArgs(TRUE))
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
     param.file <- commandArgs(TRUE)[4] 
     method <- commandArgs(TRUE)[5] 
     prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
-    maxtime <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { 6*60*60 } 
+    maxit <- if (length(commandArgs(TRUE))>6) { as.numeric(commandArgs(TRUE)[7]) } else { 100 } 
     outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
 } else {
-    layer.prefix <- "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_"
-    subdir <- "100x"
-    layer.file <- "../inference/six-raster-list"
-    param.file <- "simple-init-params-six-raster-list.tsv"
-    method <- "CG"
-    prev.ht <- "100x/500x-aggregated-hitting-times.tsv"
-    maxtime <- 2*60
+    layer.prefix <- "../geolayers/multigrid/256x/crm_"
+    subdir <- "256x"
+    layer.file <- "dem-layer-list"
+    param.file <- "params-dem-layer-list.tsv"
+    method <- "analytic"
+    prev.ht <- NULL
+    maxit <- 100
     outfile <- NULL
 
     # layer.prefix <- "../geolayers/TIFF/500x/500x_"
@@ -37,24 +36,45 @@ if (!interactive()) {
     # param.file <- "simple-init-params-six-raster-list.tsv"
     # method <- "analytic"
     # prev.ht <- NULL
-    # maxtime <- 1*60
+    # maxit <- NULL
     # outfile <- NULL
+    argvec <- scan(what='char')
+    layer.prefix <- argvec[1]
+    subdir <- argvec[2]
+    layer.file <- argvec[3]
+    param.file <- argvec[4]
+    method <- argvec[5]
+    prev.ht <- argvec[6]
+    maxit <- argvec[7]
+    outfile <- argvec[8]
 }
 
-if (is.null(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
+# number of scaling & shifting steps
+nscale <- 0
+
+cat(paste(commandArgs()),"\n")
+
+if (! method %in% c("analytic","numeric")) { stop(usage) }
+
+source("resistance-fns.R")
+require(raster)
+
+require(parallel)
+numcores <- getcores()
+
+if (!exists("outfile")||is.null(outfile)||is.na(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
 layer.names <- scan(layer.file,what="char") 
 
-load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"        "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
-Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 
-load( paste( subdir, "/", basename(layer.prefix), "_", basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
+load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
 load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
 
 # REMOVE MISSING INDIV
 na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]
-neighborhoods <- neighborhoods[-na.indiv]
+neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
 
 
 ##
@@ -70,17 +90,22 @@ G@x <- update.G(init.params)
 
 if (method=="analytic") {
 
-    hts <- hitting.analytic( locs, G-diag(rowSums(G)), numcores=numcores )
+    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
 
-} else if (method=="CG") {
+} else if (method=="numeric") {
 
     init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
+    init.hts <- sapply( 1:ncol(init.hts), function (k) {
+                x <- init.hts[,k]
+                x[neighborhoods[[k]]] <- 0
+                return(x) } )
 
     stopifnot( nrow(init.hts) == nrow(G) )
+
+    ###
     # solve for hitting times
 
     dG <- rowSums(G)
-    cG <- colSums(G)
     # objective function
     H <- function (ht,loc) {
         # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1)
@@ -101,169 +126,189 @@ if (method=="analytic") {
     }
 
     # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
-    parscale <- rep( mean(init.hts), nrow(init.hts) )
+    parscale <- rep(mean(init.hts),nrow(init.hts)) # (mean(init.hts)+init.hts)/2
+
+    # First get the overall scaling right:
+    #  (d/da) | a Ax - b |^2 = 2 x^T A^T ( a Ax - b )
+    #    = 0  =>  a = x^T A b / | A x |^2
+    scale.ht <- function (x, loc) {
+        Ax <- G%*%x - dG*x
+        Ax[loc] <- 0
+        omitthese <- ( abs(scale(Ax,median(Ax),mad(Ax))) > 2 )
+        Ax[omitthese] <- 0
+        return( (-1)*sum(Ax)/sum(Ax^2) )
+    }
+
+    #  (d/dc) | A(x + c 1) - b |^2 = 2 1^T A^T ( A(x + c 1) - b )
+    #    = 0  =>  c = - 1^T A^T (Ax-b) / 1^T A^T A 1
+    shift.ht <- function (x, loc) {
+        numerator <- G%*%x - dG*x + 1
+        numerator[loc] <- 0
+        numerator <- crossprod(G,numerator) - dG*numerator
+        numerator[loc] <- 0
+        denom <- sum( G[-loc,loc]^2 )
+        return( (-1)*sum(numerator)/denom )
+    }
 
     H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
     dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
+    est.time <- ( maxit * (H.time[1] + dH.time[1]) / numcores * ncol(init.hts) )
+    cat("Estimated time: ", est.time, " .\n")
 
-    maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
-    maxit <- min( 1e4, maxit )
+    # maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
+    # maxit <- min( 1e4, maxit )
 
-    optim.ht.list <- mclapply( seq_along(locs), function (loc.ind) {
-                optim( par=init.hts[,loc.ind], fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
-                    method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit ), lower=0, upper=Inf ) 
+    optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
+                new.ht <- list(par=init.hts[,loc.ind])
+                for (k in 1:10) {
+                    aval <- if (k<nscale) { scale.ht(new.ht$par, neighborhoods[[loc.ind]]) } else { 1 }
+                    bval <- if (k<nscale) { shift.ht(aval*new.ht$par, neighborhoods[[loc.ind]]) } else { 0 }
+                    new.ht <- optim( par=pmax(0,aval*new.ht$par+bval), fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
+                        method="L-BFGS-B", control=list( parscale=parscale, maxit=ceiling(maxit/10) ), lower=0, upper=Inf ) 
+                    new.ht$par[neighborhoods[[loc.ind]]] <- 0
+                }
+                return(new.ht)
             }, mc.cores=numcores )
 
     convergences <- sapply(optim.ht.list,"[[","convergence")
     unconverged <- which(convergences != 0)
 
-    save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
+    # save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
 
     hts <- sapply( optim.ht.list, "[[", "par" )
 
-    if (FALSE) {
-        # check gradient
-        loc.ind <- 10
-        loc <- locs[loc.ind]
-        ht <- init.hts[,loc.ind]
-
-        eps <- 1e-5 * runif(length(ht))
-        c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
-
-        # look at convergence
-        load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
-        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
-
-        loc.ind <- 10
-        oht.list <- vector( mode='list', length=6 )
-        oht.list[[1]] <- list( par=init.hts[,loc.ind] )
-        for (k in 2:10) { oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=locs[loc.ind], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  }
-
-        layout( matrix(1:6,nrow=2) )
-        for (k in 2:length(oht.list)) { 
-            ph( oht.list[[k]]$par )
-            ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
-            ph( dH( oht.list[[k-1]]$par, loc=locs[loc.ind] ) )
-            if (is.null(locator(1))) break
-        }
-
-        layout( matrix(1:6,nrow=2) )
-        ph( dH( oht.list[[length(oht.list)]]$par, loc=locs[loc.ind] ) )
-        for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
-            ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
-        }
-
-        # look at inferred layer
-        ph( (transfn(valfn(init.params[1 + (1:ngamma)]))) )
-        ph( log(transfn(valfn(init.params[1 + (1:ngamma)]))) )
-        ph( (transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
-        ph( log(transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
-
-        # compare answers to initial values
-        layout( matrix(1:6,nrow=2) )
-        par(mar=c(5,4,4,5)+.1)
-        for (k in 1:ncol(hts)) {
-            diff.hts <- hts[,k] - init.hts[,k]
-            diff.hts[ (diff.hts<quantile(diff.hts,.05,na.rm=TRUE)) | (diff.hts>quantile(diff.hts,.95,na.rm=TRUE)) ] <- NA
-            ph( init.hts[,k] )
-            ph( hts[,k] )
-            ph( diff.hts )
-            if (is.null(locator(1))) break
-        }
-
-    }
 }
 
 colnames( hts ) <- locs
 write.table( hts, file=outfile, row.names=FALSE )
+cat("Writing output to ", outfile, " .\n")
 
+## look at results
 if (FALSE) {
+        load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
+        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
+        layout(matrix(1:6,nrow=2))
+        for (k in 1:ncol(hts)) {
+            ph(hts[,k])
+            if (k%%6 == 0 && is.null(locator(1))) break
+        }
+}
+
+if (FALSE) {  ## DEBUGGING/EXPLORATION
+    # check gradient
+    loc.ind <- 10
+    loc <- locs[loc.ind]
+    ht <- init.hts[,loc.ind]
+
+    eps <- 1e-5 * runif(length(ht))
+    c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+    bdry <- ( abs(dH(ht,loc=loc)) > 1e-4 )
+    eps <- 1e-5 * ifelse( bdry, runif(length(ht)), 0 )
+    c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+    eps <- 1e-5 * ifelse( seq_along(ht) == sample(which(bdry),1), 1, 0 )
+    c( H(ht,loc=loc), H(ht+eps,loc=loc)-H(ht,loc=loc), sum(eps*dH(ht,loc=loc)) )
+
+
+    # look at convergence
     load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
     ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
 
+
+    loc.ind <- 10
+    nreps <- 20
+    parscale <- pmax(.01*mean(init.hts[,loc.ind]),init.hts[,loc.ind])
+    oht.list <- vector( mode='list', length=nreps+1 )
+    oht.list[[1]] <- list( par=init.hts[,loc.ind] )
+    for (k in 2:(nreps+1)) { 
+        oht.list[[k]] <- optim( par=oht.list[[k-1]]$par, fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
+    }
+
+    oht.mat <- sapply(oht.list, "[[", "par")
+    oht.dH.mat <- sapply( lapply(oht.list, "[[", "par"), dH, loc=neighborhoods[[loc.ind]])
+    bdry <- ( abs(dH(oht.list[[1]]$par,loc=neighborhoods[[loc.ind]])) > quantile(abs(oht.dH.mat),.999) )
+    plot.locs <- c( which(bdry), sample.int(nrow(oht.mat),100) )
+    layout(matrix(1:4,nrow=2))
+    matplot( t(oht.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t((oht.mat-oht.mat[,1])[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t(oht.dH.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( abs(t(oht.dH.mat[plot.locs,])), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))], log='y' )
+
     layout( matrix(1:6,nrow=2) )
-    for (k in 1:ncol(hts)) { ph( hts[,k] ); if ((k%%6==0) && is.null(locator(1))) break }
-
-}
-
-if (FALSE) {
-
-    ####
-    ## FIRST
-    # infer parameters that better match these hitting times
-
-    # Massage the numerics.
-    zeros <- which( row(init.hts) == locs[col(init.hts)] )
-    scaling <- sqrt(nrow(G) * length(locs))
-    init.hts <- init.hts/scaling
-    init.hts[zeros] <- 0
-    sc.one <- 1/scaling
-
-    dG <- rowSums(G)
-    GH <- G %*% init.hts - dG*init.hts
-    GH[zeros] <- 0
-
-    init.beta <- init.params[1]
-
-    L <- function (params) {
-        if (any(params != get("params",parent.env(environment()) ) ) ) { 
-            assign("params", params, parent.env(environment()) )
-            evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
-            evalq( dG <- rowSums(G), parent.env(environment()) )
-            GH <- G %*% init.hts - dG*init.hts
-            GH[zeros] <- 0
-            assign("GH", GH, parent.env(environment()) )
-        }
-        ans <- ( sum( (GH+sc.one)^2 ) - length(zeros)*sc.one^2 )
-        if (!is.finite(ans)) { browser() }
-        return(ans)
-    }
-    dL <- function (params) {
-        if (any(params != get("params", parent.env(environment()) ) ) ) { 
-            assign("params", params, parent.env(environment()) )
-            evalq( G@x <- update.G(c(init.beta,params)), parent.env(environment()) )
-            evalq( dG <- rowSums(G), parent.env(environment()) )
-            GH <- G %*% init.hts - dG*init.hts
-            GH[zeros] <- 0
-            assign("GH", GH, parent.env(environment()) )
-        }
-        ggrads <- sapply( 1:ncol(layers), function (kk) {
-                2 * sum( layers[,kk] * GH * (GH+sc.one) )
-            } )
-        dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
-                GL <- G
-                GL@x <- G@x * layers[Gjj,kk]
-                dGL <- rowSums(GL)
-                GLH <- GL %*% init.hts - dGL*init.hts
-                GLH[zeros] <- 0
-                return( 2 * sum( GLH * (GH+sc.one)  ) )
-            } )
-        ans <- ( c(ggrads, dgrads) )
-        if (any(!is.finite(ans))) { browser() }
-        return(ans)
-    }
-    environment(L) <- environment(dL) <- fun.env <- list2env( list(
-                    G=G,
-                    dG=dG,
-                    params=init.params[-1],
-                    GH=GH), 
-            parent=environment() )
-
-    L(init.params[-1])
-    dL(init.params[-1])
-
-    L(init.params[-1]+.01)
-    dL(init.params[-1]+.01)
-
-    parscale <- c( rep(0.1,length(init.params)-1) )
-    results <- optim( par=init.params[-1], fn=L, gr=dL, control=list(parscale=parscale), method="BFGS" )
-    if (results$convergence != 0) {
-        results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale/10), method="BFGS" )
+    for (k in 2:length(oht.list)) { 
+        ph( oht.list[[k]]$par )
+        ph( oht.list[[k]]$par - oht.list[[k-1]]$par )
+        ph( dH( oht.list[[k-1]]$par, loc=neighborhoods[[loc.ind]] ) )
+        if (is.null(locator(1))) break
     }
 
 
-    ####
-    ## THEN
+
+    Gcheck <- function (x,loc.ind) { z <- as.vector(G%*%x-dG*x+1); z[neighborhoods[[loc.ind]]] <- 0; ph(z); invisible(z) }
+    layout(t(1:2))
+    aval <- scale.ht(init.hts[,loc.ind],neighborhoods[[loc.ind]]); 
+    bval <- shift.ht(init.hts[,loc.ind],neighborhoods[[loc.ind]]); 
+    plot( hts[,loc.ind], init.hts[,loc.ind] ); 
+    abline(0,1); abline(0,1/aval,col='red')
+    abline(-bval,1,col='green')
+    Gcheck( init.hts[,loc.ind], loc.ind )
+    Gcheck( aval*init.hts[,loc.ind], loc.ind )
+    Gcheck( pmax(0,init.hts[,loc.ind]+bval), loc.ind )
+
+    oht.list.1 <- vector( mode='list', length=nreps+1 )
+    oht.list.1[[1]] <- list( par=init.hts[,loc.ind] )
+    avec <- bvec <- numeric(nreps)
+    for (k in 2:(nreps+1)) { 
+        avec[k-1] <- if (TRUE) { scale.ht(oht.list.1[[k-1]]$par,neighborhoods[[loc.ind]]) } else { 1 }
+        bvec[k-1] <- if (TRUE) { shift.ht(avec[k-1]*oht.list.1[[k-1]]$par,neighborhoods[[loc.ind]]) } else { 0 }
+        oht.list.1[[k]] <- optim( par=pmax(0,avec[k-1]*oht.list.1[[k-1]]$par+bvec[k-1]), fn=H, gr=dH, loc=neighborhoods[[loc.ind]], method="L-BFGS-B", control=list( parscale=parscale, maxit=100 ), lower=0, upper=Inf )  
+    }
+
+    resids <- sapply(1:(nreps+1), function (k) { sum( ( hts[-neighborhoods[[loc.ind]],loc.ind] - oht.list.1[[k]]$par[-neighborhoods[[loc.ind]]] )^2 ) } )
+    cbind(seq_along(resids),resids,c(0,avec),c(0,bvec))
+
+    ##
+    # THE GOOD STUFF:
+    layout( matrix(1:6,nrow=2) )
+    for (k in 2:length(oht.list.1)) { 
+        ph( oht.list.1[[k]]$par - oht.list.1[[k-1]]$par, main=k )
+        ph( dH( oht.list.1[[k-1]]$par, loc=neighborhoods[[loc.ind]] ) )
+        plot( hts[-neighborhoods[[loc.ind]],loc.ind], oht.list.1[[k]]$par[-neighborhoods[[loc.ind]]] ); abline(0,1)
+        points( hts[-neighborhoods[[loc.ind]],loc.ind], oht.list[[k]]$par[-neighborhoods[[loc.ind]]], col='green', pch=20 )
+        if (is.null(locator(1))) break
+    }
+
+    oht.mat <- sapply(oht.list.1, "[[", "par")
+    oht.dH.mat <- sapply( lapply(oht.list.1, "[[", "par"), dH, loc=neighborhoods[[loc.ind]])
+    bdry <- ( abs(dH(oht.list.1[[1]]$par,loc=neighborhoods[[loc.ind]])) > quantile(abs(oht.dH.mat),.999) )
+    plot.locs <- c( which(bdry), sample.int(nrow(oht.mat),100) )
+    layout(matrix(1:4,nrow=2))
+    matplot( t(oht.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t((oht.mat-oht.mat[,1])[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( t(oht.dH.mat[plot.locs,]), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))] )
+    matplot( abs(t(oht.dH.mat[plot.locs,])), type='l', lty=(1:2)[c(rep(1,sum(bdry)),rep(2,100))], log='y' )
+
+    # overall difference
+    oht.diff <- oht.list[[nreps]]$par-init.hts[,loc.ind]
+    layout( matrix(1:6,nrow=2) )
+    ph(oht.list[[nreps]]$par)
+    ph(oht.diff)
+    ph(log10(-oht.diff*(oht.diff<0)))
+    ph(log10(oht.diff*(oht.diff>0)))
+    ph(log10(abs(oht.diff/oht.list[[nreps]]$par)))
+
+    layout( matrix(1:6,nrow=2) )
+    ph( dH( oht.list[[length(oht.list)]]$par, loc=neighborhoods[[loc.ind]] ) )
+    for (k in floor(seq(1,length(oht.list)-1,length.out=5))) {
+        ph( oht.list[[length(oht.list)]]$par - oht.list[[k]]$par, main=k )
+    }
+
+    # look at inferred layer
+    ph( (transfn(valfn(init.params[1 + (1:ngamma)]))) )
+    ph( log(transfn(valfn(init.params[1 + (1:ngamma)]))) )
+    ph( (transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
+    ph( log(transfn(valfn(init.params[1 + ngamma + (1:ndelta)]))) )
 
 }

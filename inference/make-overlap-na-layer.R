@@ -31,7 +31,7 @@ for (lf in use.files) {
 }
 
 outfile <- paste(dirname(layer.prefix),"/",basename(layer.file),"-na",sep='')
-cat('writing to: ', outfile,'\n')
+cat('writing to: ', outfile,' .\n')
 writeRaster( reflayer, file=outfile, overwrite=TRUE )
 
 if (FALSE) {

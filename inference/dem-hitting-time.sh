@@ -6,6 +6,9 @@
 #PBS -l vmem=48000mb
 #PBS -l pmem=2000mb
 
+# First, do
+#  qsub -vARGS="dem-layer-list" setup-multigrid.sh
+
 set -eu
 set -o pipefail
 
@@ -15,13 +18,27 @@ then
     cd $PBS_O_WORKDIR
 fi
 
-# get initial hitting times on 500x grid
-#   makes 500x/dem-layer-list-hitting-times.tsv
-Rscript make-resistance-distances.R ../geolayers/TIFF/500x/500x_ 500x dem-layer-list params-dem-layer-list.tsv analytic
+LAYERLIST="dem-layer-list"
+PARAMFILE="params-dem-layer-list.tsv"
 
-# push these up to 100x grid
-Rscript disaggregate-ht.R ../geolayers/TIFF/500x/500x_ ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 500x 100x dem-layer-list 500x/dem-layer-list-hitting-times.tsv 5
+RES="512x"
+RESLIST="256x 128x 64x" # 32x 16x 8x 4x" # 2x 1x"
 
-# now use those to find hitting times on 100x grid
-Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x dem-layer-list params-dem-layer-list.tsv CG 100x/500x-aggregated-hitting-times.tsv 3600 100x/dem-layer-list-hitting-times.tsv
+echo "Hitting times at ${RES}."
+# get initial hitting times 
+Rscript make-resistance-distances.R ../geolayers/multigrid/${RES}/crm_ ${RES} $LAYERLIST $PARAMFILE analytic
 
+for NEXTRES in $RESLIST
+do
+    echo "-------------------------------------"
+    echo "Pushing from ${RES} up to ${NEXTRES}."
+    # push these up to the next grid
+    Rscript disaggregate-ht.R ../geolayers/multigrid/${RES}/crm_ ../geolayers/multigrid/${NEXTRES}/crm_ ${RES} ${NEXTRES} ${LAYERLIST} ${RES}/${LAYERLIST}-hitting-times.tsv 2
+
+    echo "----------------------------"
+    echo "Hitting times at ${NEXTRES}."
+    Rscript make-resistance-distances.R ../geolayers/multigrid/${NEXTRES}/crm_ ${NEXTRES} $LAYERLIST $PARAMFILE numeric ${NEXTRES}/${RES}-${LAYERLIST}-aggregated-hitting-times.tsv 100
+
+    # iterate
+    RES=$NEXTRES
+done

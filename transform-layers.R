@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 
 # make some new layers
-# that are trasnforms of the old
+# that are transforms of the old
 
 require(raster)
 rasterOptions(tmpdir=".")

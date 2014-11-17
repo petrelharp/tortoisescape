@@ -5,7 +5,7 @@ require(raster)
 rasterOptions(tmpdir=".")
 
 require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+numcores<-getcores()
 
 # for (layer.prefix in c( "../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_", "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_", "../geolayers/TIFF/masked/crop_resampled_masked_" ) ) {
 
@@ -34,7 +34,9 @@ orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissing.RData",sep=''))
 locs <- match(orig.locs,nonmissing)
 
-save( locs, file=paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='') )
+locs.outfile <- paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='') 
+save( locs, file=locs.outfile )
+cat("Saved to ", locs.outfile, " .\n")
 
 ###
 # and distances from all nonmissing locations to torts
@@ -53,11 +55,17 @@ if (FALSE) {
 
 ndist <- 15000  # 15 km
 
-neighborhoods <- mclapply( seq_along(tort.coords.rasterGCS) , function (k) {
-        d_tort <- distanceFromPoints( onelayer, tort.coords.rasterGCS[k] )
-        match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
-    }, mc.cores=numcores )
+neighborhoods <- get.neighborhoods( neighborhoods, tort.coords.rasterGCS, nonmissing, onelayer, numcores )
+# mclapply( seq_along(tort.coords.rasterGCS) , function (k) {
+#         d_tort <- distanceFromPoints( onelayer, tort.coords.rasterGCS[k] )
+#         match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
+#     }, mc.cores=numcores )
 
-save(neighborhoods, file=paste( subdir, "/", basename(layer.prefix), "_", basename(layer.file), "_neighborhoods.RData", sep='' ) )
+outfile <- paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' )
+save(neighborhoods, file=outfile )
+
+cat("Saved to ", outfile, " .\n")
 
 stopifnot( all( sapply( seq_along(locs), function(k) { locs[k] %in% neighborhoods[[k]] } ) ) )
+
+

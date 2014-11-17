@@ -197,14 +197,18 @@ We probably don't want migration rates to be proportional to the landscape layer
 at least in all cases.
 Here's a general model:
 Letting $L$ be the landscape layers,
-suppose that we have scalars $\gamma$ and $\delta$, a positive function $\rho$, and a nonnegative symmetric function $g$ such that
+suppose that we have scalars $\gamma$ and $\delta$, 
+a nonnegative scalar $\beta$,
+a positive function $\rho$, 
+and a nonnegative symmetric function $g$ such that
 \begin{align}
   \gamma L_x &:= \gamma_1 L^1_x \cdots + \gamma_m L^m_x  \\
   \delta L_x &:= \delta_1 L^1_x \cdots + \delta_m L^m_x  \\
-  G_{xy} &= \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) \quad \text{for $x \sim y$} \\
-  G_{xx} &= - \sum_{y \sim x} \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) ,
+  G_{xy} &= \beta \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) \quad \text{for $x \sim y$} \\
+  G_{xx} &= - \beta \sum_{y \sim x} \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) ,
 \end{align}
-where $x \sim y$ denotes that $x$ and $y$ are adjacent (and not equal).
+where $x \sim y$ denotes that $x$ and $y$ are adjacent (and not equal),
+so that $G_{xz} = 0$ for any $x$ and $z$ that are not adjacent.
 Note that this chain is reversible with stationary distribution proportional to $1/\rho$,
 and that
 \begin{align}
@@ -221,26 +225,31 @@ and the edge weights $g$ say how good the habitat is to move through.
 
 Note that
 \begin{align}
-  \partial_\gamma G_{xy} &= L_x \rho'( \gamma L_x ) g( \delta L_x, \delta L_y ) \\
-  \partial_\delta G_{xy} &= \rho( \gamma L_x ) \left( L_x g'( \delta L_x, \delta L_y )  + L_y g'( \delta L_x, \delta L_y ) \right ) 
+  \partial_\beta G_{xy} &= \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) \\
+  \partial_\gamma G_{xy} &= \beta L_x \rho'( \gamma L_x ) g( \delta L_x, \delta L_y ) \\
+  \partial_\delta G_{xy} &= \beta \rho( \gamma L_x ) \left( L_x g'( \delta L_x, \delta L_y )  + L_y g'( \delta L_x, \delta L_y ) \right ) 
       \quad \text{for } x \neq y \\
-      \partial_\delta G_{xx} &=  - \rho( \gamma L_x ) \left( L_x \sum_{y \sim x} g'(\delta L_x, \delta L_y) + \sum_{y \sim x} L_y g'( \delta L_x, \delta L_y ) \right) \quad \text{for } x \neq y \\
+  \partial_\delta G_{xx} &=  - \beta \rho( \gamma L_x ) \left( L_x \sum_{y \sim x} g'(\delta L_x, \delta L_y) + \sum_{y \sim x} L_y g'( \delta L_x, \delta L_y ) \right) \quad \text{for } x \neq y \\
       &= - \sum_{y \sim x} \partial_\delta G_{xy} 
 \end{align}
 
 Then, again with
 \begin{align}
-  F(\gamma,\delta) = \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x G_{zx} H_{xy} + 1 \right)^2 
+  F(\beta,\gamma,\delta) = \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x G_{zx} H_{xy} + 1 \right)^2 
+\end{align}
+we have
+\begin{align}
+    \partial_\beta F(\beta,\gamma,\delta) &= \frac{2}{\beta} \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_x G_{zx} H_{xy} \right)\left( \sum_x G_{zx} H_{xy} + 1 \right)
 \end{align}
 and
 \begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z \rho'(\gamma L_z) \sum_{x \neq z} g(\delta L_z, \delta L_x) (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+  \partial_{\gamma_k} F(\beta,\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z \beta \rho'(\gamma L_z) \sum_{x \neq z} g(\delta L_z, \delta L_x) (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
 \end{align}
 and
 \begin{align}
-  \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} 
+  \partial_{\delta_k} F(\beta,\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} 
     \left( \sum_x G_{zx} H_{xy} + 1 \right) 
-  \left( \rho(\gamma L_z) 
+  \left( \beta \rho(\gamma L_z) 
     \sum_{x \neq z} (L^k_z + L^k_x) g'(\delta L_z, \delta L_x) ( H_{xy} - H_{zy} ) 
   \right) 
   % \rho(\gamma L_z) \left( 
@@ -250,6 +259,7 @@ and
   %   + \sum_{w \sim z} L^k_w g'(\delta L_z, \delta L_w) \right) H_{zy} 
   % \right) 
 \end{align}
+
 
 
 \paragraph{Exponential transforms}
@@ -263,21 +273,21 @@ This is probably the simplest case, but because the exponential gets very steep,
 might run into numerical difficulties.
 
 Then
-\begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 
+\begin{align} \label{eqn:expl_deriv_gamma}
+  \partial_{\gamma_k} F(\beta,\gamma,\delta) &= 
     2 \sum_{i=1}^m \sum_{z \neq y_i} 
-    \left( L^k_z \sum_x G_{zx} H_{xy}\right) 
-    \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+    \left( L^k_z \sum_x G_{zx} H_{xy_i}\right) 
+    \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  
 \end{align}
 and
-\begin{align}
-  \partial_{\delta_k} F(\gamma) &= 
+\begin{align} \label{eqn:expl_deriv_delta}
+  \partial_{\delta_k} F(\beta,\gamma,\delta) &= 
     2 \sum_{i=1}^m \sum_{z \neq y_i} 
-    \left( L^k_z \sum_x G_{zx} H_{xy}
-      + \sum_{x \neq z} G_{zx} L^k_x H_{xy}
-      + G_{zz} ( \sum_{w \sim z} L^k_w )  H_{zy}
+    \left( L^k_z \sum_x G_{zx} H_{xy_i}
+      + \sum_{x \neq z} G_{zx} L^k_x H_{xy_i}
+      + G_{zz} ( \sum_{w \sim z} L^k_w )  H_{zy_i}
     \right) 
-    \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
+    \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  \\
 \end{align}
 
 
@@ -294,11 +304,11 @@ but even so, what we care about more is $\rho$ and $g$, which will be well-deter
 Note that $\rho'(u) = \rho(u) (1-\rho(u))$,
 so that
 \begin{align}
-  \partial_{\gamma_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z (1-\rho(\gamma L_z)) G_{zx} H_{xy}\right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  
+  \partial_{\gamma_k} F(\beta,\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( L^k_z (1-\rho(\gamma L_z)) G_{zx} H_{xy_i}\right) \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  
 \end{align}
 and
 \begin{align}
-  \partial_{\delta_k} F(\gamma) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_{x \neq z} (L^k_z + L^k_x) (1-\rho(\delta(L_z+L_x))) G_{zx} (H_{xy}-H_{zy}) \right) \left( \sum_x G_{zx} H_{xy} + 1 \right)  \\
+  \partial_{\delta_k} F(\beta,\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_{x \neq z} (L^k_z + L^k_x) (1-\rho(\delta(L_z+L_x))) G_{zx} (H_{xy_i}-H_{zy_i}) \right) \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  \\
 \end{align}
 
 \end{document}

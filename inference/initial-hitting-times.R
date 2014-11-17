@@ -10,7 +10,7 @@ source("resistance-fns.R")
 require(raster)
 
 require(parallel)
-numcores<-as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+numcores<-getcores()
 
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
@@ -26,7 +26,7 @@ if (!interactive()) {
 }
 layer.names <- scan(layer.file,what="char") 
 
-load(paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))
 
 ##
 # initial parameters?
