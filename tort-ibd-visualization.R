@@ -2,6 +2,10 @@
 
 load("tort.coords.rasterGCS.Robj")
 
+# converting these pi values to divergence:
+# Evan: "So the total size of the first hundred scaffolds is 285,214,272bp. In those 285,214,272bp we found a total of 5,319,387 SNPs with that angsd run."
+pi.factor <- 5319387/285214272
+
 require(raster)
 layer <- raster("geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri")
 
@@ -12,6 +16,8 @@ nind <- nrow(torts)
 dists <- read.csv("pairwise-normalized-pi.csv",header=TRUE,stringsAsFactors=FALSE) # had DISTANCE, pi, and npi
 dists$etort1 <- factor( dists$etort1 , levels=torts$EM_Tort_ID )
 dists$etort2 <- factor( dists$etort2 , levels=torts$EM_Tort_ID )
+dists$pi <- dists$pi * pi.factor
+dists$npi <- dists$npi * pi.factor
 
 pcs <- read.csv("covmat/tort-PCs.csv",stringsAsFactors=FALSE)
 pcs$X <- factor( pcs$X, levels=torts$EM_Tort_ID )
@@ -100,13 +106,16 @@ png(file="tort_report_figures/within-ivanpah-ibd.png",res=200,width=6*200,height
 layout(t(1:2))
     opar <- par(mar=c(5,4,3,1)+.1)
     with(ivanpah_dists, plot( DISTANCE, pi, 
-			pch=20, cex=0.3,
+			pch=20, cex=0.3, 
             xlab="geographic distance (km)", ylab="genetic distance (divergence)") )
     title( main="Isolation by Distance", line=1 )
     abline( coef( ivanpah_lm ), col='red' )
-    par(mar=c(5,1,3,1)+.1)
-    plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],.8), ylim=infl(ivanpah_coords@bbox["coords.x2",]), xaxt='n', yaxt='n' )
+    par(mar=c(5,0,3,1)+.1)
+    plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],1.2), ylim=infl(ivanpah_coords@bbox["coords.x2",]), xaxt='n', yaxt='n', 
+        smallplot=c(0.68,0.71,0.2845,0.8155), 
+        bigplot=c(0,0.64,0.255,0.845), 
+        legend.lab="elevation (m)" )
     title( main="in the Ivanpah valley", line=1 )
     points( ivanpah_coords, pch=20 ) #, col=torts$Location_ID[torts$Location_ID %in% ivanpah_locs] )
+    scalebar(1e4,label=c("","10km",""))
 dev.off()
-
