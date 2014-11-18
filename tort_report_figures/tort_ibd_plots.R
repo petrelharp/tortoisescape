@@ -12,6 +12,10 @@ if(file.exists("~/Desktop/Dropbox/tortoisescape")){
 	setwd("~/Desktop/Dropbox/tortoisescape")
 }
 
+# converting these pi values to divergence:
+# Evan: "So the total size of the first hundred scaffolds is 285,214,272bp. In those 285,214,272bp we found a total of 5,319,387 SNPs with that angsd run."
+pi.factor <- 5319387/285214272
+
 # get the metadata
 torts <- read.csv("1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
 nind <- nrow(torts)
@@ -26,6 +30,7 @@ tort.dists <- tort.dists + t(tort.dists)
 
 # then grab the pairwise pi matrix
 tort.pwp.vals <- scan("pairwisePi/alleleCounts_1millionloci.pwp")
+tort.pwp.vals <- tort.pwp.vals * pi.factor
 tort.pwp <- numeric(nind^2)
 dim(tort.pwp) <- c(nind,nind)
 	tort.pwp[upper.tri(tort.pwp,diag=TRUE)] <- tort.pwp.vals
@@ -113,7 +118,7 @@ png(file="tort_report_figures/IBD_NN_SS_NS_plot_insetPCmap_LinearRegress.png",re
 			pch=20,cex=0.3,xlab="pairwise geographic distance",
 			ylab="pairwise sequence divergence",
 			main = "Isolation by Distance",
-			ylim=c(0.160,0.245))
+			ylim=c(0.160,0.245)*pi.factor)
 	for(i in 1:length(unique(c(tort.plot.mat.col.3bins)))){
 		use.these <- which(tort.plot.mat.col.3bins == unique(c(tort.plot.mat.col.3bins))[i],arr.ind=TRUE)
 		abline(lm(tort.pwp[use.these] ~ tort.dists[use.these]),col=unique(c(tort.plot.mat.col.3bins))[i],lwd=2)
@@ -132,7 +137,7 @@ png(file="tort_report_figures/IBD_NN_SS_NS_plot_insetPCmap_LinearRegress.png",re
 							abline(v=0,lty=2,lwd=0.5) ; 
 							box(lwd=1.1)
 						},
-					x=c(2.68e+05,4.6e+05),y=c(0.164,0.187))
+					x=c(2.68e+05,4.6e+05),y=c(0.164,0.187)*pi.factor)
 	mtext("PC1",side=1,adj=0.8,padj=-2)
 	mtext("PC2",side=1,adj=0.535,padj=-6.7)
 	mtext("North",side=1,adj=0.85,padj=-6.5,cex=0.6)

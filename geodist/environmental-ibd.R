@@ -14,6 +14,10 @@ require(raster)
 require(colorspace)
 require(MASS)
 
+# converting these pi values to divergence:
+# Evan: "So the total size of the first hundred scaffolds is 285,214,272bp. In those 285,214,272bp we found a total of 5,319,387 SNPs with that angsd run."
+pi.factor <- 5319387/285214272
+
 # geographic distance
 torts <- read.csv("../1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
 nind <- nrow(torts)
@@ -34,6 +38,8 @@ for (k in setdiff( seq_along(edist.list), 1 ) ) {
 }
 
 dists <- read.csv("../pairwise-normalized-pi.csv") # has DISTANCE, pi, and npi
+dists$pi <- dists$pi * pi.factor
+dists$npi <- dists$npi * pi.factor
 dists <- merge( dists, edists, by.x=c("etort1","etort2"), by.y=c("tort1","tort2") )
 dists$etort1 <- factor( dists$etort1 , levels=torts$EM_Tort_ID )
 dists$etort2 <- factor( dists$etort2 , levels=torts$EM_Tort_ID )

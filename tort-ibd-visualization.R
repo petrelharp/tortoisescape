@@ -61,6 +61,18 @@ for (k in 1:nind) {
 }
 
 
+# pcs
+pcs <- read.csv("covmat/tort-PCs.csv",stringsAsFactors=FALSE)
+names(pcs)[1] <- "etort"
+pcs$etort <- factor( pcs$etort, levels=torts$EM_Tort_ID )
+stopifnot( all(pcs$etort==torts$EM_Tort_ID) )
+torts <- cbind(torts,pcs[,-1])
+
+# same-different groups
+dists$pcgroup <- with(dists, ( (torts$PC1[match(etort1,torts$EM_Tort_ID)]*torts$PC1[match(etort2,torts$EM_Tort_ID)]) > 0 ) )
+dists$PC1 <- with(dists, torts$PC1[match(etort1,torts$EM_Tort_ID)] - torts$PC1[match(etort2,torts$EM_Tort_ID)] )
+
+
 ##
 # only within Ivanpah
 
