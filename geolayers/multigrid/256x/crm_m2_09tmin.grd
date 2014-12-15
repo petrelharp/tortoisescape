@@ -1,0 +1,26 @@
+[general] 
+creator=R package 'raster' 
+created= 2014-11-03 22:56:46 
+[georeference] 
+nrows= 91 
+ncols= 90 
+xmin= -2154451.09720173 
+ymin= -633193.06559505 
+xmax= -1494959.65092117 
+ymax= 33626.06342196 
+projection= +proj=eqdc +lat_0=39 +lon_0=-96 +lat_1=33 +lat_2=45 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0 
+[data] 
+datatype= FLT8S 
+byteorder= little 
+nbands= 1 
+bandorder= BIL 
+categorical= FALSE 
+minvalue= -1.57188875847889 
+maxvalue= 25.362055964744 
+nodatavalue= -1.7e+308 
+[legend] 
+legendtype=  
+values=  
+color=  
+[description] 
+layername= layer 
