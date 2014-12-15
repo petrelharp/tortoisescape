@@ -38,10 +38,9 @@ locs.outfile <- paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')
 save( locs, file=locs.outfile )
 cat("Saved to ", locs.outfile, " .\n")
 
-###
-# and distances from all nonmissing locations to torts
 if (FALSE) {
-
+    ###
+    # and distances from all nonmissing locations to torts
     all.locs.dists <- sapply( 1:length(locs), function (k) {
                 values( distanceFromPoints( onelayer, tort.coords.rasterGCS[k] ) )[nonmissing]
             } )
@@ -55,7 +54,7 @@ if (FALSE) {
 
 ndist <- 15000  # 15 km
 
-neighborhoods <- get.neighborhoods( neighborhoods, tort.coords.rasterGCS, nonmissing, onelayer, numcores )
+neighborhoods <- get.neighborhoods( ndist=ndist, locations=tort.coords.rasterGCS, nonmissing=nonmissing, layer=onelayer, numcores=numcores, na.rm=FALSE )
 # mclapply( seq_along(tort.coords.rasterGCS) , function (k) {
 #         d_tort <- distanceFromPoints( onelayer, tort.coords.rasterGCS[k] )
 #         match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
