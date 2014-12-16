@@ -73,13 +73,13 @@ Inference
 1. Interpolate observed mean pairwise divergence times using `G` to get estimate of full matrix of divergence times, as in `interp-inference.R`.
   1. use `initial-hitting-times.R` as e.g.
 ```
-Rscript initial-hitting-times.R ../geolayers/TIFF/500x/500x_ 500x six-raster-list
+Rscript initial-hitting-times.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
 ```
   which produces `500x_six-raster-list-init-hts.RData`
 2. Given full matrix of divergence times to infer parameter values, as in `exponential-transform.R`.
   1. use `fit-exponential-model.R` as e.g.
 ```
-Rscript fit-exponential-model.R ../geolayers/TIFF/500x/500x_ 500x six-raster-list
+Rscript fit-exponential-model.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
 ```
 3. Return to (1) if necessary.
 Also, do this for sequentially finer grids, using previously inferred parameter values to start the next,
