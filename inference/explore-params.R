@@ -47,9 +47,9 @@ newparams <- function (params,dothese) {
     ymax <- 1.5*max(hts[locs,])  # 1.5 times maximum hitting time to another tortoise location
     for (k in seq_along(dothese)) { ph(pmin(ymax,hts[,k]), main=paste("hitting time to ", dothese[k]) ) } # plot with maximum value at ymax
     plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence' )
+    abline(0,1)
     ph( valfn( params[1 + (1:ngamma)] ), main="stationary distribution" )
     ph( valfn( params[1 + ngamma + (1:ndelta)] ), main="relative jump rate" )
-    abline(0,1)
     invisible(hts)
 }
 
