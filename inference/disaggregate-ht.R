@@ -1,8 +1,23 @@
 #!/usr/bin/Rscript
 
-##
-# convert hitting times on one grid to another
+usage <- "
+Convert hitting times on one grid to another.  Usage:
+   Rscript disaggregate-ht.R layer.prefix.1 layer.prefix.2 subdir.1 subdir.2 layer.file prev.ht ag.fact
+where
+    layer.prefix.1 = prefix of (coarser) layers hitting times are computed on
+    layer.prefix.2 = prefix of (finer) layers we are disaggreating to
+    subdir.1 = subdirectory information about coarse layers is stored in
+    subdir.2 = subdirectory disaggregated hitting times should be saved to
+    layer.file = file with names of layers to use
+    prev.ht = file with (coarse) hitting times to disaggregate
+    ag.fact = multiplicative factor to disaggregate by: ( resolution of layer.prefix.2 ) = ag.fact * ( resolution of layer.prefix.1 )
 
+For example,
+    Rscript disaggregate-ht.R ../geolayers/multigrid/512x/crm_ ../geolayers/multigrid/256x/crm_ 512x 256x six-raster-list 512x/six-raster-list-hitting-times.tsv 2
+
+"
+
+if (length(commandArgs(TRUE)) < 7) { stop(usage) }
 
 source("resistance-fns.R")
 require(raster)

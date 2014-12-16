@@ -36,14 +36,19 @@ newparams <- function (params,dothese) {
     #  params[1] is beta, overall multiplicative constant
     #  params[2:(n+1)] is gamma, weights on the layers that give the stationary distribution
     #  params[(n+2):(2*n+1)] is delta, the weights on the layers that give the jump rates
+    #
     # dothese is a vector of indices of tortoise locations to compute hitting times of
+    #
+    # Produces 2*n+3 plots, prepare accordingly.
     G@x <- update.G(params)
     hts <- hitting.analytic( neighborhoods[dothese], G-diag(rowSums(G)), numcores=numcores )
     hts[hts<0] <- NA
     # 'locs' are indices of tortoise locations
     ymax <- 1.5*max(hts[locs,])  # 1.5 times maximum hitting time to another tortoise location
-    for (k in seq_along(dothese)) { ph(pmin(ymax,hts[,k])); } # plot with maximum value at ymax
+    for (k in seq_along(dothese)) { ph(pmin(ymax,hts[,k]), main=paste("hitting time to ", dothese[k]) ) } # plot with maximum value at ymax
     plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence' )
+    ph( valfn( params[1 + (1:ngamma)] ), main="stationary distribution" )
+    ph( valfn( params[1 + ngamma + (1:ndelta)] ), main="relative jump rate" )
     abline(0,1)
     invisible(hts)
 }
@@ -51,9 +56,11 @@ newparams <- function (params,dothese) {
 layout(matrix(1:6,nrow=2,byrow=TRUE))
 
 hts <- newparams(c(1e-4,-2,-9),c(10,83))
+
 hts <- newparams(c(.01,0,-1),c(10,83))
 
 hts <- newparams(c(.01,0,-3),c(10,83))
+
 hts <- newparams(c(.01,-.1,-3),c(10,83))
 
 

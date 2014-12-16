@@ -1,10 +1,10 @@
 #!/usr/bin/Rscript
 
 usage <- '
-    Get hitting times with a list of landscape layers:
+Get hitting times with a list of landscape layers:
         Rscript make-resistance-distances.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
-      e.g.
-        Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv numeric
+e.g.
+        Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 256x six-raster-list multigrid-six-raster-list.tsv numeric 256x/512x-six-raster-list-aggregated-hitting-times.tsv 120
 
     Here `method` is either "analytic" or "numeric".
 '
@@ -54,7 +54,8 @@ nscale <- 0
 
 cat(paste(commandArgs()),"\n")
 
-if (! method %in% c("analytic","numeric")) { stop(usage) }
+if ( length(commandArgs(TRUE))<5 ) { cat(usage); q() }
+if (! method %in% c("analytic","numeric") ) { cat("  Method must be either 'analytic' or 'numeric'. \n"); stop(usage) }
 
 source("resistance-fns.R")
 require(raster)
