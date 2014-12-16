@@ -3,7 +3,21 @@
 source("resistance-fns.R")
 require(raster)
 
+usage <- "
+Load up everything already computed into one .RData file.  Usage:
+    Rscript (layer prefix) (subdir) (layer file) (pairwise divergence file)
+e.g.
+    Rscript setup-inference.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list ../pairwisePi/alleleCounts_1millionloci.pwp
+where
+    (layer prefix) = prefix to look for raster files in
+    (subdir) = where to put stuff
+    (layer file) = file with names of layers to use
+    (pairwise divergence file) = file with UPPER triangle of matrix of pairwise divergences (including diagonals)
+"
+
 source.ls <- ls()
+
+if (length(commandArgs(TRUE))<4) { stop(usage) }
 
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
