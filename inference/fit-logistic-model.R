@@ -42,50 +42,52 @@ sc.one <- 1/scaling
 hts <- hts/scaling
 hts[zeros] <- 0
 
-# setup: evaluating L and dL will CHANGE THESE GLOBALLY (once, for efficiency)
-update.aux <- function (params,env,check=TRUE) {
-    if ( (!check) || any(params != get("params", env ) ) ) { 
-        assign("params", params,  env )
-        evalq( G@x <- update.G(params),  env )
-        evalq( dG <- rowSums(G),  env )
-        GH <- G %*% hts - dG*hts
-        GH[zeros] <- 0
-        assign("GH", GH, env )
+# setup: evaluating L and dL will change variables they share in a common scope
+L.env <- new.env()
+update.aux <- function (params,check=TRUE) {
+    if ( (!check) || any(params != get("params", L.env ) ) ) { 
+        assign("params", params,  L.env )
+        evalq( G@x <- update.G(params),  L.env )
+        evalq( dG <- rowSums(G),  L.env )
+        evalq( GH <- G %*% hts - dG*hts, L.env )
+        evalq( GH[zeros] <- 0, L.env )
     }
 }
-
 # weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
 # weightings <- ifelse( 1:nrow(hts) %in% locs, 1, 0 )
-weightings <- 1/rowMeans(hts,na.rm=TRUE)
-nomitted <- sum( weightings[row(hts)[zeros]] )
-update.aux(init.params,environment(),check=FALSE)
+assign( "weightings",  1/rowMeans(hts,na.rm=TRUE) )
+assign( "nomitted",  sum( weightings[row(hts)[zeros]] ) )
+
+update.aux(init.params,check=FALSE)
 
 L <- function (params) {
-    update.aux(params,parent.env(environment()))
+    update.aux(params)
     ans <- ( sum( weightings*rowSums((GH+sc.one)^2) ) - (nomitted)*sc.one^2 )
     if (!is.finite(ans)) { browser() }
     return(ans)
 }
 dL <- function (params) {
-    update.aux(params,parent.env(environment()))
+    update.aux(params)
     gamma <- params[1+(1:ngamma)]
+    delta <- params[1 + ngamma + (1:ndelta)]
     bgrad <- ( 2 / params[1] )* sum( weightings * rowSums(GH * (GH+sc.one)) )
     ggrads <- sapply( 1:ncol(layers), function (kk) {
             2 * sum( weightings * rowSums( (layers[,kk] * (1-transfn(valfn(gamma))) * GH) * (GH+sc.one)) )
         } )
     dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
-                XXX EDITING HERE XXX
             GL <- G
-            GL@x <- G@x * layers[Gjj,kk]
+            GL@x <- G@x * ( layers[Gjj,kk] + layers[G@i+1L,kk] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
             dGL <- rowSums(GL)
             GLH <- GL %*% hts - dGL*hts
             GLH[zeros] <- 0
+            browser()
             return( 2 * sum( weightings * rowSums( GLH * (GH+sc.one) )  ) )
         } )
     ans <- ( c(bgrad, ggrads, dgrads) )
     if (any(!is.finite(ans))) { browser() }
     return(ans)
 }
+environment(L) <- environment(dL) <- L.env
 
 L(init.params)
 dL(init.params)
@@ -104,12 +106,17 @@ write( results$par, file=outfile )
 if (FALSE) {
 
     gcheck <- function (params=jitter(init.params),eps=1e-8,dp=eps*dirn,dirn=runif(length(params))) {
-        # check gradient  (VERY STEEP ?!?!?!)
+        # check gradient: want L1-L0 == dL0 if eps is small enough that dL0 == dL1
         L0 <- L(params)
         dL0 <- dL(params)
         L1 <- L(params+dp)
         dL1 <- dL(params+dp)
-        c( L0, L1-L0, sum(dp*dL0), sum(dp*dL1) )
+        c( L0=L0, diffL=L1-L0, dL0=sum(dp*dL0), dL1=sum(dp*dL1) )
+    }
+
+    for (k in seq_along(init.params)) {
+        cat("Checking ", names(init.params)[k], " .\n")
+        print( gcheck(dirn=ifelse(seq_along(init.params)==k,1,0)) )
     }
 
     # check answer
