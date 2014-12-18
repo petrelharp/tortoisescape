@@ -27,7 +27,7 @@ neighborhoods <- lapply(neighborhoods[setdiff(seq_along(locs),na.indiv)],functio
 ## END SETUP
 
 ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing)
-ph( layers[,1] )
+# ph( layers[,1] )
 
 dothese <- c(1,10,19,83)
 
@@ -56,6 +56,8 @@ newparams <- function (params,dothese) {
 layout(matrix(1:6,nrow=2,byrow=TRUE))
 
 hts <- newparams(c(1e-4,-2,-9),c(10,83))
+
+stop('here')
 
 hts <- newparams(c(.01,0,-1),c(10,83))
 

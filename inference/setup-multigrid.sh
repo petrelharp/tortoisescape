@@ -14,7 +14,12 @@ fi
 
 if [[ -z "${LAYERFILE-}" || ! -r "$LAYERFILE" ]]
 then
-    echo "USAGE:    qsub -vLAYERFILE=\"raster-list-file\" setup-multigrid.sh"
+    echo "USAGE:    \
+        qsub -vLAYERFILE=\"raster-list-file\" setup-multigrid.sh
+    or\
+        ./setup-multigrid.sh raster-list-file
+    "
+    exit 1;
 fi
 
 echo "raster list file:  $LAYERFILE"
