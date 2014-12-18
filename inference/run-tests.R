@@ -143,7 +143,7 @@ gcheck <- function (params=jitter(init.params),eps=1e-8,dp=eps*dirn,dirn=runif(l
 results <- list(par=true.params)
 
 # check answer
-layout(matrix(1:(2*length(init.params)),nrow=2,byrow=TRUE))
+layout(matrix(1:(2*(length(init.params)+1)),nrow=2,byrow=TRUE))
 for (fac in c(1.02,10)) {
     for (k in seq_along(init.params)) {
         parvals <- seq( results$par[k]/fac, results$par[k]*fac, length.out=20 )
@@ -184,7 +184,7 @@ IL <- function (params) {
 IL(true.params)
 
 # compare steepness
-layout(matrix(1:(2*length(init.params)),nrow=2))
+layout(matrix(1:((2*length(init.params)+1)),nrow=2))
 fac <- 3
 for (k in seq_along(init.params)) {
     parvals <- seq( init.params[k]-fac, init.params[k]+fac, length.out=20 )
