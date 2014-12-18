@@ -23,7 +23,7 @@ if (!interactive()) {
     outfile <- "128x/dem-layer-list-hitting-times-torts.tsv"
 }
 
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='')) # provides 'locs'
 orig.locs <- locs
 na.indiv <- which( is.na( orig.locs ) )
 locs <- orig.locs[-na.indiv]

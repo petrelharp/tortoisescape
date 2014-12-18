@@ -40,23 +40,21 @@ for RES in $RESLIST
 do
     echo "$RES,  $LAYERFILE"
     mkdir -p $RES
-    echo "----------------------------"
     PREFIX=$(ls ../geolayers/multigrid/${RES}/*agp_250.gri | sed -e 's/agp_250.*//')
+    echo "\n\n----------------------------"
     echo "   na layer"
-    echo "----------------------------"
+    echo "----------------------------\n\n"
     Rscript make-overlap-na-layer.R ${PREFIX} ${LAYERFILE}
+    echo "\n\n----------------------------"
     echo "   setup G"
-    echo "----------------------------"
+    echo "----------------------------\n\n"
     Rscript setup-real-G.R ${PREFIX} ${RES} ${LAYERFILE}
+    echo "\n\n----------------------------"
     echo "   setup locations"
-    echo "----------------------------"
+    echo "----------------------------\n\n"
     Rscript setup-tort-locs.R ${PREFIX} ${RES} ${LAYERFILE}
-done
-
-for RES in $RESLIST
-do
-    echo "$RES,  $LAYERFILE"
-    echo "----------------------------"
-    PREFIX=$(ls ../geolayers/multigrid/${RES}/*agp_250.gri | sed -e 's/agp_250.*//')
+    echo "\n\n----------------------------"
+    echo "   save setup"
+    echo "----------------------------\n\n"
     Rscript setup-inference.R ${PREFIX} ${RES} ${LAYERFILE} ${PIFILE}
 done

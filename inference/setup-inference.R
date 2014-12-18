@@ -46,7 +46,7 @@ layers <- do.call( cbind, lapply( layer.names, function (layer.name) {
 stopifnot(nrow(layers)==nrow(G))
 
 # tortoise locations
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep=''))
 nind <- length(locs)
 na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]

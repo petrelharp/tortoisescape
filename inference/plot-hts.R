@@ -35,7 +35,7 @@ load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighb
 # load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 
 # HAVE REMOVED MISSING INDIV
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='')) # provides 'locs'
 orig.locs <- locs
 na.indiv <- which( is.na( orig.locs ) )
 locs <- orig.locs[-na.indiv]

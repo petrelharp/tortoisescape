@@ -46,7 +46,7 @@ res.envs <- lapply( dirnames, function (subdir) {
         # provides 'neighborhoods'
         load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ), envir=env ) 
         # provides 'locs'
-        load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep=''), envir=env) 
+        load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep=''), envir=env) 
         # REMOVE MISSING INDIV
         na.indiv <- which( is.na( get("locs",env) ) )
         assign("locs", get("locs",env)[-na.indiv], env) 

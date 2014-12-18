@@ -43,10 +43,11 @@ orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 
 
 # ok, but we need indices in NONMISSING ones
+cat("Loading ", paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissing.RData",sep=''), " .\n")
 load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissing.RData",sep=''))
 locs <- match(orig.locs,nonmissing)
 
-locs.outfile <- paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='') 
+locs.outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='') 
 save( locs, file=locs.outfile )
 cat("Saved to ", locs.outfile, " .\n")
 

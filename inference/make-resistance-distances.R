@@ -70,7 +70,7 @@ layer.names <- scan(layer.file,what="char")
 load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 
 load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
+load(paste(subdir,"/",basename(layer.prefix), basename(layer.file), "_tortlocs.RData",sep='')) # provides 'locs'
 
 # REMOVE MISSING INDIV
 na.indiv <- which( is.na( locs ) )
