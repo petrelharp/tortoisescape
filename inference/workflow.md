@@ -75,7 +75,7 @@ This will:
 
 1. Use `make-resistance-distances.R` on a small grid to find initial guesses with analytic inference, e.g.
     ```
-    Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list multigrid-six-raster-list.tsv analytic
+    Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list multigrid-six-raster-list.tsv analytic 512x/six-raster-list-hitting-times.tsv
     ```
     which writes out the result to
     * `512x/six-raster-list-hitting-times.tsv`
@@ -89,7 +89,7 @@ This will:
 
 3. Use these as a starting point for inference on the finer grid, e.g.
     ```
-    Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 256x six-raster-list multigrid-six-raster-list.tsv numeric 256x/512x-six-raster-list-aggregated-hitting-times.tsv 120
+    Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 256x six-raster-list multigrid-six-raster-list.tsv numeric 256x/six-raster-list-hitting-times.tsv 256x/512x-six-raster-list-aggregated-hitting-times.tsv 120
     ```
     which produces
     * `256x/six-raster-list-hitting-times.tsv`
@@ -127,9 +127,9 @@ Inference
 
 1. Interpolate observed mean pairwise divergence times using `G` to get estimate of full matrix of divergence times:
 
-    * use `initial-hitting-times.R` as e.g.
+    * use `interp-hitting-times.R` as e.g.
     ```
-    Rscript initial-hitting-times.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
+    Rscript interp-hitting-times.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
     ```
     which produces `512x/crm_six-raster-list-init-hts.RData`.
 

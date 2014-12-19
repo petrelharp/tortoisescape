@@ -2,7 +2,7 @@
 
 usage <- '
 Get hitting times with a list of landscape layers:
-        Rscript make-resistance-distances.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
+        Rscript make-resistance-distances.R (layer prefix) (subdir) (layer file) (parameter file) (method) (output file) [initial guess] [max running time]
 e.g.
         Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 256x six-raster-list multigrid-six-raster-list.tsv numeric 256x/512x-six-raster-list-aggregated-hitting-times.tsv 120
 
@@ -17,36 +17,28 @@ if (!interactive()) {
     layer.file <- commandArgs(TRUE)[3]
     param.file <- commandArgs(TRUE)[4] 
     method <- commandArgs(TRUE)[5] 
-    prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
-    maxit <- if (length(commandArgs(TRUE))>6) { as.numeric(commandArgs(TRUE)[7]) } else { 100 } 
-    outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
+    outfile <- commandArgs(TRUE)[6]
+    prev.ht <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { NULL } 
+    maxit <- if (length(commandArgs(TRUE))>7) { as.numeric(commandArgs(TRUE)[8]) } else { 100 } 
 } else {
     layer.prefix <- "../geolayers/multigrid/256x/crm_"
     subdir <- "256x"
     layer.file <- "dem-layer-list"
     param.file <- "params-dem-layer-list.tsv"
     method <- "analytic"
+    outfile <- "256x/dem-layer-list-hitting-times.tsv"
     prev.ht <- NULL
     maxit <- 100
-    outfile <- NULL
 
-    # layer.prefix <- "../geolayers/TIFF/500x/500x_"
-    # subdir <- "500x"
-    # layer.file <- "../inference/six-raster-list"
-    # param.file <- "simple-init-params-six-raster-list.tsv"
-    # method <- "analytic"
-    # prev.ht <- NULL
-    # maxit <- NULL
-    # outfile <- NULL
     argvec <- scan(what='char')
     layer.prefix <- argvec[1]
     subdir <- argvec[2]
     layer.file <- argvec[3]
     param.file <- argvec[4]
     method <- argvec[5]
-    prev.ht <- argvec[6]
-    maxit <- argvec[7]
-    outfile <- argvec[8]
+    outfile <- argvec[6]
+    prev.ht <- argvec[7]
+    maxit <- argvec[8]
 }
 
 # number of scaling & shifting steps
@@ -62,8 +54,6 @@ require(raster)
 
 require(parallel)
 numcores <- getcores()
-
-if (!exists("outfile")||is.null(outfile)||is.na(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
 
 layer.names <- scan(layer.file,what="char") 
 
