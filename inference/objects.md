@@ -18,6 +18,7 @@ These are the things we work with:
 A `Landscape` has methods:
     + *plot(lname)* : plots the layer whose name is `lname`
     + *n.nonmissing()* : number of nonmissing cell values
+    + *plot.samples()* : plot sample IDs on some background
 
 *MigrationModel* : inherits from *Landscape*, plus migration model based on it
     + *@beta* : an overall scaling rate to the migration (nonzero)
@@ -25,6 +26,7 @@ A `Landscape` has methods:
     + *@delta* : a vector of length `n.layers` of coefficients that determine the relative migration rates
     + *@transfn* : transformation function to take sums of landscape values to rates
     + *@G* : generator matrix for the random walk
+    + *@Gjj* : 1-based indices of columns of `@G@x`
 
 A `MigrationModel` has methods:
     + *coef()* : returns the vector `c(@beta,@gamma,@delta)`

@@ -1,10 +1,13 @@
 #!/usr/bin/Rscript
 
-###
-# Get hitting times with a landscape layer
-#   e.g.
-#     Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ annual_precip
-# (note the space!)                                                                           ---->^
+usage <- "
+     Get hitting times with a landscape layer
+         Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file)
+       e.g.
+         Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ annual_precip
+     (note the space!)                                                                           ---->^
+
+ "
 
 source("resistance-fns.R")
 require(raster)
@@ -13,13 +16,14 @@ require(parallel)
 numcores<-getcores()
 
 if (!interactive()) {
+    if (length(commandArgs(TRUE))<4) { stop(usage) }
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
     param.file <- if (length(commandArgs(TRUE))>3) { commandArgs(TRUE)[4] } else { NULL }
 } else {
-    layer.prefix <- c("../geolayers/TIFF/500x/500x_")
-    subdir <- "500x"
+    layer.prefix <- c("../geolayers/multigrid/512x/crm_")
+    subdir <- "512x"
     layer.file <- "six-raster-list"
     param.file <- NULL
     # layer.names <- c("imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st")

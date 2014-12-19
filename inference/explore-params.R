@@ -21,18 +21,16 @@ load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RDa
 ## LOGISTIC FUNCTION
 transfn <- function (x) { 1/(1+exp(-x)) }
 
-# REMOVE MISSING INDIV
-na.indiv <- which( is.na( locs ) )
-locs <- locs[setdiff(seq_along(locs),na.indiv)]
-neighborhoods <- lapply(neighborhoods[setdiff(seq_along(locs),na.indiv)],function (x) { x[!is.na(x)] })
-
-
 ## END SETUP
+dem <- raster(paste(layer.prefix,"dem_30_m800_sq",sep=''))
 
+## look at where samples go
 ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing)
-# ph( layers[,1] )
+plot(dem)
+# NOT tort_IDs but indices (what are passed in via dothese below)
+with(environment(ph),text(tort.coords.rasterGCS,labels=ifelse(seq_along(tort.coords.rasterGCS)%in%na.indiv,"*",cumsum(!seq_along(tort.coords.rasterGCS)%in%na.indiv))))
 
-dothese <- c(1,10,19,83)
+dev.new()
 
 newparams <- function (params,dothese,do.layout=TRUE) {
     # params are parameters: for n layers,
@@ -42,10 +40,11 @@ newparams <- function (params,dothese,do.layout=TRUE) {
     #
     # dothese is a vector of indices of tortoise locations to compute hitting times of
     #
-    # Produces 2*n+4 plots.
+    # Produces n+4 plots.
     if (do.layout) {
-        nplots <- 2*length(dothese)+4
-        layout(matrix(1:(floor(sqrt(nplots))*ceiling(sqrt(nplots))),nrow=floor(sqrt(nplots)),byrow=TRUE))
+        nplots <- length(dothese)+4
+        nplotrows <- floor(sqrt(nplots))
+        layout( matrix(1:(nplotrows*ceiling(nplots/nplotrows)),nrow=nplotrows) )
     }
     G@x <- update.G(params)
     hts <- hitting.analytic( neighborhoods[dothese], G-diag(rowSums(G)), numcores=numcores )
@@ -54,16 +53,26 @@ newparams <- function (params,dothese,do.layout=TRUE) {
     ymax <- 1.5*max(hts[locs,])  # 1.5 times maximum hitting time to another tortoise location
     # plot with maximum value at ymax
     for (k in seq_along(dothese)) { ph(pmin(ymax,hts[,k]), main=paste("hitting time to ", dothese[k]) ) }
+    # omit self comparisons
+    diag(pimat) <- NA
+    vshift <- mean( (pimat[,dothese] - hts[locs,])[hts[locs,]>0], na.rm=TRUE )
     plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence' )
-    abline(0,1,untf=TRUE)
+    abline(vshift,1,untf=TRUE)
+    abline(33e4,1,untf=TRUE,col='red')
+    legend("bottomright",pch=1,col=seq_along(dothese),legend=dothese)
     plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence', log='xy' )
-    abline(0,1,untf=TRUE)
+    abline(vshift,1,untf=TRUE)
+    abline(33e4,1,untf=TRUE,col='red')
     ph( valfn( params[1 + (1:ngamma)] ), main="stationary distribution" )
     ph( valfn( params[1 + ngamma + (1:ndelta)] ), main="relative jump rate" )
     invisible(hts)
 }
 
-hts <- newparams(c(1e-2,rep(-.1,6),rep(-.1,6)),c(10,83))
+#  six-raster-layers  :  "imperv_30"  "agp_250"  "m2_ann_precip"  "avg_rough_30"  "dem_30"  "bdrock_ss2_st"
+hts <- newparams(c( 2.0,
+        c( -1, 0.1, -0.05, -0.2, -1.3, 0.02),
+        c( -2, 0.0,  0.00, -2.0, -.9, 0.00) ),
+    c(1,10,58,70))
 
 stop('here')
 
