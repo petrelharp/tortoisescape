@@ -74,13 +74,12 @@ dL <- function (params) {
     ggrads <- sapply( 1:ncol(layers), function (kk) {
             2 * sum( weightings * rowSums( (layers[,kk] * (1-transfn(valfn(gamma))) * GH) * (GH+sc.one)) )
         } )
-    dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
+    dgrads <- sapply( 1:ncol(layers), function (kk) {
             GL <- G
             GL@x <- G@x * ( layers[Gjj,kk] + layers[G@i+1L,kk] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
             dGL <- rowSums(GL)
             GLH <- GL %*% hts - dGL*hts
             GLH[zeros] <- 0
-            browser()
             return( 2 * sum( weightings * rowSums( GLH * (GH+sc.one) )  ) )
         } )
     ans <- ( c(bgrad, ggrads, dgrads) )
@@ -126,7 +125,7 @@ if (FALSE) {
             parvals <- seq( results$par[k]/fac, results$par[k]*fac, length.out=20 )
             Lvals <- sapply(parvals, function (x) L(ifelse(seq_along(init.params)==k,x,results$par)) )
             yrange <- range(Lvals,L(results$par))
-            plot( parvals, Lvals, ylim=yrange, main=names(init.params)[k] )
+            plot( parvals, Lvals, ylim=yrange, main=names(init.params)[k], log=if(fac>2){"y"}else{""} )
             abline(v=results$par[k])
             abline(h=L(results$par))
         }
@@ -136,12 +135,13 @@ if (FALSE) {
     range(GH*scaling)
 
     # CHECK AGAINST RIGHT ANSWER
+    require(raster)
     ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing)
     params <- init.params
     G@x <- update.G(params)
     dG <- rowSums(G)
     hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=getcores() )
-    update.aux(params,environment(),check=FALSE)
+    update.aux(params,check=FALSE)
 
     results <- optim( par=init.params*1.1, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )
 

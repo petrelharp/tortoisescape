@@ -9,15 +9,16 @@
 
 if [[ -z "${PBS_O_WORKDIR-}" ]]  # not run through pbs
 then
-    LAYERFILE=$1
+    LAYERFILE=${1-}
 fi
 
 if [[ -z "${LAYERFILE-}" || ! -r "$LAYERFILE" ]]
 then
-    echo "USAGE:    \
+    echo "USAGE:    
         qsub -vLAYERFILE=\"raster-list-file\" setup-multigrid.sh
-    or\
+    or
         ./setup-multigrid.sh raster-list-file
+
     "
     exit 1;
 fi
@@ -33,7 +34,7 @@ fi
 set -eu
 set -o pipefail
 
-RESLIST="512x 256x 128x 64x 32x 16x 8x 4x" # 2x 1x"
+RESLIST="512x 256x 128x 64x 32x 16x" # 8x 4x 2x 1x"
 PIFILE="../pairwisePi/alleleCounts_1millionloci.pwp"
 
 for RES in $RESLIST
@@ -41,20 +42,20 @@ do
     echo "$RES,  $LAYERFILE"
     mkdir -p $RES
     PREFIX=$(ls ../geolayers/multigrid/${RES}/*agp_250.gri | sed -e 's/agp_250.*//')
-    echo "\n\n----------------------------"
+    echo "----------------------------"
     echo "   na layer"
-    echo "----------------------------\n\n"
+    echo "----------------------------"
     Rscript make-overlap-na-layer.R ${PREFIX} ${LAYERFILE}
-    echo "\n\n----------------------------"
+    echo "----------------------------"
     echo "   setup G"
-    echo "----------------------------\n\n"
+    echo "----------------------------"
     Rscript setup-real-G.R ${PREFIX} ${RES} ${LAYERFILE}
-    echo "\n\n----------------------------"
+    echo "----------------------------"
     echo "   setup locations"
-    echo "----------------------------\n\n"
+    echo "----------------------------"
     Rscript setup-tort-locs.R ${PREFIX} ${RES} ${LAYERFILE}
-    echo "\n\n----------------------------"
+    echo "----------------------------"
     echo "   save setup"
-    echo "----------------------------\n\n"
+    echo "----------------------------"
     Rscript setup-inference.R ${PREFIX} ${RES} ${LAYERFILE} ${PIFILE}
 done

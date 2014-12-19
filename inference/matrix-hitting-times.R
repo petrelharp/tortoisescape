@@ -2,9 +2,9 @@
 
 usage <- '
     Read in fitted hitting times and extract the matrix of hitting times by sample. Usage:
-        Rscript plot-hts.R (layer prefix) (subdirectory) (layer file name) (tsv of hitting times) (base name for output pngs)
+        Rscript matrix-hitting-times.R (layer prefix) (subdirectory) (layer file name) (tsv of hitting times) (output file name)
     e.g.
-        Rscript plot-hts.R ../geolayers/multigrid/64x/crm_ 64x dem-layer-list 64x/dem-layer-list-hitting-times.tsv dem/64x_hts_
+        Rscript matrix-hitting-times.R ../geolayers/multigrid/128x/crm_ 128x six-raster-list 128x/six-raster-list-hitting-times.tsv 128x/six-raster-list-hitting-times-torts.tsv
 
 '
 
@@ -18,9 +18,9 @@ if (!interactive()) {
 } else {
     layer.prefix <- "../geolayers/multigrid/128x/crm_"
     subdir <- "128x"
-    layer.file <- "dem-layer-list"
-    ht.file <- "128x/dem-layer-list-hitting-times.tsv"
-    outfile <- "128x/dem-layer-list-hitting-times-torts.tsv"
+    layer.file <- "six-raster-list"
+    ht.file <- "128x/six-raster-list-hitting-times.tsv"
+    outfile <- "128x/six-raster-list-hitting-times-torts.tsv"
 }
 
 load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='')) # provides 'locs'
@@ -29,6 +29,7 @@ na.indiv <- which( is.na( orig.locs ) )
 locs <- orig.locs[-na.indiv]
 tort.nums <- seq_along(orig.locs)[-na.indiv]
 
+require(raster)
 load("../tort.coords.rasterGCS.Robj")
 all.tort.ids <- rownames(tort.coords.rasterGCS@coords)
 use.tort.ids <- all.tort.ids[-na.indiv]
