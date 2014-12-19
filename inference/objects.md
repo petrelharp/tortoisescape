@@ -14,6 +14,7 @@ These are the things we work with:
     + *@locs* : indices of the nonmissing cells that `@sample.coords` fall in
     + *@neighborhoods* : list of vectors of indices of nonmissing cells nearby to `@sample.coords`
     + *@neighborhood.radius* : maximal distance from `@sample.coords` to a cell in `@neighborhoods`
+    + *@resolution* : numeric resolution, used for adjusting the overall migration rates to be comparable across different resolutions
 
 A `Landscape` has methods:
     + *plot(lname)* : plots the layer whose name is `lname`

@@ -9,12 +9,6 @@ usage <- "
 
  "
 
-source("resistance-fns.R")
-require(raster)
-
-require(parallel)
-numcores<-getcores()
-
 if (!interactive()) {
     if (length(commandArgs(TRUE))<4) { stop(usage) }
     layer.prefix <- commandArgs(TRUE)[1]
@@ -31,6 +25,12 @@ if (!interactive()) {
 layer.names <- scan(layer.file,what="char") 
 
 load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))
+
+source("resistance-fns.R")
+require(raster)
+
+require(parallel)
+numcores<-getcores()
 
 ##
 # initial parameters?

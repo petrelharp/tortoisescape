@@ -49,6 +49,19 @@ which will save everything plus the kitchen sink to:
 * `512x/crm_six-raster-list-setup.RData`
 
 
+Testing/"Simulation"
+====================
+
+For e.g. testing methods, the script `sim-hitting-times.R` will simulate up some hitting times and add noise.
+For instance,
+```
+    Rscript sim-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test01/six-params.tsv 0.05 test01/six-raster-list-sim-hts.tsv
+```
+will produce the file
+* `test01/256x/six-raster-list-sim-hts.tsv`
+which contains the noisy, *not symmetrized* hitting times.
+(This is not really "simulation", since it's computing deterministically, and adding a bit of noise.)
+
 
 Computing resistance distances
 ==============================
@@ -122,9 +135,9 @@ Inference
 
 2. Given full matrix of divergence times to infer parameter values, as in `exponential-transform.R`.
 
-    * use `fit-exponential-model.R` as e.g.
+    * use `fit-logistic-model.R` as e.g.
     ```
-    Rscript fit-exponential-model.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
+    Rscript fit-logistic-model.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
     ```
 
 3. Return to (1) if necessary.
