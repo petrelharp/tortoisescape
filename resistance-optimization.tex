@@ -188,6 +188,15 @@ and equal to the mean hitting time of $y_i$ at those locations
 is very nearly the minimal solution to this problem.
 This only underestimates the truth by the mean time to first hit one of the $\{y_j\}$.
 
+Note that in moving from solving the problem $z = - (Q^{-y})^{-1} \bone$ to the problem $ Q^{-y} z = -1$
+we have mulitplied by $Q^{-y}$,
+a matrix that is invertible,
+but only barely,
+having top eigenvalue equal to the rate of hitting of $y$ from the quasistationary distribution off of $y$,
+and associated eigenvector almost constant.
+This suggests that solving the problem by minimizing $ \| Q^{-y_i} z \|^2$
+would benefit from an additional constraint on the absolute magnitude of $z$, somehow;
+fortunately, the constraint that $Pz$ be close to the observed values provides such a constraint.
 
 
 %%%%%%%% %%%%%%%%%%%%

@@ -1,7 +1,7 @@
 
 layer.prefix <- "../geolayers/multigrid/256x/crm_"
 subdir <- "256x"
-layer.file <- "dem-layer-list"
+layer.file <- "six-raster-list"
 
 
 source("resistance-fns.R")
@@ -57,13 +57,15 @@ newparams <- function (params,dothese,do.layout=TRUE) {
     plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence' )
     abline(0,1,untf=TRUE)
     plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence', log='xy' )
+    abline(0,1,untf=TRUE)
     ph( valfn( params[1 + (1:ngamma)] ), main="stationary distribution" )
     ph( valfn( params[1 + ngamma + (1:ndelta)] ), main="relative jump rate" )
     invisible(hts)
 }
 
-hts <- newparams(c(1e-4,-2,-9),c(10,83))
+hts <- newparams(c(1e-2,rep(-.1,6),rep(-.1,6)),c(10,83))
 
+stop('here')
 
 hts <- newparams(c(.01,0,-1),c(10,83))
 

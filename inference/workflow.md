@@ -110,7 +110,7 @@ Inference
 
 **Outline:**
 
-0. Begin with reasonable guess at parameter values, by solving very-low-resolution problem exactly, and construct `G` matrix.
+0. Begin with reasonable guess at parameter values, by solving the very-low-resolution problem exactly, and construct `G` matrix.
 
 1. Interpolate observed mean pairwise divergence times using `G` to get estimate of full matrix of divergence times:
 
@@ -118,7 +118,7 @@ Inference
     ```
     Rscript initial-hitting-times.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
     ```
-    which produces `500x_six-raster-list-init-hts.RData`
+    which produces `512x/crm_six-raster-list-init-hts.RData`.
 
 2. Given full matrix of divergence times to infer parameter values, as in `exponential-transform.R`.
 
@@ -128,8 +128,8 @@ Inference
     ```
 
 3. Return to (1) if necessary.
-Also, do this for sequentially finer grids, using previously inferred parameter values to start the next,
-multiplied by the square of the ratio of the two grid sizes.
+   Also, do this for sequentially finer grids, using previously inferred parameter values to start the next,
+   multiplied by the square of the ratio of the two grid sizes.
 
 
 
