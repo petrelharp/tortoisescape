@@ -43,3 +43,4 @@ A `MigrationModel` has methods:
     + *@fitted.hts* : `n.nonmissing * n.layers` matrix of fitted hitting times, interpolated across the entire landscape
     + *@interp.objective* : list of information needed to interpolate `@observed.hts`, given the parameters (objective function, gradient, shared environment)
     + *@param.objective* : list of information needed to find parameters that best fit `@fitted.hts` (objective function, gradient, shared environment)
+    + *@zeros* : indices of the entries of `@observed.hts` and `@fitted.hts` that are by definition zero (self hitting times)

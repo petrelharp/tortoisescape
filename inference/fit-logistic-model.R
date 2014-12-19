@@ -1,18 +1,29 @@
 #!/usr/bin/Rscript
 
+usage <- "
+Fit the parameters in a model where the transformation function is the logistic function x -> 1/(1+exp(-x)).
+Usage:
+    Rscript fit-logistic-model.R (layer prefix) (subdir) (layer file) (hitting times tsv) (initial params file) [output file]
+e.g.
+    Rscript fit-logistic-model.R ../geolayers/multigrid/256x/crm_ 256x dem-layer-list 256x/dem-layer-list-hitting-times.tsv params-dem-layer-list.tsv
+"
+
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
     ht.file <- commandArgs(TRUE)[4]
     param.file <- commandArgs(TRUE)[5]
+    outfile <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL }
 } else {
     layer.prefix <- "../geolayers/multigrid/256x/crm_"
     subdir <- "256x"
     layer.file <- "dem-layer-list"
     ht.file <- "256x/dem-layer-list-hitting-times.tsv"
     param.file <- "params-dem-layer-list.tsv"
+    outfile <- NULL
 }
+
 layer.names <- scan(layer.file,what="char") 
 
 # require(raster)
@@ -20,11 +31,11 @@ layer.names <- scan(layer.file,what="char")
 
 ht.id <- gsub( paste(basename(layer.prefix),basename(layer.file),sep=""), "", gsub("[.].*","", basename(ht.file) ) )
 if (nchar(ht.id)>0) { ht.id <- paste("_",ht.id,sep='') }
-outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),ht.id,"_fit-params.RData",sep='')
+if (is.null(outfile)) { outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),ht.id,"_fit-params.RData",sep='') }
 
 load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))
 
-# SWITCH TO LOGISTIC MODEL
+# MAKE SURE USING LOGISTIC FUNCTION
 transfn <- function (x) { 1/(1+exp(-x)) }
 
 hts <- as.matrix(read.table(ht.file,header=TRUE))
@@ -42,57 +53,11 @@ sc.one <- 1/scaling
 hts <- hts/scaling
 hts[zeros] <- 0
 
-# setup: evaluating L and dL will change variables they share in a common scope
-L.env <- new.env()
-update.aux <- function (params,check=TRUE) {
-    if ( (!check) || any(params != get("params", L.env ) ) ) { 
-        assign("params", params,  L.env )
-        evalq( G@x <- update.G(params),  L.env )
-        evalq( dG <- rowSums(G),  L.env )
-        evalq( GH <- G %*% hts - dG*hts, L.env )
-        evalq( GH[zeros] <- 0, L.env )
-    }
-}
-# weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
-# weightings <- ifelse( 1:nrow(hts) %in% locs, 1, 0 )
-assign( "weightings",  1/rowMeans(hts,na.rm=TRUE) )
-assign( "nomitted",  sum( weightings[row(hts)[zeros]] ) )
+LdL <- params.logistic.setup()
+L <- LdL$L
+dL <- LdL$dL
 
-update.aux(init.params,check=FALSE)
-
-L <- function (params) {
-    update.aux(params)
-    ans <- ( sum( weightings*rowSums((GH+sc.one)^2) ) - (nomitted)*sc.one^2 )
-    if (!is.finite(ans)) { browser() }
-    return(ans)
-}
-dL <- function (params) {
-    update.aux(params)
-    gamma <- params[1+(1:ngamma)]
-    delta <- params[1 + ngamma + (1:ndelta)]
-    bgrad <- ( 2 / params[1] )* sum( weightings * rowSums(GH * (GH+sc.one)) )
-    ggrads <- sapply( 1:ncol(layers), function (kk) {
-            2 * sum( weightings * rowSums( (layers[,kk] * (1-transfn(valfn(gamma))) * GH) * (GH+sc.one)) )
-        } )
-    dgrads <- sapply( 1:ncol(layers), function (kk) {
-            GL <- G
-            GL@x <- G@x * ( layers[Gjj,kk] + layers[G@i+1L,kk] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
-            dGL <- rowSums(GL)
-            GLH <- GL %*% hts - dGL*hts
-            GLH[zeros] <- 0
-            return( 2 * sum( weightings * rowSums( GLH * (GH+sc.one) )  ) )
-        } )
-    ans <- ( c(bgrad, ggrads, dgrads) )
-    if (any(!is.finite(ans))) { browser() }
-    return(ans)
-}
-environment(L) <- environment(dL) <- L.env
-
-L(init.params)
-dL(init.params)
-
-
-parscale <- c( abs(init.params[1]/10), rep(0.1,length(init.params)-1) )
+parscale <- c( abs(init.params[1]/10), rep(0.01,length(init.params)-1) )
 results <- optim( par=init.params, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )
 results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(results$par))/10)), method="BFGS" )
 results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(results$par))/10)), method="BFGS" )

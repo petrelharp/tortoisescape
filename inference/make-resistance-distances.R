@@ -40,6 +40,9 @@ if (!interactive()) {
     prev.ht <- argvec[7]
     maxit <- argvec[8]
 }
+cat("make-resistance-distances.R:\n")
+invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","method","outfile","prev.ht","maxit"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
+cat("\n")
 
 # number of scaling & shifting steps
 nscale <- 0
@@ -84,6 +87,7 @@ if (method=="analytic") {
     hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
 
 } else if (method=="numeric") {
+    if (!file.exists(prev.ht)) { stop("For method 'numeric' need to specify a starting point (previous hts).") }
 
     init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
     init.hts <- sapply( 1:ncol(init.hts), function (k) {

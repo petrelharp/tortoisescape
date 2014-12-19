@@ -1,5 +1,7 @@
 #!/usr/bin/Rscript
 
+source("objective-functions.R")
+
 # number of cores for parallel
 getcores <- function (subdir) {
     if ( "parallel" %in% .packages()) {
