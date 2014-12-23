@@ -83,18 +83,9 @@ if (FALSE) {
         print( gcheck(dirn=ifelse(seq_along(init.params)==k,1,0)) )
     }
 
-    # check answer
-    layout(matrix(1:(2*length(init.params)),nrow=2,byrow=TRUE))
-    for (fac in c(1.02,10)) {
-        for (k in seq_along(init.params)) {
-            parvals <- seq( results$par[k]/fac, results$par[k]*fac, length.out=20 )
-            Lvals <- sapply(parvals, function (x) L(ifelse(seq_along(init.params)==k,x,results$par)) )
-            yrange <- range(Lvals,L(results$par))
-            plot( parvals, Lvals, ylim=yrange, main=names(init.params)[k], log=if(fac>2){"y"}else{""} )
-            abline(v=results$par[k])
-            abline(h=L(results$par))
-        }
-    }
+    # check answer: marginal plots to +/- 0.1
+    layout(matrix(1:(2*ceiling(length(init.params)/2)),nrow=2,byrow=TRUE))
+    plot.nearby(L,results$par,fac=0.1)
 
     update.aux(results$par)
     range(GH*scaling)

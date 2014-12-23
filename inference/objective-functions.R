@@ -84,9 +84,57 @@ gcheck <- function (f,df,params,eps=1e-8) {
     return(results)
 }
 
+find.parscale <- function (f, params, parscale, fnscale, eps=0.01, step=10, maxit=3) {
+    # guess at an appropriate set of scalings for params,
+    # i.e. scalings such that changing each of params by eps*parscale changes f by approximately eps*fnscale
+    #  and goes down in one direction
+    # or as close as is possible up to changing by 'step'
+    fval <- f(params)
+    if (missing(fnscale)) { fnscale <- abs(fval) }
+    for (k in seq_along(params)) {
+        cat(k, " : " )
+        for (niter in 1:maxit) {
+            dp <- eps*ifelse(seq_along(params)==k,parscale,0)
+            fvals <- c( f(params+dp), f(params-dp) )
+            log.df <- log10( min( abs( (fvals-fval)/fnscale ), na.rm=TRUE ) ) - log10(eps) 
+            # if log.df[k] > 1, we want to make parscale[k] smaller, and vice-versa
+            if ( niter==1 ) { 
+                dscale <- if ( all( (fvals-fval)/fnscale > 0 ) || log.df > 1 ) { 1/step } else { step }
+            }
+            if ( ( ( log.df < 0 ) || ( log.df > 1 ) ) && ( log(dscale)*log.df < 0 ) ) { 
+                cat(parscale[k], " : ")
+                parscale[k] <- parscale[k] * dscale 
+            } else {
+                cat(parscale[k], " : ", log.df, "\n")
+                break
+            }
+        }
+    }
+    return(parscale)
+}
+
+check.parscale <- function (f, params, parscale, fnscale, eps=0.01) {
+    # check if parscale is appropriate,
+    # i.e. if near to params, changing each coordinate by an additive factor of parscale changes f by a similar amount
+    fval <- f(params)
+    if (missing(fnscale)) { fnscale <- abs(fval) }
+    results <- sapply( seq_along(params), function (k) {
+            dp <- eps*ifelse(seq_along(params)==k,parscale,0)
+            fvals <- c( f(params+dp), f(params-dp) )
+            log.df <- log10( min( abs( fvals-fval ), na.rm=TRUE ) ) - log10(eps) - log10(fnscale)
+        } )
+    names(results) <- names(params)
+    magnitudes <- floor( log10( results - min(results) + 1 )  ) 
+    if ( diff(range(magnitudes)) > 3 ) { warning("Discrepancy in parameter scaling.\n\n") }
+    if ( min(magnitudes) < (-1) ) { warning("Some parameter scalings may be too small.\n\n") }
+    cat("\nWant these to be all the same order of magnitude, around 1.0:\n\n")
+    return(results)
+}
+
 plot.nearby <- function (f,params,fac,npoints=20,...) {
+    # Make marginal plots of the function f nearby to fac by an additive factor 'fac'
+    # makes length(param) plots.
     if (length(fac)==1) { fac <- rep(fac,length(params)) }
-    # look at the surface described by f nearby to params
     lapply( seq_along(params), function (k) {
             parvals <- seq( results$par[k]-fac[k], results$par[k]+fac[k], length.out=npoints )
             parmat <- matrix( rep(params,each=npoints), nrow=npoints )
