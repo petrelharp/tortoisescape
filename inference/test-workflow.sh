@@ -7,6 +7,12 @@
 #PBS -l vmem=120gb
 #PBS -l pmem=7500mb
 
+if [[ ! -z "${PBS_O_WORKDIR-}" ]]  # run through pbs
+then
+    source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+    cd $PBS_O_WORKDIR
+fi
+
 # Make some random parameter values,
 # compute hitting times,
 # then fit logistic model from them.
