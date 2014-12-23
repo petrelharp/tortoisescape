@@ -57,9 +57,8 @@ LdL <- params.logistic.setup()
 L <- LdL$L
 dL <- LdL$dL
 
-parscale <- c( abs(init.params[1]/10), rep(0.01,length(init.params)-1) )
+parscale <- c( abs(init.params[1]/10), rep(0.1,length(init.params)-1) )
 results <- optim( par=init.params, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )
-results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(results$par))/10)), method="BFGS" )
 results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(results$par))/10)), method="BFGS" )
 if (results$convergence != 0) {
     results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale/10), method="BFGS" )
