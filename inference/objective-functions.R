@@ -135,15 +135,15 @@ plot.nearby <- function (f,params,fac,npoints=20,...) {
     # makes length(param) plots.
     if (length(fac)==1) { fac <- rep(fac,length(params)) }
     lapply( seq_along(params), function (k) {
-            parvals <- seq( results$par[k]-fac[k], results$par[k]+fac[k], length.out=npoints )
+            parvals <- seq( params[k]-fac[k], params[k]+fac[k], length.out=npoints )
             parmat <- matrix( rep(params,each=npoints), nrow=npoints )
             colnames(parmat) <- names(params)
             parmat[,k] <- parvals
             fvals <- apply( parmat, 1, f )
-            yrange <- range(fvals,f(results$par))
+            yrange <- range(fvals,f(params))
             plot( parvals, fvals, ylim=yrange, main=names(params)[k],... )
-            abline(v=results$par[k])
-            abline(h=f(results$par))
+            abline(v=params[k])
+            abline(h=f(params))
             return( cbind(parvals, fvals=fvals ) )
         } )
 }
