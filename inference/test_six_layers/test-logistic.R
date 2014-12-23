@@ -47,17 +47,21 @@ plot.nearby( f=L, params=init.params, fac=.05 )
 layout( matrix( 1:16,nrow=4 ) )
 plot.nearby( f=L, params=init.params, fac=.5 )
 
-fitfn <- function (init.params) {
+parscale <- find.parscale( L, init.params, parscale=rep(1,length(init.params)) )
+parscale <- c(1,rep(1,ngamma),rep(0.0001,ndelta))
+check.parscale(L,init.params,parscale)
+
+fitfn <- function (init.params) {  # takes like 5min if not close to true params
     print(init.params)
-    parscale <- c( abs(init.params[1]/10), rep(0.01,length(init.params)-1) )
     results <- optim( par=init.params, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )
-    # results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(results$par))/10)), method="BFGS" )
-    results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(results$par))/10)), method="BFGS" )
     if (results$convergence != 0) {
         results <- optim( par=results$par, fn=L, gr=dL, control=list(parscale=parscale/10), method="BFGS" )
     }
+    return(results)
 }
 
 jittered.params <- t( do.call( cbind, lapply( c(1e-3,1e-2,1e-1,1), function (sd) {  replicate( 2, init.params+rnorm(length(init.params),sd=sd) ) } ) ) )
 
 fitted.params <- apply( jittered.params, 1, fitfn )
+
+
