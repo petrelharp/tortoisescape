@@ -1,10 +1,10 @@
 #PBS -S /bin/bash
 #PBS -q cmb
-#PBS -l nodes=1:dl165:ppn=24
-#PBS -l walltime=200:00:00
-#PBS -l mem=48000mb
-#PBS -l vmem=48000mb
-#PBS -l pmem=2000mb
+#PBS -l nodes=1:sl230s:ppn=16
+#PBS -l walltime=48:00:00
+#PBS -l mem=128000mb
+#PBS -l vmem=128000mb
+#PBS -l pmem=8000mb
 
 # First, do
 #  qsub -vARGS="dem-layer-list" setup-multigrid.sh
@@ -22,7 +22,7 @@ LAYERLIST="dem-layer-list"
 PARAMFILE="params-dem-layer-list.tsv"
 
 RES="512x"
-RESLIST="256x 128x 64x" # 32x 16x 8x 4x" # 2x 1x"
+RESLIST="256x 128x 64x 32x 16x 8x 4x" # 2x 1x"
 
 echo "Hitting times at ${RES}."
 # get initial hitting times 
