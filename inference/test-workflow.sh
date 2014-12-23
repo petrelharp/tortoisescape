@@ -6,7 +6,7 @@
 
 BASEDIR="test_six_layers"
 BASEPARAMS="${BASEDIR}/six-params.tsv"
-NSIMS=8
+NSIMS=2
 
 # Create random parameter values
 R --vanilla --slave << EOF
@@ -23,8 +23,9 @@ for (k in 1:nsims) {
 }
 EOF
 
-for SIMDIR in "${BASEDIR}/test_*"
+for SIMDIR in ${BASEDIR}/test_*
 do
+    echo "Doing ${SIMDIR}."
     mkdir -p ${SIMDIR}/256x
     HTFILE=${SIMDIR}/256x/six-raster-list-hitting-times-full.tsv
     Rscript make-resistance-distances.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list ${SIMDIR}/six-params.tsv analytic ${HTFILE}

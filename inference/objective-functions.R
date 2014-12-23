@@ -6,7 +6,6 @@ params.logistic.setup <- function () {
     #  G
     #  update.G
     #  hts
-    #  weightings
     #  zeros
     #  sc.one
     #  layers
@@ -29,7 +28,7 @@ params.logistic.setup <- function () {
     # weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
     # weightings <- ifelse( 1:nrow(hts) %in% locs, 1, 0 )
     assign( "weightings",  1/rowMeans(hts,na.rm=TRUE), L.env )
-    assign( "nomitted",  sum( weightings[row(hts)[zeros]] ), L.env )
+    assign( "nomitted",  sum( get("weightings",L.env)[row(hts)[zeros]] ), L.env )
 
     evalq( update.aux(init.params,check=FALSE), L.env )
 
