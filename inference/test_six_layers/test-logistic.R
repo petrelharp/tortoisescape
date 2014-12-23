@@ -3,9 +3,9 @@
 layer.prefix <- "../geolayers/multigrid/256x/crm_"
 subdir <- "256x"
 layer.file <- "six-raster-list"
-ht.file <- "test01/256x/six-raster-list-hitting-times-full.tsv"
-param.file <- "test01/six-params.tsv"
-outfile <- "test01/inferred-six-params.tsv"
+ht.file <- "test_six_layers/256x/six-raster-list-hitting-times-full.tsv"
+param.file <- "test_six_layers/six-params.tsv"
+outfile <- "test_six_layers/inferred-six-params.tsv"
 
 
 layer.names <- scan(layer.file,what="char") 
@@ -22,7 +22,10 @@ load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RDa
 # MAKE SURE USING LOGISTIC FUNCTION
 transfn <- function (x) { 1/(1+exp(-x)) }
 
-hts <- as.matrix(read.table(ht.file,header=TRUE))
+# load hitting times
+hts <- orig.hts <- as.matrix(read.table(ht.file,header=TRUE))
+# add some noise to them
+hts <- hts * exp( rnorm(length(hts))/100 )
 
 init.params.table <- read.table(param.file,header=TRUE)
 init.params <- as.numeric( init.params.table[match(subdir,init.params.table[,1]),-1] )
@@ -47,6 +50,8 @@ plot.nearby( f=L, params=init.params, fac=.05 )
 layout( matrix( 1:16,nrow=4 ) )
 plot.nearby( f=L, params=init.params, fac=.5 )
 
+parscale <- rep(1,length(init.params))
+
 parscale <- find.parscale( L, init.params, parscale=rep(1,length(init.params)) )
 parscale <- c(1,rep(1,ngamma),rep(0.0001,ndelta))
 check.parscale(L,init.params,parscale)
@@ -59,6 +64,9 @@ fitfn <- function (init.params) {  # takes like 5min if not close to true params
     }
     return(results)
 }
+
+results <- fitfn( init.params )
+plot.nearby( f=L, params=results$par, fac=.5 )
 
 jittered.params <- t( do.call( cbind, lapply( c(1e-3,1e-2,1e-1,1), function (sd) {  replicate( 2, init.params+rnorm(length(init.params),sd=sd) ) } ) ) )
 
