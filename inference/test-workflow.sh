@@ -1,4 +1,11 @@
 #!/bin/bash
+#PBS -S /bin/bash
+#PBS -q cmb
+#PBS -l nodes=1:sl230s:ppn=16
+#PBS -l walltime=200:00:00
+#PBS -l mem=120gb
+#PBS -l vmem=120gb
+#PBS -l pmem=7500mb
 
 # Make some random parameter values,
 # compute hitting times,
