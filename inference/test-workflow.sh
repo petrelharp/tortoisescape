@@ -32,7 +32,7 @@ fi
 
 BASEDIR="test_six_layers"
 BASEPARAMS="${BASEDIR}/six-params.tsv"
-NSIMS=2
+NSIMS=8
 
 # Create random parameter values
 R --vanilla --slave << EOF
