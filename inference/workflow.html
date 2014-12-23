@@ -1,0 +1,92 @@
+<h1 id="setup">Setup :</h1>
+<p>Setup can be done with</p>
+<pre><code>./setup-multigrid.sh (name of layer file)</code></pre>
+<p>This will, for each of several spatial resolutions (examples below with layer file <code>six-layer-list</code>):</p>
+<ol style="list-style-type: decimal">
+<li><p><code>make-overlap-na-layer.R</code> : figures out the common set of nonmissing locations</p>
+<pre><code>  Rscript make-overlap-na-layer.R ../geolayers/multigrid/512x/crm_ six-raster-list</code></pre>
+<p>will create the <code>six-raster-list-na.grd</code> layer in <code>../geolayers/multigrid/512x/</code>.</p></li>
+<li><p><code>setup-real-G.R</code> will set up the generator matrix for the non-NA entries of a particular set of layers. For instance,</p>
+<pre><code>  Rscript setup-real-G.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list</code></pre>
+will produce the files</li>
+</ol>
+<ul>
+<li><code>512x/crm__six-raster-list_G.RData</code> : the generator matrix and associated things:
+<ul>
+<li><code>G</code> : generator matrix, indexed by <strong>nonmissing</strong> raster pixels</li>
+<li><code>layers</code> : matrix of <strong>nonmissing</strong> raster values, used to update G</li>
+<li><code>update.G</code> : function returning <code>G@x</code></li>
+<li><code>ndelta</code> : required for <code>update.G</code></li>
+<li><code>ngamma</code> : required for <code>update.G</code></li>
+<li><code>transfn</code> : transformation function, required for <code>update.G</code></li>
+<li><code>valfn</code> : computes linear combination of layers, required for <code>update.G</code></li>
+</ul></li>
+<li><code>512x/crm__six-raster-list_nonmissing.RData</code> : the necessary info to translate from nonmissing index back to position in the layer
+<ul>
+<li><code>nonmissing</code> : indices of nonmissing items in layers</li>
+</ul></li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li><p><code>setup-tort-locs.R</code> will figure out which raster cell each tortoise fell in, and their neighborhood, e.g.</p>
+<pre><code>  Rscript setup-tort-locs.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list</code></pre>
+<p>which will produce the following files, each in the same order as tortoise locations in <code>../tort.coords.rasterGCS.Robj</code>:</p></li>
+</ol>
+<ul>
+<li><code>512x/crm_six-raster-list_tortlocs.RData</code>: contains <code>locs</code>, which gives the indices of <strong>nonmissing</strong> raster cells that tortoises fall in.</li>
+<li><code>512x/crm_six-raster-list_neighborhoods.RData</code>: contains <code>neighborhoods</code>, which is a list with indices of <strong>nonmissing</strong> raster cells within 15km of that tortoise; nearby raster cells not falling on the layer are recorded as <code>NA</code>.</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li><p><code>setup-inference.R</code> will load these things and <code>pimat</code> up in an <code>.RData</code>, e.g.</p>
+<pre><code>Rscript setup-inference.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list ../pairwisePi/alleleCounts_1millionloci.pwp</code></pre>
+which will save everything plus the kitchen sink to:</li>
+</ol>
+<ul>
+<li><code>512x/crm_six-raster-list-setup.RData</code></li>
+</ul>
+<h1 id="computing-resistance-distances">Computing resistance distances</h1>
+<p>To find mean hitting times on a fine grid at a given set of parameters, after running <code>setup-inference.sh</code>, run</p>
+<pre><code>./hitting-times.sh (raster list file) (parameter file)</code></pre>
+<p>This will:</p>
+<ol style="list-style-type: decimal">
+<li><p>Use <code>make-resistance-distances.R</code> on a small grid to find initial guesses with analytic inference, e.g.</p>
+<pre><code>Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list multigrid-six-raster-list.tsv analytic</code></pre>
+which writes out the result to
+<ul>
+<li><code>512x/six-raster-list-hitting-times.tsv</code></li>
+</ul></li>
+<li><p>Push these up to a finer grid, using <code>disaggregate-ht.R</code>, e.g.</p>
+<pre><code>Rscript disaggregate-ht.R ../geolayers/multigrid/512x/crm_ ../geolayers/multigrid/256x/crm_ 512x 256x six-raster-list 512x/six-raster-list-hitting-times.tsv 2</code></pre>
+which produces
+<ul>
+<li><code>256x/512x-six-raster-list-aggregated-hitting-times.tsv</code></li>
+</ul></li>
+<li><p>Use these as a starting point for inference on the finer grid, e.g.</p>
+<pre><code>Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 256x six-raster-list multigrid-six-raster-list.tsv numeric 256x/512x-six-raster-list-aggregated-hitting-times.tsv 120</code></pre>
+which produces
+<ul>
+<li><code>256x/six-raster-list-hitting-times.tsv</code></li>
+</ul></li>
+<li><p>Etcetera, on up the list of resolutions.</p></li>
+</ol>
+<h1 id="visualization">Visualization</h1>
+<p>The script <code>plot-hts.R</code> will make PNGs of hitting times to each sample, e.g.</p>
+<pre><code>Rscript plot-hts.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list 256x/six-raster-list-hitting-times.tsv six-raster-list/hts</code></pre>
+<p>which will put a bunch of plots, one for each tortoise, with names like</p>
+<pre><code>256x/six-raster-list/hts_(TORTOISE NUMBER).png</code></pre>
+<h1 id="inference">Inference</h1>
+<p><strong>Outline:</strong></p>
+<ol start="0" style="list-style-type: decimal">
+<li><p>Begin with reasonable guess at parameter values, by solving very-low-resolution problem exactly, and construct <code>G</code> matrix.</p></li>
+<li><p>Interpolate observed mean pairwise divergence times using <code>G</code> to get estimate of full matrix of divergence times:</p>
+<ul>
+<li><p>use <code>initial-hitting-times.R</code> as e.g.</p>
+<pre><code>Rscript initial-hitting-times.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list</code></pre>
+<p>which produces <code>500x_six-raster-list-init-hts.RData</code></p></li>
+</ul></li>
+<li><p>Given full matrix of divergence times to infer parameter values, as in <code>exponential-transform.R</code>.</p>
+<ul>
+<li><p>use <code>fit-exponential-model.R</code> as e.g.</p>
+<pre><code>Rscript fit-exponential-model.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list</code></pre></li>
+</ul></li>
+<li><p>Return to (1) if necessary. Also, do this for sequentially finer grids, using previously inferred parameter values to start the next, multiplied by the square of the ratio of the two grid sizes.</p></li>
+</ol>

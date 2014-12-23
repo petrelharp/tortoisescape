@@ -3,7 +3,21 @@
 source("resistance-fns.R")
 require(raster)
 
+usage <- "
+Load up everything already computed into one .RData file.  Usage:
+    Rscript (layer prefix) (subdir) (layer file) (pairwise divergence file)
+e.g.
+    Rscript setup-inference.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list ../pairwisePi/alleleCounts_1millionloci.pwp
+where
+    (layer prefix) = prefix to look for raster files in
+    (subdir) = where to put stuff
+    (layer file) = file with names of layers to use
+    (pairwise divergence file) = file with UPPER triangle of matrix of pairwise divergences (including diagonals)
+"
+
 source.ls <- ls()
+
+if (length(commandArgs(TRUE))<4) { stop(usage) }
 
 if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
@@ -32,10 +46,14 @@ layers <- do.call( cbind, lapply( layer.names, function (layer.name) {
 stopifnot(nrow(layers)==nrow(G))
 
 # tortoise locations
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep=''))
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep=''))
 nind <- length(locs)
 na.indiv <- which( is.na( locs ) )
 locs <- locs[-na.indiv]
+
+# and neighborhoods
+load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
+neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
 
 # pairwise divergence values
 pimat.vals <- scan(pimat.file) # has UPPER with diagonal
@@ -48,7 +66,7 @@ pimat <- pimat[-na.indiv,-na.indiv]
 # scale to actual pairwise divergence, and then by 1/mutation rate
 pimat <- pimat * .018 * 1e8
 
-outfile <- paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep='')
+outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep='')
 save(list=setdiff(ls(),source.ls), file=outfile)
 
 cat("Saved to ", outfile, " .\n")

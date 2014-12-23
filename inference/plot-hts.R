@@ -35,7 +35,7 @@ load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighb
 # load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 
 # HAVE REMOVED MISSING INDIV
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='')) # provides 'locs'
 orig.locs <- locs
 na.indiv <- which( is.na( orig.locs ) )
 locs <- orig.locs[-na.indiv]
@@ -49,8 +49,14 @@ hts <- as.matrix( read.table(ht.file,header=TRUE) )
 
 dir.create(file.path(subdir,dirname(outbase)),recursive=TRUE)
 
-for (k in 1:ncol(hts)) {
-    png( file=file.path(subdir,paste(outbase,"_",tort.nums[k],".png",sep="")), res=144, width=5*144, height=4*144, pointsize=10 )
-    ph( hts[,k], main=paste("Tortoise",tort.nums[k]) )
-    dev.off()
-}
+mclapply( 1:ncol(hts), function (k) {
+        # 'locs' are indices of tortoise locations
+        ymax <- 1.5*max(hts[locs,k])  # 1.5 times maximum hitting time to another tortoise location
+        yy <- hts[,k]
+        yy[yy>ymax] <- NA
+        outfile <- file.path(subdir,paste(outbase,"_",tort.nums[k],".png",sep=""))
+        png( file=outfile, res=144, width=5*144, height=4*144, pointsize=10 )
+        ph( yy, main=paste("Tortoise",tort.nums[k]) )
+        dev.off()
+        return(outfile)
+    }, mc.cores=numcores )

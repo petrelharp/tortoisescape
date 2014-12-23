@@ -1,8 +1,7 @@
 
 layer.prefix <- "../geolayers/multigrid/256x/crm_"
 subdir <- "256x"
-layer.file <- "dem-layer-list"
-param.file <- "params-dem-layer-list.tsv"
+layer.file <- "six-raster-list"
 
 
 source("resistance-fns.R")
@@ -13,59 +12,78 @@ numcores <- getcores()
 
 layer.names <- scan(layer.file,what="char") 
 
-load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
-load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
-load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))  # provides below, also 'pimat'
+# load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
+# load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
+# load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='')) # provides 'locs'
+# load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
 
-# REMOVE MISSING INDIV
-na.indiv <- which( is.na( locs ) )
-locs <- locs[-na.indiv]
-neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
+## LOGISTIC FUNCTION
+transfn <- function (x) { 1/(1+exp(-x)) }
 
-
-##
-# initial parameters?
-#   in time t, 1D RW with rate r does t*r jumps, displacement has variance t*r
-#   so time to move N grid sites away is sqrt(N)/r
-#   so if hitting times are of order T, want r of order sqrt(N)/T
-
-init.param.table <- read.table( param.file, header=TRUE )
-init.params <- unlist( init.param.table[ match( subdir, init.param.table[,1] ), -1 ] )
-
-
-ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing)
+## END SETUP
 dem <- raster(paste(layer.prefix,"dem_30_m800_sq",sep=''))
 
-dothese <- c(1,10,19,83)
+## look at where samples go
+ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing)
+plot(dem)
+# NOT tort_IDs but indices (what are passed in via dothese below)
+with(environment(ph),text(tort.coords.rasterGCS,labels=ifelse(seq_along(tort.coords.rasterGCS)%in%na.indiv,"*",cumsum(!seq_along(tort.coords.rasterGCS)%in%na.indiv))))
 
-newparams <- function (dothese) {
+dev.new()
+
+newparams <- function (params,dothese,do.layout=TRUE) {
+    # params are parameters: for n layers,
+    #  params[1] is beta, overall multiplicative constant
+    #  params[2:(n+1)] is gamma, weights on the layers that give the stationary distribution
+    #  params[(n+2):(2*n+1)] is delta, the weights on the layers that give the jump rates
+    #
+    # dothese is a vector of indices of tortoise locations to compute hitting times of
+    #
+    # Produces n+4 plots.
+    if (do.layout) {
+        nplots <- length(dothese)+4
+        nplotrows <- floor(sqrt(nplots))
+        layout( matrix(1:(nplotrows*ceiling(nplots/nplotrows)),nrow=nplotrows) )
+    }
     G@x <- update.G(params)
     hts <- hitting.analytic( neighborhoods[dothese], G-diag(rowSums(G)), numcores=numcores )
     hts[hts<0] <- NA
-    for (k in seq_along(dothese)) { ph(pmin(1e6,hts[,k])); ph(pmin(6,log10(hts[,k])))  }
+    # 'locs' are indices of tortoise locations
+    ymax <- 1.5*max(hts[locs,])  # 1.5 times maximum hitting time to another tortoise location
+    # plot with maximum value at ymax
+    for (k in seq_along(dothese)) { ph(pmin(ymax,hts[,k]), main=paste("hitting time to ", dothese[k]) ) }
+    # omit self comparisons
+    diag(pimat) <- NA
+    vshift <- mean( (pimat[,dothese] - hts[locs,])[hts[locs,]>0], na.rm=TRUE )
+    plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence' )
+    abline(vshift,1,untf=TRUE)
+    abline(33e4,1,untf=TRUE,col='red')
+    legend("bottomright",pch=1,col=seq_along(dothese),legend=dothese)
+    plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence', log='xy' )
+    abline(vshift,1,untf=TRUE)
+    abline(33e4,1,untf=TRUE,col='red')
+    ph( valfn( params[1 + (1:ngamma)] ), main="stationary distribution" )
+    ph( valfn( params[1 + ngamma + (1:ndelta)] ), main="relative jump rate" )
     invisible(hts)
 }
 
-layout(matrix(1:4,nrow=2))
+#  six-raster-layers  :  "imperv_30"  "agp_250"  "m2_ann_precip"  "avg_rough_30"  "dem_30"  "bdrock_ss2_st"
+hts <- newparams(c( 2.0,
+        c( -1, 0.1, -0.05, -0.2, -1.3, 0.02),
+        c( -2, 0.0,  0.00, -2.0, -.9, 0.00) ),
+    c(1,10,58,70))
 
-params <- c(1,-4,-4); hts <- newparams(83)
-params <- c(1,-1,0); hts <- newparams(83)
-params <- c(1,0,-1); hts <- newparams(83)
-params <- c(1,0,-2); hts <- newparams(83)
-params <- c(1,0,-3); hts <- newparams(83)
-params <- c(1,0,-4); hts <- newparams(83)
-params <- c(1,0,-7); hts <- newparams(83)
-params <- c(1,0,-12); hts <- newparams(83)
-params <- c(1,0,-20); hts <- newparams(83)
+stop('here')
 
-params <- c(1e-2,-1,-10); hts <- newparams(83)
-params <- c(1e-4,-1,-10); hts <- newparams(c(10,83))
+hts <- newparams(c(.01,0,-1),c(10,83))
 
-params <- c(1e-4,-2,-10); hts <- newparams(c(10,83))
-params <- c(1e-4,-2,-8); hts <- newparams(c(10,83))
+hts <- newparams(c(.01,0,-3),c(10,83))
 
-# looks pretty good!
-params <- c(1e-4,-2,-9); hts <- newparams(c(10,83))
+hts <- newparams(c(.01,-.1,-3),c(10,83))
 
+
+# what does a transformed layer look like?
+dem <- raster(paste(layer.prefix,"dem_30_m800_sq",sep=''))
 plot( exp((-2)*dem) )
+

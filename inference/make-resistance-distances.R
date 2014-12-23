@@ -1,10 +1,10 @@
 #!/usr/bin/Rscript
 
 usage <- '
-    Get hitting times with a list of landscape layers:
-        Rscript make-resistance-distances.R (layer prefix) (subdir) (layer file) (parameter file) (method) [initial guess] [max running time] [output file]
-      e.g.
-        Rscript make-resistance-distances.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ 100x ../inference/six-raster-list simple-init-params-six-raster-list.tsv numeric
+Get hitting times with a list of landscape layers:
+        Rscript make-resistance-distances.R (layer prefix) (subdir) (layer file) (parameter file) (method) (output file) [initial guess] [max running time]
+e.g.
+        Rscript make-resistance-distances.R ../geolayers/multigrid/512x/crm_ 256x six-raster-list multigrid-six-raster-list.tsv numeric 256x/512x-six-raster-list-aggregated-hitting-times.tsv 120
 
     Here `method` is either "analytic" or "numeric".
 '
@@ -17,44 +17,40 @@ if (!interactive()) {
     layer.file <- commandArgs(TRUE)[3]
     param.file <- commandArgs(TRUE)[4] 
     method <- commandArgs(TRUE)[5] 
-    prev.ht <- if (length(commandArgs(TRUE))>5) { commandArgs(TRUE)[6] } else { NULL } 
-    maxit <- if (length(commandArgs(TRUE))>6) { as.numeric(commandArgs(TRUE)[7]) } else { 100 } 
-    outfile <- if (length(commandArgs(TRUE))>7) { commandArgs(TRUE)[8] } else { NULL }
+    outfile <- commandArgs(TRUE)[6]
+    prev.ht <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { NULL } 
+    maxit <- if (length(commandArgs(TRUE))>7) { as.numeric(commandArgs(TRUE)[8]) } else { 100 } 
 } else {
-    layer.prefix <- "../geolayers/multigrid/128x/crm_"
-    subdir <- "128x"
+    layer.prefix <- "../geolayers/multigrid/256x/crm_"
+    subdir <- "256x"
     layer.file <- "dem-layer-list"
     param.file <- "params-dem-layer-list.tsv"
     method <- "analytic"
+    outfile <- "256x/dem-layer-list-hitting-times.tsv"
     prev.ht <- NULL
     maxit <- 100
-    outfile <- NULL
 
-    # layer.prefix <- "../geolayers/TIFF/500x/500x_"
-    # subdir <- "500x"
-    # layer.file <- "../inference/six-raster-list"
-    # param.file <- "simple-init-params-six-raster-list.tsv"
-    # method <- "analytic"
-    # prev.ht <- NULL
-    # maxit <- NULL
-    # outfile <- NULL
     argvec <- scan(what='char')
     layer.prefix <- argvec[1]
     subdir <- argvec[2]
     layer.file <- argvec[3]
     param.file <- argvec[4]
     method <- argvec[5]
-    prev.ht <- argvec[6]
-    maxit <- argvec[7]
-    outfile <- argvec[8]
+    outfile <- argvec[6]
+    prev.ht <- argvec[7]
+    maxit <- argvec[8]
 }
+cat("make-resistance-distances.R:\n")
+invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","method","outfile","prev.ht","maxit"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
+cat("\n")
 
 # number of scaling & shifting steps
 nscale <- 0
 
 cat(paste(commandArgs()),"\n")
 
-if (! method %in% c("analytic","numeric")) { stop(usage) }
+if ( length(commandArgs(TRUE))<5 ) { cat(usage); q() }
+if (! method %in% c("analytic","numeric") ) { cat("  Method must be either 'analytic' or 'numeric'. \n"); stop(usage) }
 
 source("resistance-fns.R")
 require(raster)
@@ -62,14 +58,12 @@ require(raster)
 require(parallel)
 numcores <- getcores()
 
-if (!exists("outfile")||is.null(outfile)||is.na(outfile)) { outfile <- paste( subdir, "/", basename(layer.file), "-hitting-times.tsv", sep='') }
-
 layer.names <- scan(layer.file,what="char") 
 
 load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 
 load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
-load(paste(subdir,"/",basename(layer.prefix),"tortlocs.RData",sep='')) # provides 'locs'
+load(paste(subdir,"/",basename(layer.prefix), basename(layer.file), "_tortlocs.RData",sep='')) # provides 'locs'
 
 # REMOVE MISSING INDIV
 na.indiv <- which( is.na( locs ) )
@@ -93,6 +87,7 @@ if (method=="analytic") {
     hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
 
 } else if (method=="numeric") {
+    if (!file.exists(prev.ht)) { stop("For method 'numeric' need to specify a starting point (previous hts).") }
 
     init.hts <- as.matrix( read.table(prev.ht,header=TRUE) )
     init.hts <- sapply( 1:ncol(init.hts), function (k) {
