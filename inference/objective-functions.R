@@ -134,7 +134,7 @@ plot.nearby <- function (f,params,fac,npoints=20,...) {
     # Make marginal plots of the function f nearby to fac by an additive factor 'fac'
     # makes length(param) plots.
     if (length(fac)==1) { fac <- rep(fac,length(params)) }
-    lapply( seq_along(params), function (k) {
+    invisible( lapply( seq_along(params), function (k) {
             parvals <- seq( params[k]-fac[k], params[k]+fac[k], length.out=npoints )
             parmat <- matrix( rep(params,each=npoints), nrow=npoints )
             colnames(parmat) <- names(params)
@@ -145,5 +145,5 @@ plot.nearby <- function (f,params,fac,npoints=20,...) {
             abline(v=params[k])
             abline(h=f(params))
             return( cbind(parvals, fvals=fvals ) )
-        } )
+        } ) )
 }
