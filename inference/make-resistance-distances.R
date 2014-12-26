@@ -150,9 +150,7 @@ if (method=="analytic") {
 
 }
 
-colnames( hts ) <- locs
-write.table( hts, file=outfile, row.names=FALSE )
-cat("Writing output to ", outfile, " .\n")
+write.full.hts( hts, file=outfile )
 
 ## look at results
 if (FALSE) {

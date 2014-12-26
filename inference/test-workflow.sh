@@ -18,8 +18,14 @@ fi
 # then fit logistic model from them.
 
 ### Prototype:
-# Rscript sim-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/six-params.tsv 0.02 test_six_layers/256x/six-raster-list-sim-0_02-hts.tsv
-# 
+if [[ '' ]]
+then
+    Rscript make-resistance-distances.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv analytic test_six_layers/256x/six-raster-list-hitting-times-full.tsv
+    Rscript fuzz-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/256x/six-raster-list-hitting-times-full.tsv 0.00 test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv
+    Rscript fuzz-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/256x/six-raster-list-hitting-times-full.tsv 0.005 test_six_layers/256x/six-raster-list-sim-0_005-hts.tsv
+    Rscript fuzz-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/256x/six-raster-list-hitting-times-full.tsv 0.01 test_six_layers/256x/six-raster-list-sim-0_01-hts.tsv
+    Rscript fuzz-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/256x/six-raster-list-hitting-times-full.tsv 0.05 test_six_layers/256x/six-raster-list-sim-0_05-hts.tsv
+fi
 
 BASEDIR="test_six_layers"
 BASEPARAMS="${BASEDIR}/six-params.tsv"

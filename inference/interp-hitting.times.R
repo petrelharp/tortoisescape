@@ -4,28 +4,21 @@ usage <- "
      Interpolate provided hitting times based on parameters given
          Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (hitting times) (alpha) (output file)
        e.g.
-         Rscript initial-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv test_six_layers/256x/six-raster-list-sim-hts.tsv 1.0 test_six_layers/256x/six-raster-list-interp-hts.tsv 
+         Rscript initial-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv 1.0 test_six_layers/256x/six-raster-list-interp-hts.tsv 
 
  "
 
-if (!interactive()) {
-    if (length(commandArgs(TRUE))<6) { stop(usage) }
-    layer.prefix <- commandArgs(TRUE)[1]
-    subdir <- commandArgs(TRUE)[2]
-    layer.file <- commandArgs(TRUE)[3]
-    param.file <- commandArgs(TRUE)[4]
-    ht.file <- commandArgs(TRUE)[5]
-    alpha <- as.numeric( commandArgs(TRUE)[6] )
-    output.file <- commandArgs(TRUE)[7]
-} else {
-    layer.prefix <- c("../geolayers/multigrid/512x/crm_")
-    subdir <- "512x"
-    layer.file <- "six-raster-list"
-    param.file <- "test_six_layers/six-params.tsv"
-    ht.file <- "test_six_layers/256x/six-raster-list-sim-hts.tsv"
-    alpha <- 1.0
-    output.file <- "test_six_layers/256x/six-raster-list-interp-hts.tsv"
-}
+argvec <- if (!interactive()) { commandArgs(TRUE) } else { scan(what='char') }
+if (length(argvec)<6) { stop(usage) }
+
+layer.prefix <- argvec[1]
+subdir <- argvec[2]
+layer.file <- argvec[3]
+param.file <- argvec[4]
+ht.file <- argvec[5]
+alpha <- as.numeric( argvec[6] )
+output.file <- argvec[7]
+
 cat("interp-hitting-times.R:\n")
 invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","ht.file","alpha","output.file"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
 cat("\n")
@@ -41,11 +34,8 @@ numcores<-getcores()
 
 # hitting times
 if (FALSE) {
-    obs.ht.df <- read.table( "test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv", ,header=TRUE,stringsAsFactors=FALSE)
-    obs.ht <- orig.obs.ht <- matrix( NA, nrow=length(locs), ncol=length(locs) )
-    orig.obs.ht[ cbind( obs.ht.df$row, obs.ht.df$col ) ] <- obs.ht.df$DISTANCE
-    obs.ht[ cbind( obs.ht.df$row, obs.ht.df$col ) ] <- obs.ht.df$DISTANCE * exp( rnorm(length(obs.ht.df$DISTANCE))/100 )
-    # indices of these in the big matrix of hitting times is ht[locs,]
+    orig.obs.ht <- read.sub.hts( "test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv", locs )
+    obs.ht <- orig.obs.ht * exp( rnorm(length(orig.obs.ht)) * 1e-8 )
 }
 
 obs.ht.df <- read.table(ht.file,header=TRUE,stringsAsFactors=FALSE)
@@ -67,6 +57,8 @@ if (method=="analytic") {
     hts <- interp.hitting( neighborhoods, G-diag(rowSums(G)), obs.ht, obs.locs=locs, alpha=alpha, numcores=numcores )
 
     hts <- interp.hitting( neighborhoods[1:2], G-diag(rowSums(G)), obs.ht[,1:2], obs.locs=locs, alpha=alpha, numcores=numcores )
+
+    interp.tradeoff( hts, neighborhoods[1:2], G, dG, obs.ht[,1:2], obs.locs=locs, numcores=numcores )
 
 } else if (method=="numeric") {
 

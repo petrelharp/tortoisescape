@@ -5,6 +5,7 @@ frame_files <- lapply(sys.frames(), function(x) x$ofile)
 frame_files <- Filter(Negate(is.null), frame_files)
 .PATH <- dirname(frame_files[[length(frame_files)]])
 source(file.path(.PATH,"objective-functions.R"))
+source(file.path(.PATH,"input-output-fns.R"))
 
 # number of cores for parallel
 getcores <- function (subdir) {
@@ -175,6 +176,17 @@ interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcor
             }
     } )
     return(hts)
+}
+
+interp.tradeoff <- function ( hts, locs, G, dG, obs.ht, obs.locs, numcores=getcores() ) {
+    # Evaluate the two quantities that are being minimized by interp.hitting:
+    #   | G %*% hts + 1 |  and  | hts[obs.locs,] - obs.ht |
+    stopifnot( all.equal(diag(G),numeric(nrow(G))) )
+    zeros <- unlist(locs) + rep((seq_along(locs)-1)*nrow(hts),sapply(locs,length))
+    hts[zeros] <- 0
+    GH <- G %*% hts - dG * hts
+    GH[zeros] <- 0
+    return( c( sqrt(sum( (GH+1)^2 - length(zeros) )), sqrt(sum( (hts[obs.locs,] - obs.ht)^2 ) ) ) )
 }
 
 get.hitting.probs <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
