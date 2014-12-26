@@ -50,10 +50,10 @@ plot.nearby( f=L, params=init.params, fac=.05 )
 layout( matrix( 1:16,nrow=4 ) )
 plot.nearby( f=L, params=init.params, fac=.5 )
 
-parscale <- rep(1,length(init.params))
+parscale <- c( .01, rep(1,length(init.params)-1) )
 
-parscale <- find.parscale( L, init.params, parscale=rep(1,length(init.params)) )
-parscale <- c(1,rep(1,ngamma),rep(0.0001,ndelta))
+# parscale <- find.parscale( L, init.params, parscale=rep(1,length(init.params)) )
+# parscale <- c(1,rep(1,ngamma),rep(0.0001,ndelta))
 check.parscale(L,init.params,parscale)
 
 fitfn <- function (init.params) {  # takes like 5min if not close to true params
@@ -66,6 +66,8 @@ fitfn <- function (init.params) {  # takes like 5min if not close to true params
 }
 
 results <- fitfn( init.params )
+
+layout( matrix( 1:16,nrow=4 ) )
 plot.nearby( f=L, params=results$par, fac=.5 )
 
 jittered.params <- t( do.call( cbind, lapply( c(1e-3,1e-2,1e-1,1), function (sd) {  replicate( 2, init.params+rnorm(length(init.params),sd=sd) ) } ) ) )

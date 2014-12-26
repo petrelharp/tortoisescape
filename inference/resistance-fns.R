@@ -1,6 +1,10 @@
 #!/usr/bin/Rscript
 
-source("objective-functions.R")
+# # find what directory this file is in
+frame_files <- lapply(sys.frames(), function(x) x$ofile)
+frame_files <- Filter(Negate(is.null), frame_files)
+.PATH <- dirname(frame_files[[length(frame_files)]])
+source(file.path(.PATH,"objective-functions.R"))
 
 # number of cores for parallel
 getcores <- function (subdir) {
@@ -141,6 +145,38 @@ hitting.analytic <- function (locs, G, numcores=getcores()) {
     return(hts)
 }
 
+interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcores() ) {
+    # interpolate hitting times by minimizing squared error:
+    #       G is a generator matrix
+    #       locs is a vector of indices, or a list of vectors, of the rows of G for which we have data
+    #       obs.ht is the (locs x locs) matrix of mean hitting times
+    #       obs.locs is the indices for which obs.ht correspond
+    #       alpha is a fudge factor (so far unnecessary?)
+    #   note that without the second 'crossprod' term in the defn of 'bvec'
+    #   this finds the harmonic function interpolating the observed hitting times
+    #     (or something close, I think)
+    if ( numcores>1 && "parallel" %in% .packages()) {
+        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
+    } else {
+        this.apply <- function (...) { sapply( ... ) }
+    }
+    # Pmat projects full hitting times onto the obs.locs
+    Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(G)) )
+    PtP <- alpha * crossprod(Pmat)
+    hts <- this.apply( seq_along(locs), function (k) {
+            klocs <- unlist(locs[k])[!is.na(k)]
+            if (length(klocs)>0) {
+                bvec <- as.vector( alpha * crossprod(Pmat[,-klocs],obs.ht[,k]) + crossprod( G[-klocs,-klocs], rep(-1.0,nrow(G)-length(klocs)) ) )
+                z <- numeric(nrow(G))
+                z[-klocs] <- as.vector( solve( PtP[-klocs,-klocs] + crossprod(G[-klocs,-klocs]), bvec ) )
+                return( z )
+            } else {
+                return( NA )
+            }
+    } )
+    return(hts)
+}
+
 get.hitting.probs <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
     # returns a list of matrices of with the [[k]]th has [i,j]th entry
     # the hitting probabilty from the i-th element of neighborhoods[[k]] to the j-th element of boundaries[[k]]
@@ -160,24 +196,6 @@ get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()
             bd <- boundaries[[k]]
             as.vector( solve( G[nh,nh]-Diagonal(n=length(nh),x=dG[nh]), rep.int(-1.0,length(nh)) ) )
         }, mc.cores=numcores )
-}
-
-interp.hitting <- function ( G, locs, obs.hts, gamma=1 ) {
-    # interpolate hitting times by minimizing squared error:
-    #       G is a generator matrix
-    #       locs is the indices of the rows of G for which we have data
-    #       obs.hts is the (locs x locs) matrix of mean hitting times
-    #       gamma is a fudge factor (so far unnecessary?)
-    #   note that without the second 'crossprod' term in the defn of 'bvec'
-    #   this finds the harmonic function interpolating the observed hitting times
-    #   (or something close, I think)
-    Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
-    PtP <- gamma * crossprod(Pmat)
-    sapply( seq_along(locs), function (kk) {
-                Gk <- G[-locs[kk],]
-                bvec <- gamma * crossprod(Pmat,obs.hts[,kk]) - crossprod( Gk, rep(1.0,nrow(G)-1) )
-                as.numeric( solve( PtP+crossprod(Gk), bvec ) )
-    } )
 }
 
 make.G <- function (aa,AA) {
@@ -368,7 +386,7 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 ##
 # plotting whatnot
 
-plot.ht.fn <- function (layer.prefix,layer.name,nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
+plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
     # use this to make a quick plotting function
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))

@@ -28,32 +28,41 @@ true.hts <- hitting.analytic(locs,G)  # warning, this could take a while (10s fo
 # Observed hitting times
 pairwise.hts <- true.hts[locs,]
 
-# now try to interpolate just one of these
-kk <- 3
-obs.hts <- pairwise.hts[,kk]
 
 
 ###########
-# quadratic program
+# now try to interpolate just one of these
+#    quadratic program
 
-gamma <- 1
-Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
-PtP <- gamma * crossprod(Pmat)
-GtG <- crossprod( G[-locs[kk],] )
-bvec <- gamma * crossprod(Pmat,obs.hts) - crossprod( G[-locs[kk],], rep(1.0,nrow(G)-1) )
-# bvec <- gamma * crossprod(Pmat,obs.hts) + rexp(length(bvec))
-# bvec <- rexp(length(bvec))
+# with varying noise values
 
-interp.hts <- solve( PtP+GtG, bvec )
+kk <- 3
+obs.hts <- pairwise.hts[,kk]
+epsvals <- c(0,10^(seq(-4,-1,length.out=10)))
+interp.hts.list <- lapply( epsvals, function (eps) {
+        noisy.obs.hts <- obs.hts * exp( eps * rnorm(length(obs.hts)) )
+        gamma <- 1
+        Pmat <- sparseMatrix( i=seq_along(locs), j=locs, x=1, dims=c(length(locs),nrow(G)) )
+        PtP <- gamma * crossprod(Pmat)
+        GtG <- crossprod( G[-locs[kk],] )
+        bvec <- gamma * crossprod(Pmat,noisy.obs.hts) - crossprod( G[-locs[kk],], rep(1.0,nrow(G)-1) )
+        # bvec <- gamma * crossprod(Pmat,noisy.obs.hts) + rexp(length(bvec))
+        # bvec <- rexp(length(bvec))
+        interp.hts <- solve( PtP+GtG, bvec )
+        return(interp.hts)
+    } )
 
 layout(matrix(c(1,2,1,3),nrow=2))
-plot( interp.hts, true.hts[,kk] ); abline(0,1)
-tmp <- true.hts[,kk]; dim(tmp) <- c(n,n); image(tmp)
-tmp <- as.numeric(interp.hts); dim(tmp) <- c(n,n); image(tmp)
+for (k in seq_along(interp.hts.list)) {
+    plot( interp.hts.list[[k]], true.hts[,kk], main=epsvals[k] ); abline(0,1)
+    tmp <- true.hts[,kk]; dim(tmp) <- c(n,n); image(tmp)
+    tmp <- as.numeric(interp.hts.list[[k]]); dim(tmp) <- c(n,n); image(tmp)
+    if (is.null(locator(1))) { break }
+}
 
 ###
 # all of them
-all.interp.hts <- interp.hitting( G, locs, pairwise.hts )
+all.interp.hts <- interp.hitting( G, locs, pairwise.hts, locs )
 
 range( all.interp.hts - true.hts )
 

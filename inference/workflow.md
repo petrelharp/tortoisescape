@@ -129,9 +129,9 @@ Inference
 
     * use `interp-hitting-times.R` as e.g.
     ```
-    Rscript interp-hitting-times.R ../geolayers/multigrid/512x/crm_ 512x six-raster-list
+    Rscript initial-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv test_six_layers/256x/six-raster-list-sim-hts.tsv test_six_layers/256x/six-raster-list-interp-hts.tsv 
     ```
-    which produces `512x/crm_six-raster-list-init-hts.RData`.
+    which produces `test_six_layers/256x/six-raster-list-interp-hts.tsv`.
 
 2. Given full matrix of divergence times to infer parameter values, as in `exponential-transform.R`.
 

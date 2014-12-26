@@ -1,53 +1,134 @@
 #!/usr/bin/Rscript
 
 usage <- "
-     Get hitting times with a landscape layer
-         Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file)
+     Interpolate provided hitting times based on parameters given
+         Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (hitting times) (alpha) (output file)
        e.g.
-         Rscript initial-hitting-times.R ../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_ annual_precip
-     (note the space!)                                                                           ---->^
+         Rscript initial-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv test_six_layers/256x/six-raster-list-sim-hts.tsv 1.0 test_six_layers/256x/six-raster-list-interp-hts.tsv 
 
  "
 
 if (!interactive()) {
-    if (length(commandArgs(TRUE))<4) { stop(usage) }
+    if (length(commandArgs(TRUE))<6) { stop(usage) }
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
-    param.file <- if (length(commandArgs(TRUE))>3) { commandArgs(TRUE)[4] } else { NULL }
+    param.file <- commandArgs(TRUE)[4]
+    ht.file <- commandArgs(TRUE)[5]
+    alpha <- as.numeric( commandArgs(TRUE)[6] )
+    output.file <- commandArgs(TRUE)[7]
 } else {
     layer.prefix <- c("../geolayers/multigrid/512x/crm_")
     subdir <- "512x"
     layer.file <- "six-raster-list"
-    param.file <- NULL
-    # layer.names <- c("imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st")
+    param.file <- "test_six_layers/six-params.tsv"
+    ht.file <- "test_six_layers/256x/six-raster-list-sim-hts.tsv"
+    alpha <- 1.0
+    output.file <- "test_six_layers/256x/six-raster-list-interp-hts.tsv"
 }
+cat("interp-hitting-times.R:\n")
+invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","ht.file","alpha","output.file"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
+cat("\n")
+
 layer.names <- scan(layer.file,what="char") 
 
 load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))
 
 source("resistance-fns.R")
-require(raster)
 
 require(parallel)
 numcores<-getcores()
 
+# hitting times
+if (FALSE) {
+    obs.ht.df <- read.table( "test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv", ,header=TRUE,stringsAsFactors=FALSE)
+    obs.ht <- orig.obs.ht <- matrix( NA, nrow=length(locs), ncol=length(locs) )
+    orig.obs.ht[ cbind( obs.ht.df$row, obs.ht.df$col ) ] <- obs.ht.df$DISTANCE
+    obs.ht[ cbind( obs.ht.df$row, obs.ht.df$col ) ] <- obs.ht.df$DISTANCE * exp( rnorm(length(obs.ht.df$DISTANCE))/100 )
+    # indices of these in the big matrix of hitting times is ht[locs,]
+}
+
+obs.ht.df <- read.table(ht.file,header=TRUE,stringsAsFactors=FALSE)
+obs.ht <- matrix( NA, nrow=length(locs), ncol=length(locs) )
+obs.ht[ cbind( obs.ht.df$row, obs.ht.df$col ) ] <- obs.ht.df$DISTANCE
+# indices of these in the big matrix of hitting times is ht[locs,]
+
 ##
 # initial parameters?
-#   in time t, 1D RW with rate r does t*r jumps, displacement has variance t*r
-#   so time to move N grid sites away is sqrt(N)/r
-#   so if hitting times are of order T, want r of order sqrt(N)/T
-
-gridwidth <- sqrt(dim(G)[1])  # roughly, N
-ratescale <- sqrt(gridwidth)/mean(pimat)
-
-if (is.null(param.file)) {
-    init.params <- c( beta=ratescale, gamma=rep(1,length(layer.names)), delta=rep(1,length(layer.names) ) )
-} else {
-    init.params <- scan( param.file )
-} 
+init.params.table <- read.table(param.file,header=TRUE)
+init.params <- as.numeric( init.params.table[match(subdir,init.params.table[,1]),-1] )
+names(init.params) <- colnames(init.params.table)[-1]
 
 G@x <- update.G(init.params)
+dG <- rowSums(G)
+
+if (method=="analytic") {
+
+    hts <- interp.hitting( neighborhoods, G-diag(rowSums(G)), obs.ht, obs.locs=locs, alpha=alpha, numcores=numcores )
+
+    hts <- interp.hitting( neighborhoods[1:2], G-diag(rowSums(G)), obs.ht[,1:2], obs.locs=locs, alpha=alpha, numcores=numcores )
+
+} else if (method=="numeric") {
+
+    HdH <- interp.ht.setup()
+
+    # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
+    parscale <- rep(mean(init.hts),nrow(init.hts)) # (mean(init.hts)+init.hts)/2
+
+    # First get the overall scaling right:
+    #  (d/da) | a Ax - b |^2 = 2 x^T A^T ( a Ax - b )
+    #    = 0  =>  a = x^T A b / | A x |^2
+    scale.ht <- function (x, loc) {
+        Ax <- G%*%x - dG*x
+        Ax[loc] <- 0
+        omitthese <- ( abs(scale(Ax,median(Ax),mad(Ax))) > 2 )
+        Ax[omitthese] <- 0
+        return( (-1)*sum(Ax)/sum(Ax^2) )
+    }
+
+    #  (d/dc) | A(x + c 1) - b |^2 = 2 1^T A^T ( A(x + c 1) - b )
+    #    = 0  =>  c = - 1^T A^T (Ax-b) / 1^T A^T A 1
+    shift.ht <- function (x, loc) {
+        numerator <- G%*%x - dG*x + 1
+        numerator[loc] <- 0
+        numerator <- crossprod(G,numerator) - dG*numerator
+        numerator[loc] <- 0
+        denom <- sum( G[-loc,loc]^2 )
+        return( (-1)*sum(numerator)/denom )
+    }
+
+    H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
+    dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
+    est.time <- ( maxit * (H.time[1] + dH.time[1]) / numcores * ncol(init.hts) )
+    cat("Estimated time: ", est.time, " .\n")
+
+    # maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
+    # maxit <- min( 1e4, maxit )
+
+    optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
+                new.ht <- list(par=init.hts[,loc.ind])
+                for (k in 1:10) {
+                    aval <- if (k<nscale) { scale.ht(new.ht$par, neighborhoods[[loc.ind]]) } else { 1 }
+                    bval <- if (k<nscale) { shift.ht(aval*new.ht$par, neighborhoods[[loc.ind]]) } else { 0 }
+                    new.ht <- optim( par=pmax(0,aval*new.ht$par+bval), fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
+                        method="L-BFGS-B", control=list( parscale=parscale, maxit=ceiling(maxit/10) ), lower=0, upper=Inf ) 
+                    new.ht$par[neighborhoods[[loc.ind]]] <- 0
+                }
+                return(new.ht)
+            }, mc.cores=numcores )
+
+    convergences <- sapply(optim.ht.list,"[[","convergence")
+    unconverged <- which(convergences != 0)
+
+    # save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
+
+    hts <- sapply( optim.ht.list, "[[", "par" )
+
+}
+
+colnames( hts ) <- locs
+write.table( hts, file=outfile, row.names=FALSE )
+cat("Writing output to ", outfile, " .\n")
 
 ###
 # Conjugate gradient
@@ -57,22 +138,22 @@ cG <- colSums(G)
 # objective function
 H <- function (par,obs.ht,loc,locs,g.match=1) {
     a <- par[1]
-    ht <- par[-1]
-    ht[loc] <- 0
-    z <- G%*%ht - dG*ht + 1
+    hts <- par[-1]
+    hts[loc] <- 0
+    z <- G%*%hts - dG*hts + 1
     z[loc] <- 0
-    return( ( sum( z^2 ) + g.match * sum( (ht[locs] - (obs.ht-a) )^2 ) )/length(z) )
+    return( ( sum( z^2 ) + g.match * sum( (hts[locs] - (obs.ht-a) )^2 ) )/length(z) )
 }
 dH <- function (par,obs.ht,loc,locs,g.match=1) {
     # cG - G[loc,] is, except at [loc], 1^T ((G-diag(dG))[-loc,])
     a <- par[1]
-    ht <- par[-1]
-    z <- G%*%ht - dG*ht   # NOTE: Should be +1 here?
+    hts <- par[-1]
+    z <- G%*%hts - dG*hts   # NOTE: Should be +1 here?
     z[loc] <- 0
     z <- (G%*%z - dG*z) + (cG-G[loc,])   # and without this last bit?
-    z[locs] <- z[locs] + g.match*(ht[locs]-(obs.ht-a))
+    z[locs] <- z[locs] + g.match*(hts[locs]-(obs.ht-a))
     z[loc] <- 0
-    return( c( 2 * g.match * sum( ht[locs] - (obs.ht-a) ) / length(z) , 2 * as.vector(z) / length(z) ) )
+    return( c( 2 * g.match * sum( hts[locs] - (obs.ht-a) ) / length(z) , 2 * as.vector(z) / length(z) ) )
 }
 
 # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
@@ -145,7 +226,7 @@ if (FALSE) {
 
     tmp.pimat <- pimat-mean(diag(pimat))
 
-    solve.hts <- interp.hitting( fullG, locs, tmp.pimat )
+    solve.hts <- interp.hitting( locs, fullG, tmp.pimat )
     solve.hts[cbind(locs,seq_along(locs))] <- 0
 
     plot( as.vector(tmp.pimat), as.vector(solve.hts[locs,]), col=1+(row(pimat)==col(pimat)) ); abline(0,1)

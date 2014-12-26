@@ -47,9 +47,6 @@ cat("\n")
 # number of scaling & shifting steps
 nscale <- 0
 
-cat(paste(commandArgs()),"\n")
-
-if ( length(commandArgs(TRUE))<5 ) { cat(usage); q() }
 if (! method %in% c("analytic","numeric") ) { cat("  Method must be either 'analytic' or 'numeric'. \n"); stop(usage) }
 
 source("resistance-fns.R")
@@ -60,10 +57,10 @@ numcores <- getcores()
 
 layer.names <- scan(layer.file,what="char") 
 
-load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
-
-load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
-load(paste(subdir,"/",basename(layer.prefix), basename(layer.file), "_tortlocs.RData",sep='')) # provides 'locs'
+# load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
+# load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
+# load(paste(subdir,"/",basename(layer.prefix), basename(layer.file), "_tortlocs.RData",sep='')) # provides 'locs'
+load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))  # provides all that stuff
 
 # REMOVE MISSING INDIV
 na.indiv <- which( is.na( locs ) )

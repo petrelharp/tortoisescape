@@ -2,17 +2,12 @@
 # Functions to return setup for various optimization problems.
 
 params.logistic.setup <- function () {
+    # For inferring parameters under the logistic model.
+    #
     # This works if the following are defined globally:
-    #  G
-    #  update.G
-    #  hts
-    #  zeros
-    #  sc.one
-    #  layers
-    #  transfn
-    #  valfn
-    #  ndelta
-    #  ngamma
+    need.these <- c( "G", "update.G", "hts", "zeros", "sc.one", "layers", "transfn", "valfn", "ndelta", "ngamma" )
+    has.these <- sapply( need.these, exists )
+    if( ! all( has.these ) ) { print(has.these); stop("Needs all those defined.") }
 
     # setup: evaluating L and dL will change variables they share in a common scope
     L.env <- new.env()
@@ -62,6 +57,58 @@ params.logistic.setup <- function () {
     return( list( L=L, dL=dL ) )
 }
 
+###
+
+params.integral.setup <- function () {
+    # setup for the integral equation (which does not depend on the functional form, as it does not compute the derivative)
+    #   needs to be defined with the things available in the evnironment setup by e.g. params.logistic.setup()
+    IL <- function (params) {
+        # integral.hts is the mean hitting time of each neighborhood to its boundary,
+        #  plus the mean hitting time to each neighborhood (including itself)
+        update.aux(params,parent.env(environment()))
+        hitting.probs <- get.hitting.probs( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+        hitting.times <- get.hitting.times( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
+        integral.hts <- do.call( rbind, mclapply( seq_along(neighborhoods[nonoverlapping]), function (k) {
+                ihs <- hitting.times[[k]] + hitting.probs[[k]] %*% hts[boundaries[[nonoverlapping[k]]],nonoverlapping] 
+                ihs[,k] <- 0
+                return(ihs)
+            }, mc.cores=numcores ) )
+        ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] / integral.hts - 1 )^2, na.rm=TRUE )
+        # ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] - integral.hts )^2, na.rm=TRUE )
+        if (!is.finite(ans)) { browser() }
+        return(ans)
+    }
+    return(IL)
+}
+
+###
+
+interp.ht.setup <- function () {
+    # For interpolating hitting times to the full grid.
+    #
+    # Works if locs and obs.ht is defined
+    H <- function (ht,loc,w) {
+        # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1) + w * ( ht[locs,] - obs.ht )^T ( ht[locs,] - obs.ht )
+        # where S = I except S[loc,loc]=0
+        ht[loc] <- 0
+        z <- G%*%ht - dG*ht + 1
+        z[loc] <- 0
+        return( ( sum( z^2 ) )/length(z)  + w * sum( ( ht[locs,] - obs.ht )^2 ) ) 
+    }
+    dH <- function (ht,loc,w) {
+        # 2 (G-D)^T S ( (G-D) ht + 1 ) + 2 * w  * ht[locs,]^T ( ht[locs,] - obs.ht )[ inserted into big matrix ]
+        ht[loc] <- 0
+        z <- G%*%ht - dG*ht + 1
+        z[loc] <- 0
+        z <- (crossprod(G,z) - dG*z) / length(z)
+        z[loc] <- 0
+        z[locs,] <- z[locs,] + w * crossprod( ht[locs,], ht[locs,] - obs.ht ) 
+        return( 2 * as.vector(z) )
+    }
+}
+
+###
+# general purpose
 
 gcheck <- function (f,df,params,eps=1e-8) {
     # check gradient: want f1-f0 == df0 if eps is small enough that df0 == df1
@@ -77,8 +124,9 @@ gcheck <- function (f,df,params,eps=1e-8) {
     results <- matrix(NA, ncol=4, nrow=length(params) )
     for (k in seq_along(params)) {
         cat("Checking parameter ", k, " : ", names(params)[k], " .\n")
-        results[k,] <- gcheck(k)
+        results[k,] <- gcheck.fn(k)
         print( results[k,] )
+        cat("\n")
     }
     return(results)
 }

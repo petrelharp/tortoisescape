@@ -17,6 +17,10 @@ fi
 # compute hitting times,
 # then fit logistic model from them.
 
+### Prototype:
+# Rscript sim-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/six-params.tsv 0.02 test_six_layers/256x/six-raster-list-sim-0_02-hts.tsv
+# 
+
 BASEDIR="test_six_layers"
 BASEPARAMS="${BASEDIR}/six-params.tsv"
 NSIMS=2
