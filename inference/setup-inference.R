@@ -1,8 +1,5 @@
 #!/usr/bin/Rscript
 
-source("resistance-fns.R")
-require(raster)
-
 usage <- "
 Load up everything already computed into one .RData file.  Usage:
     Rscript (layer prefix) (subdir) (layer file) (pairwise divergence file)
@@ -14,8 +11,6 @@ where
     (layer file) = file with names of layers to use
     (pairwise divergence file) = file with UPPER triangle of matrix of pairwise divergences (including diagonals)
 "
-
-source.ls <- ls()
 
 if (length(commandArgs(TRUE))<4) { stop(usage) }
 
@@ -31,6 +26,13 @@ if (!interactive()) {
     pimat.file <- "../pairwisePi/alleleCounts_1millionloci.pwp"
 }
 layer.names <- scan(layer.file,what="char") 
+
+source("resistance-fns.R")
+require(raster)
+
+outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep='')
+
+source.ls <- ls()
 
 # get precomputed G
 load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_G.RData",sep=''))
@@ -66,7 +68,6 @@ pimat <- pimat[-na.indiv,-na.indiv]
 # scale to actual pairwise divergence, and then by 1/mutation rate
 pimat <- pimat * .018 * 1e8
 
-outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep='')
 save(list=setdiff(ls(),source.ls), file=outfile)
 
 cat("Saved to ", outfile, " .\n")

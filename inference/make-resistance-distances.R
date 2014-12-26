@@ -9,37 +9,19 @@ e.g.
     Here `method` is either "analytic" or "numeric".
 '
 
-if (!interactive()) {
-    if (length(commandArgs(TRUE))<5) { stop(usage) }
-    print(commandArgs(TRUE))
-    layer.prefix <- commandArgs(TRUE)[1]
-    subdir <- commandArgs(TRUE)[2]
-    layer.file <- commandArgs(TRUE)[3]
-    param.file <- commandArgs(TRUE)[4] 
-    method <- commandArgs(TRUE)[5] 
-    outfile <- commandArgs(TRUE)[6]
-    prev.ht <- if (length(commandArgs(TRUE))>6) { commandArgs(TRUE)[7] } else { NULL } 
-    maxit <- if (length(commandArgs(TRUE))>7) { as.numeric(commandArgs(TRUE)[8]) } else { 100 } 
-} else {
-    layer.prefix <- "../geolayers/multigrid/256x/crm_"
-    subdir <- "256x"
-    layer.file <- "dem-layer-list"
-    param.file <- "params-dem-layer-list.tsv"
-    method <- "analytic"
-    outfile <- "256x/dem-layer-list-hitting-times.tsv"
-    prev.ht <- NULL
-    maxit <- 100
+argvec <- if (interactive()) { scan(what='char') } else { commandArgs(TRUE) }
+if (length(argvec)<6) { stop(usage) }
+print(argvec)
 
-    argvec <- scan(what='char')
-    layer.prefix <- argvec[1]
-    subdir <- argvec[2]
-    layer.file <- argvec[3]
-    param.file <- argvec[4]
-    method <- argvec[5]
-    outfile <- argvec[6]
-    prev.ht <- argvec[7]
-    maxit <- argvec[8]
-}
+layer.prefix <- argvec[1]
+subdir <- argvec[2]
+layer.file <- argvec[3]
+param.file <- argvec[4] 
+method <- argvec[5] 
+outfile <- argvec[6]
+prev.ht <- if (length(argvec)>6) { argvec[7] } else { NULL } 
+maxit <- if (length(argvec)>7) { as.numeric(argvec[8]) } else { 100 } 
+
 cat("make-resistance-distances.R:\n")
 invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","method","outfile","prev.ht","maxit"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
 cat("\n")
@@ -60,13 +42,12 @@ layer.names <- scan(layer.file,what="char")
 # load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
 # load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
 # load(paste(subdir,"/",basename(layer.prefix), basename(layer.file), "_tortlocs.RData",sep='')) # provides 'locs'
-load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))  # provides all that stuff
+setupfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep='')  # provides all that stuff
+cat("Loading ", setupfile, "\n")
+load(setupfile)
 
-# REMOVE MISSING INDIV
-na.indiv <- which( is.na( locs ) )
-locs <- locs[-na.indiv]
-neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
-
+# already removed missing indivs?
+stopifnot(all(!is.na(locs)))
 
 ##
 # initial parameters?
@@ -164,8 +145,6 @@ if (method=="analytic") {
 
     convergences <- sapply(optim.ht.list,"[[","convergence")
     unconverged <- which(convergences != 0)
-
-    # save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
 
     hts <- sapply( optim.ht.list, "[[", "par" )
 

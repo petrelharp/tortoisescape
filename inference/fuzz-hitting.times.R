@@ -1,11 +1,11 @@
 #!/usr/bin/Rscript
 
 usage <- "
-Compute hitting times at a given set of parameters, add noise, and write out the pairwise times for sample locations (to mimic the data).
+Read in hitting times at a given set of parameters, add noise, and write out the pairwise times for sample locations (to mimic the data).
 Usage:
-    Rscript sim-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (size of noise, as a proportion) (output file)
+    Rscript sim-hitting-times.R (layer prefix) (subdir) (layer file) (input file) (size of noise, as a proportion) (output file)
 e.g.
-    Rscript sim-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/six-params.tsv 0.01 test_six_layers/256x/six-raster-list-sim-hts.tsv
+    Rscript sim-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/256x/six-raster-list-hitting-times-full.tsv 0.01 test_six_layers/256x/six-raster-list-sim-0_01-hts.tsv
 
 "
 
@@ -14,19 +14,19 @@ if (!interactive()) {
     layer.prefix <- commandArgs(TRUE)[1]
     subdir <- commandArgs(TRUE)[2]
     layer.file <- commandArgs(TRUE)[3]
-    param.file <- commandArgs(TRUE)[4]
+    input.file <- commandArgs(TRUE)[4]
     noise.fac <- as.numeric(commandArgs(TRUE)[5])
     output.file <- commandArgs(TRUE)[6]
 } else {
     layer.prefix <- c("../geolayers/multigrid/256x/crm_")
     subdir <- "256x"
     layer.file <- "six-raster-list"
-    param.file <- "test_six_layers/six-params.tsv"
+    input.file <- "test_six_layers/256x/six-raster-list-hitting-times-full.tsv"
     noise.fac <- 0.01
-    output.file <- "test_six_layers/256x/six-raster-list-sim-hts.tsv"
+    output.file <- "test_six_layers/256x/six-raster-list-sim-0_01-hts.tsv"
 }
 cat("Parameters: \n")
-invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","noise.fac","output.file"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
+invisible( lapply( c("layer.prefix","subdir","layer.file","input.file","noise.fac","output.file"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
 cat("\n")
 layer.names <- scan(layer.file,what="char") 
 
