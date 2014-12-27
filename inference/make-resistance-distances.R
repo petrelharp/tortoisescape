@@ -150,7 +150,7 @@ if (method=="analytic") {
 
 }
 
-write.full.hts( hts, file=outfile )
+write.full.hts( hts, locs, file=outfile )
 
 ## look at results
 if (FALSE) {

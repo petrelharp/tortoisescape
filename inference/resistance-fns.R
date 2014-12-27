@@ -186,7 +186,7 @@ interp.tradeoff <- function ( hts, locs, G, dG, obs.ht, obs.locs, numcores=getco
     hts[zeros] <- 0
     GH <- G %*% hts - dG * hts
     GH[zeros] <- 0
-    return( c( sqrt(sum( (GH+1)^2 - length(zeros) )), sqrt(sum( (hts[obs.locs,] - obs.ht)^2 ) ) ) )
+    return( c( sqrt(sum( (GH+1)^2 ) - length(zeros) ), sqrt(sum( (hts[obs.locs,] - obs.ht)^2 ) ) ) )
 }
 
 get.hitting.probs <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {

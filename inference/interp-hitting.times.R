@@ -2,14 +2,14 @@
 
 usage <- "
      Interpolate provided hitting times based on parameters given
-         Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (hitting times) (alpha) (output file)
+         Rscript initial-hitting-times.R (layer prefix) (subdir) (layer file) (parameter file) (observed hitting times file) (alpha) (method) (output file) [initial hitting times file] 
        e.g.
-         Rscript initial-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv 1.0 test_six_layers/256x/six-raster-list-interp-hts.tsv 
+         Rscript initial-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv 1.0 analytic test_six_layers/256x/six-raster-list-interp-hts.tsv 
 
  "
 
 argvec <- if (!interactive()) { commandArgs(TRUE) } else { scan(what='char') }
-if (length(argvec)<6) { stop(usage) }
+if (length(argvec)<8) { stop(usage) }
 
 layer.prefix <- argvec[1]
 subdir <- argvec[2]
@@ -17,10 +17,15 @@ layer.file <- argvec[3]
 param.file <- argvec[4]
 ht.file <- argvec[5]
 alpha <- as.numeric( argvec[6] )
-output.file <- argvec[7]
+method <- argvec[7]
+output.file <- argvec[8]
+init.ht.file <- if (length(argvec) > 8) { argvec[9] } else { NULL }
+if ( (method!="analytic") && is.null(init.ht.file) ) { stop("With method 'numeric' need a file of initial hitting times.") }
+
+maxit <- 100
 
 cat("interp-hitting-times.R:\n")
-invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","ht.file","alpha","output.file"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
+invisible( lapply( c("layer.prefix","subdir","layer.file","param.file","ht.file","alpha","method","output.file","init.ht.file"), function (x) { cat("  ", x, " : ", get(x), "\n") } ) )
 cat("\n")
 
 layer.names <- scan(layer.file,what="char") 
@@ -32,12 +37,12 @@ source("resistance-fns.R")
 require(parallel)
 numcores<-getcores()
 
-# hitting times
-if (FALSE) {
+if (FALSE) { # testing
     orig.obs.ht <- read.sub.hts( "test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv", locs )
     obs.ht <- orig.obs.ht * exp( rnorm(length(orig.obs.ht)) * 1e-8 )
 }
 
+# hitting times
 obs.ht.df <- read.table(ht.file,header=TRUE,stringsAsFactors=FALSE)
 obs.ht <- matrix( NA, nrow=length(locs), ncol=length(locs) )
 obs.ht[ cbind( obs.ht.df$row, obs.ht.df$col ) ] <- obs.ht.df$DISTANCE
@@ -54,73 +59,53 @@ dG <- rowSums(G)
 
 if (method=="analytic") {
 
+    # if alpha is small, finds hitting times for G; if alpha is large, finds values that are close to obs.ht;
+    # as alpha increases may get large negative values
+    # in places where migration rates are very small
+    # ... how to pick alpha?
+
     hts <- interp.hitting( neighborhoods, G-diag(rowSums(G)), obs.ht, obs.locs=locs, alpha=alpha, numcores=numcores )
 
-    hts <- interp.hitting( neighborhoods[1:2], G-diag(rowSums(G)), obs.ht[,1:2], obs.locs=locs, alpha=alpha, numcores=numcores )
 
-    interp.tradeoff( hts, neighborhoods[1:2], G, dG, obs.ht[,1:2], obs.locs=locs, numcores=numcores )
+    if (FALSE) { # testing
+        hts.list <- lapply( seq(0.0,0.2,length.out=5), function (alpha) { 
+                interp.hitting( neighborhoods[1:2], G-diag(rowSums(G)), obs.ht[,1:2], obs.locs=locs, alpha=alpha, numcores=numcores )
+            } )
+        sapply( hts.list, interp.tradeoff, neighborhoods[1:2], G, dG, obs.ht[,1:2], obs.locs=locs, numcores=numcores )
+    }
 
 } else if (method=="numeric") {
 
+    init.hts <- read.full.hts( init.ht.file, locs )
+
     HdH <- interp.ht.setup()
+    H <- HdH$H
+    dH <- HdH$dH
 
-    # parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
-    parscale <- rep(mean(init.hts),nrow(init.hts)) # (mean(init.hts)+init.hts)/2
-
-    # First get the overall scaling right:
-    #  (d/da) | a Ax - b |^2 = 2 x^T A^T ( a Ax - b )
-    #    = 0  =>  a = x^T A b / | A x |^2
-    scale.ht <- function (x, loc) {
-        Ax <- G%*%x - dG*x
-        Ax[loc] <- 0
-        omitthese <- ( abs(scale(Ax,median(Ax),mad(Ax))) > 2 )
-        Ax[omitthese] <- 0
-        return( (-1)*sum(Ax)/sum(Ax^2) )
-    }
-
-    #  (d/dc) | A(x + c 1) - b |^2 = 2 1^T A^T ( A(x + c 1) - b )
-    #    = 0  =>  c = - 1^T A^T (Ax-b) / 1^T A^T A 1
-    shift.ht <- function (x, loc) {
-        numerator <- G%*%x - dG*x + 1
-        numerator[loc] <- 0
-        numerator <- crossprod(G,numerator) - dG*numerator
-        numerator[loc] <- 0
-        denom <- sum( G[-loc,loc]^2 )
-        return( (-1)*sum(numerator)/denom )
-    }
-
-    H.time <- system.time( sapply( 1:ncol(init.hts), function (k) H(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
-    dH.time <- system.time( sapply( 1:ncol(init.hts), function (k) dH(init.hts[,k],loc=neighborhoods[[k]]) ) ) / ncol(init.hts)
-    est.time <- ( maxit * (H.time[1] + dH.time[1]) / numcores * ncol(init.hts) )
-    cat("Estimated time: ", est.time, " .\n")
-
-    # maxit <- floor( maxtime / (H.time[1] + dH.time[1]) * numcores / ncol(init.hts) ) / 10  # turns out optim adds in a fair bit of overhead, hence the '/10'
-    # maxit <- min( 1e4, maxit )
+    parscale <- rep(mean(init.hts[locs,]),nrow(init.hts))
 
     optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
-                new.ht <- list(par=init.hts[,loc.ind])
-                for (k in 1:10) {
-                    aval <- if (k<nscale) { scale.ht(new.ht$par, neighborhoods[[loc.ind]]) } else { 1 }
-                    bval <- if (k<nscale) { shift.ht(aval*new.ht$par, neighborhoods[[loc.ind]]) } else { 0 }
-                    new.ht <- optim( par=pmax(0,aval*new.ht$par+bval), fn=H, gr=dH, loc=neighborhoods[[loc.ind]], 
-                        method="L-BFGS-B", control=list( parscale=parscale, maxit=ceiling(maxit/10) ), lower=0, upper=Inf ) 
-                    new.ht$par[neighborhoods[[loc.ind]]] <- 0
-                }
-                return(new.ht)
+                optim( par=init.hts[,loc.ind], fn=H, gr=dH, 
+                        locs=locs, zeros=neighborhoods[[loc.ind]], alpha=alpha, obs.ht=obs.ht[,loc.ind],
+                        method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit, fnscale=sum(init.hts[,1]^2) ), lower=0, upper=Inf ) 
             }, mc.cores=numcores )
 
     convergences <- sapply(optim.ht.list,"[[","convergence")
     unconverged <- which(convergences != 0)
 
-    # save( optim.ht.list, file=gsub(".tsv", "-optim.RData", outfile) )
+    optim.ht.list[unconverged] <- mclapply( seq_along(neighborhoods)[unconverged], function (loc.ind) {
+                optim( par=optim.ht.list[[loc.ind]]$par, fn=H, gr=dH, 
+                        locs=locs, zeros=neighborhoods[[loc.ind]], alpha=alpha, obs.ht=obs.ht[,loc.ind],
+                        method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit, fnscale=sum(init.hts[,1]^2) ), lower=0, upper=Inf ) 
+            }, mc.cores=numcores )
 
     hts <- sapply( optim.ht.list, "[[", "par" )
 
 }
 
-colnames( hts ) <- locs
-write.table( hts, file=outfile, row.names=FALSE )
-cat("Writing output to ", outfile, " .\n")
+write.full.hts( hts, locs, file=outfile )
+
+##################
 
 ###
 # Conjugate gradient

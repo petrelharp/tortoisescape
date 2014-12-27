@@ -86,25 +86,26 @@ params.integral.setup <- function () {
 interp.ht.setup <- function () {
     # For interpolating hitting times to the full grid.
     #
-    # Works if locs and obs.ht is defined
-    H <- function (ht,loc,w) {
-        # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1) + w * ( ht[locs,] - obs.ht )^T ( ht[locs,] - obs.ht )
-        # where S = I except S[loc,loc]=0
-        ht[loc] <- 0
+    # Note works on ONE COLUMN at a TIME  (below is ht[locs] not ht[locs,])
+    H <- function (ht,locs,zeros,alpha,obs.ht) {
+        # ( (G-D)ht + 1 )^T S ( (G-D)ht + 1) + alpha * ( ht[locs] - obs.ht )^T ( ht[locs] - obs.ht )
+        # where S = I except S[zeros,zeros]=0
+        ht[zeros] <- 0
         z <- G%*%ht - dG*ht + 1
-        z[loc] <- 0
-        return( ( sum( z^2 ) )/length(z)  + w * sum( ( ht[locs,] - obs.ht )^2 ) ) 
+        z[zeros] <- 0
+        return( ( sum( z^2 ) )/length(z)  + alpha * sum( ( ht[locs] - obs.ht )^2 ) ) 
     }
-    dH <- function (ht,loc,w) {
-        # 2 (G-D)^T S ( (G-D) ht + 1 ) + 2 * w  * ht[locs,]^T ( ht[locs,] - obs.ht )[ inserted into big matrix ]
-        ht[loc] <- 0
+    dH <- function (ht,locs,zeros,alpha,obs.ht) {
+        # 2 (G-D)^T S ( (G-D) ht + 1 ) + 2 * alpha  * ht[locs]^T ( ht[locs] - obs.ht )[ inserted into big matrix ]
+        ht[zeros] <- 0
         z <- G%*%ht - dG*ht + 1
-        z[loc] <- 0
+        z[zeros] <- 0
         z <- (crossprod(G,z) - dG*z) / length(z)
-        z[loc] <- 0
-        z[locs,] <- z[locs,] + w * crossprod( ht[locs,], ht[locs,] - obs.ht ) 
+        z[zeros] <- 0
+        z[locs] <- z[locs] + alpha * crossprod( ht[locs], ht[locs] - obs.ht ) 
         return( 2 * as.vector(z) )
     }
+    return( list( H=H, dH=dH ) )
 }
 
 ###

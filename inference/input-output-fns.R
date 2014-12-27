@@ -1,4 +1,4 @@
-write.full.hts <- function ( hts, file ) {
+write.full.hts <- function ( hts, locs, file ) {
     # write out hitting times as a matrix
     colnames( hts ) <- locs
     cat("Writing output to ", file, " .\n")
