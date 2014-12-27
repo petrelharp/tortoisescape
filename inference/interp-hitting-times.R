@@ -107,71 +107,6 @@ write.full.hts( hts, locs, file=outfile )
 
 ##################
 
-###
-# Conjugate gradient
-
-dG <- rowSums(G)
-cG <- colSums(G)
-# objective function
-H <- function (par,obs.ht,loc,locs,g.match=1) {
-    a <- par[1]
-    hts <- par[-1]
-    hts[loc] <- 0
-    z <- G%*%hts - dG*hts + 1
-    z[loc] <- 0
-    return( ( sum( z^2 ) + g.match * sum( (hts[locs] - (obs.ht-a) )^2 ) )/length(z) )
-}
-dH <- function (par,obs.ht,loc,locs,g.match=1) {
-    # cG - G[loc,] is, except at [loc], 1^T ((G-diag(dG))[-loc,])
-    a <- par[1]
-    hts <- par[-1]
-    z <- G%*%hts - dG*hts   # NOTE: Should be +1 here?
-    z[loc] <- 0
-    z <- (G%*%z - dG*z) + (cG-G[loc,])   # and without this last bit?
-    z[locs] <- z[locs] + g.match*(hts[locs]-(obs.ht-a))
-    z[loc] <- 0
-    return( c( 2 * g.match * sum( hts[locs] - (obs.ht-a) ) / length(z) , 2 * as.vector(z) / length(z) ) )
-}
-
-# parscale <- rep( nrow(G) / exp( mean( log(dG), trim=.1, na.rm=TRUE ) ), nrow(G) )
-parscale <- c( min(pimat), rep( mean(pimat), nrow(G) ) )
-init.hts <- matrix(parscale,nrow=nrow(G)+1,ncol=length(locs))
-init.hts[cbind(locs,seq_along(locs))] <- 0
-
-# H( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
-# dH( init.hts[,1], obs.ht=pimat[,1], loc=locs[1], locs=locs )
-
-# k <- 28 
-# test.ht <- optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, g.match=1/200,
-#         method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-# ph(test.ht$par[-1]); with( environment(ph), points(tort.coords.rasterGCS[k]) )
-
-optim.ht.list <- mclapply( seq_along(locs), function (k) {
-            optim( par=init.hts[,k], fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, 
-                method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-        }, mc.cores=numcores )
-
-convergences <- sapply(optim.ht.list,"[[","convergence")
-unconverged <- which(convergences != 0)
-
-for (k in 1:3) {
-    if (length(unconverged)<length(locs)) {
-        optim.ht.list[unconverged] <- mclapply( unconverged, function (k) {
-                    newstart <- sample( setdiff(seq_along(locs),unconverged), 1 )
-                    optim( par=optim.ht.list[[newstart]]$par, fn=H, gr=dH, obs.ht=pimat[,k], loc=locs[k], locs=locs, 
-                        method="L-BFGS-B", control=list( parscale=parscale, maxit=1000 ), lower=0, upper=Inf ) 
-                }, mc.cores=numcores )
-        convergences <- sapply(optim.ht.list,"[[","convergence")
-        unconverged <- which(convergences != 0)
-    }
-}
-
-optim.hts <- sapply(optim.ht.list,"[[","par")
-
-if (any(convergences!=0)) { warning("Some did not converge") }
-
-save( layer.prefix, layer.names, subdir, optim.hts, convergences, init.params, ratescale, gridwidth, file=paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-init-hts.RData",sep='') )
-
 
 ###
 # testing
@@ -182,7 +117,7 @@ if (FALSE) {
     load("../tort.coords.rasterGCS.Robj")
     load(paste(subdir,"/",basename(layer.prefix),"alllocs.RData",sep='')) # all.locs.dists
     load("torts-info.RData")
-    ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
+    ph <- plot.ht.fn(layer.prefix,"dem_30",nonmissing)
 
     optim.hts[cbind(1+locs,seq_along(locs))] <- NA
 
