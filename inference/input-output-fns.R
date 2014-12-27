@@ -1,3 +1,63 @@
+##
+# configuration 
+
+require(jsonlite)
+
+read.config <- function (...) {
+    # Read in and process the argments passed, and assign them in the parent environment
+    # either from the command line or from scan(), depending if interactive or not.
+    args <- list(...)
+    argvec <- if (interactive()) { cat("Enter command-line parameters ( ", paste(names(args), collapse=", ")," ):\n"); scan(what="character") } else { commandArgs(TRUE) }
+    for (k in seq_along(args)) { cat( names(args)[k], " : ", argvec[k], "\n" ) }
+    argfns <- lapply( args, switch,
+                json=read.json.config,
+                numeric=as.numeric,
+                identity
+            )
+    argvals <- lapply( seq_along(argfns), function (k) { argfns[[k]](argvec[k]) } )
+    names(argvec) <- names(argvals) <- names(args)
+    for (k in seq_along(argvals)) {
+        assign( names(argvals)[k], argvals[[k]], parent.env(environment()) )
+    }
+    return( invisible( argvec ) )
+}
+
+read.json.config <- function (file) {
+    cat("Reading ", file, " .\n")
+    con <- openread(file)
+    json <- paste(readLines(con, warn = FALSE), collapse = "\n")
+    close(con)
+    return( fromJSON(json,simplifyMatrix=FALSE) )
+}
+
+write.json.config <- function (config,file) {
+    json <- toJSON(config,pretty=TRUE)
+    cat("Writing to ", file, " .\n")
+    con <- openwrite(file)
+    writeLines(json,con=con)
+    close(con)
+}
+
+paramvec <- function (config) {
+    # access the parameters in a config list as a single vector with nice names
+    params <- config$params
+    names(params$gamma) <- names(params$delta) <- config$layer_names
+    return(unlist(params))
+}
+
+"paramvec<-" <- function (config,value) {
+    # the assignment function corresponding to paramvec()
+    k <- 1
+    for ( kk in seq_along(config$params) ) {
+        config$params[[kk]][] <- value[seq(k,length.out=length(config$params[[kk]]))]
+    }
+    return( config )
+}
+
+
+####
+# read/write hitting times etc in standardized way
+
 write.full.hts <- function ( hts, locs, file ) {
     # write out hitting times as a matrix
     colnames( hts ) <- locs
@@ -35,3 +95,39 @@ read.sub.hts <- function ( file, locs ) {
     ht[ cbind( ht.df$row, ht.df$col ) ] <- ht.df$DISTANCE
     return( ht )
 }
+
+# miscellaneous utility functions
+
+selfname <- function (x) { names(x) <- x; return(x) }
+
+# load a file, but not into the global environment, rather, into a list.
+load.to.list <- function (file) { e <- environment(); n <- load(file,envir=e); names(n) <- n; lapply( n, get, envir=e ) }
+
+# use to open stdin/stdout or process substitution things correctly
+#   from  http://stackoverflow.com/questions/15784373/process-substitution
+openread <- function(arg) {
+    if (arg %in% c("-", "/dev/stdin","stdin")) {
+       stdin()
+    } else if (grepl("^/dev/fd/", arg)) {
+       fifo(arg, open = "r")
+    } else {
+       file(arg, open = "r")
+    }
+}
+openwrite <- function(arg) {
+    if (arg %in% c("-", "/dev/stdout","stdout")) {
+       stdout()
+    } else if (grepl("^/dev/fd/", arg)) {
+       fifo(arg, open = "w")
+    } else {
+       file(arg, open = "w")
+    }
+}
+
+###
+# use for debugging noninteractive stuff
+# options(error=print.and.dump)
+
+print.and.dump <- function () {
+ cat(paste("Error in \"", paste(commandArgs(),collapse=' '), "\": dumping frames.\n")); dump.frames(to.file = TRUE); q(status=1)
+} 

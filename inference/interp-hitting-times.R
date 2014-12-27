@@ -43,9 +43,7 @@ if (FALSE) { # testing
 }
 
 # hitting times
-obs.ht.df <- read.table(ht.file,header=TRUE,stringsAsFactors=FALSE)
-obs.ht <- matrix( NA, nrow=length(locs), ncol=length(locs) )
-obs.ht[ cbind( obs.ht.df$row, obs.ht.df$col ) ] <- obs.ht.df$DISTANCE
+obs.ht <- read.sub.hts( ht.file, locs )
 # indices of these in the big matrix of hitting times is ht[locs,]
 
 ##
