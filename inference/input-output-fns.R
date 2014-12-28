@@ -146,3 +146,46 @@ getset.seed <- function () {
     cat("Setting seed to ", new.seed, "\n")
     return(new.seed)
 }
+
+##
+# plotting whatnot
+
+plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
+    # use this to make a quick plotting function
+    require(raster)
+    values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
+    load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
+    ph <- function (x,...) { 
+        values(layer)[nonmissing] <- x
+        opar <- par(par.args)  # plotting layers messes up margins
+        plot(layer,...)
+        points(tort.coords.rasterGCS,pch=20,cex=.25)
+        par(opar)
+    }
+    environment(ph) <- new.env()
+    assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
+    return(ph)
+}
+
+colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), zero=FALSE, trim=0, breaks, return.breaks=FALSE) {
+    if (is.numeric(x) & trim>0) {
+        x[ x<quantile(x,trim,na.rm=TRUE) ] <- quantile(x,trim,na.rm=TRUE)
+        x[ x>quantile(x,1-trim,na.rm=TRUE) ] <- quantile(x,1-trim,na.rm=TRUE)
+    }
+    if (missing(breaks) & is.numeric(x)) {
+        if (zero) {
+            breaks <- seq( (-1)*max(abs(x),na.rm=TRUE), max(abs(x),na.rm=TRUE), length.out=nc )
+        } else {
+            breaks <- seq( min(x,na.rm=TRUE), max(x,na.rm=TRUE), length.out=nc )
+        }
+        x <- cut(x,breaks=breaks,include.lowest=TRUE)
+    } else {
+        x <- factor(x)
+    }
+    if (return.breaks) {
+        return(breaks)
+    } else {
+        return( colfn(nlevels(x))[as.numeric(x)] )
+    }
+}
+

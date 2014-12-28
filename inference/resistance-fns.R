@@ -22,6 +22,9 @@ getcores <- function (subdir) {
     return(numcores)
 }
 
+###
+# low-level functions for constructing e.g. adjacency matrices
+
 # move @p to @j in dgCMatrix
 p.to.j <- function (p) { rep( seq.int( length(p)-1 ), diff(p) ) }
 
@@ -99,6 +102,10 @@ grid.generator <- function (n,killing=0) {
     return(A)
 }
 
+
+###
+#  Functions for solving hitting times and the like
+
 hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=1000) {
     # compute analytical expected hitting times using the Jacobi method (from jacobi.R)
     #  note that G ** comes with no diagonal **
@@ -124,10 +131,12 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
     return(hts)
 }
 
+
 hitting.analytic <- function (locs, G, numcores=getcores()) {
     # compute analytical expected hitting times
     #   here `locs` is a vector of (single) locations
-    #   or a list of vectors
+    #     or a list of vectors
+    #   G is a generator matrix WITH diagonal
     if ( numcores>1 && "parallel" %in% .packages()) {
         this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
     } else {
@@ -148,7 +157,7 @@ hitting.analytic <- function (locs, G, numcores=getcores()) {
 
 interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcores() ) {
     # interpolate hitting times by minimizing squared error:
-    #       G is a generator matrix
+    #       G is a generator matrix WITH diagonal
     #       locs is a vector of indices, or a list of vectors, of the rows of G for which we have data
     #       obs.ht is the (locs x locs) matrix of mean hitting times
     #       obs.locs is the indices for which obs.ht correspond
@@ -210,110 +219,6 @@ get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()
         }, mc.cores=numcores )
 }
 
-make.G <- function (aa,AA) {
-    G <- aa[1] * AA[[1]]
-    if (length(AA)>1) for (k in 2:length(AA)) {
-        G <- G + aa[k] * AA[[k]]
-    }
-    return(G)
-}
-
-estimate.expl <- function (hts, neighborhoods, layers, G, dG=rowSums(G), numcores=getcores() ) {
-    # estimate parameters using the exponential transform
-    ## deriv wrt gamma and delta : eqn:expl_deriv_gamma and eqn:expl_deriv_delta
-    GH <- G %*% hts - dG * hts
-    zeros <- unlist(neighborhoods) + rep((seq_along(neighborhoods)-1)*nrow(hts),sapply(neighborhoods,length))
-
-    fn <- function (params) {
-
-    }
-
-    dd <- mclapply( 1:ncol(layers), function (k) {
-                Z <- layers[,k] * GH * (GH+1)
-                Z[zeros] <- 0
-                dgamma <- 2*sum(Z)
-                GLH <- G %*% ( layers[,k] * hts ) + dG * ((G>0)%*%layers[,k]) * hts 
-                GLH[zeros] <- 0
-                ddelta <- dgamma + 2*sum(GLH)
-                return(c(dgamma,ddelta))
-            } )
-
-}
-
-estimate.aa <- function (hts,locs,AA) {
-    # Estimate alphas given full hitting times
-    # don't count these cells:
-    zeros <- locs + (0:(length(locs)-1))*nrow(hts)
-    # here are the B^j, the C^j, Q, and b
-    BB <- lapply( AA, "%*%", hts )
-    CC <- sapply( BB, function (B) { B[zeros] <- 0; rowSums(B) } )
-    b <- (-1) * colSums(CC) * ncol(hts)  # WHY THIS EXTRA FACTOR OF m?
-    Q <- crossprod(CC)
-    return( solve( Q, b ) )
-}
-
-iterate.aa <- function (aa,hts,locs,AA) {
-    G <- make.G(aa,AA)
-    # interpolate hitting times
-    interp.hts <- interp.hitting( G, locs, hts )
-    # infer aa from these
-    estimate.aa(interp.hts,locs,AA)
-}
-
-###
-# objective functions
-
-# the integral equation
-integral.objective <- function (env=environment()) {
-    IL <- function (params) {
-        # integral.hts is the mean hitting time of each neighborhood to its boundary,
-        #  plus the mean hitting time to each neighborhood (including itself)
-        update.aux(params,parent.env(environment()))
-        hitting.probs <- get.hitting.probs( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
-        hitting.times <- get.hitting.times( G, dG, neighborhoods[nonoverlapping], boundaries[nonoverlapping], numcores=numcores )
-        integral.hts <- do.call( rbind, mclapply( seq_along(neighborhoods[nonoverlapping]), function (k) {
-                ihs <- hitting.times[[k]] + hitting.probs[[k]] %*% hts[boundaries[[nonoverlapping[k]]],nonoverlapping] 
-                ihs[,k] <- 0
-                return(ihs)
-            }, mc.cores=numcores ) )
-        ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] / integral.hts - 1 )^2, na.rm=TRUE )  # RATIO!
-        # ans <- sum( ( hts[unlist(neighborhoods[nonoverlapping]),nonoverlapping] - integral.hts )^2, na.rm=TRUE )
-        if (!is.finite(ans)) { browser() }
-        return(ans)
-    }
-    environment(IL) <- env
-    return(IL)
-}
-
-# the differential equation
-differential.objective <- function (env=environment) {
-    L <- function (params) {
-        update.aux(params,parent.env(environment()))
-        ans <- ( sum( weightings*rowSums((GH+sc.one)^2) ) - (nomitted)*sc.one^2 )
-        if (!is.finite(ans)) { browser() }
-        return(ans)
-    }
-    dL <- function (params) {
-        update.aux(params,parent.env(environment()))
-        bgrad <- ( 2 / params[1] )* sum( weightings * rowSums(GH * (GH+sc.one)) )
-        ggrads <- sapply( 1:ncol(layers), function (kk) {
-                2 * sum( weightings * rowSums( (layers[,kk] * GH) * (GH+sc.one)) )
-            } )
-        dgrads <- ggrads + sapply( 1:ncol(layers), function (kk) {
-                GL <- G
-                GL@x <- G@x * layers[Gjj,kk]
-                dGL <- rowSums(GL)
-                GLH <- GL %*% hts - dGL*hts
-                GLH[zeros] <- 0
-                return( 2 * sum( weightings * rowSums( GLH * (GH+sc.one) )  ) )
-            } )
-        ans <- ( c(bgrad, ggrads, dgrads) )
-        if (any(!is.finite(ans))) { browser() }
-        return(ans)
-    }
-    environment(L) <- environment(dL)  <- env
-    return(list(L=L,dL=dL))
-}
 
 
 ########
@@ -350,6 +255,9 @@ which.nonoverlapping <- function (neighborhoods) {
     }
     return( which(goodones) )
 }
+
+##
+# move between resolutions
 
 upsample <- function ( layer.vals, ag.fact, layer.1, nonmissing.1, layer.2, nonmissing.2, checkit=FALSE ) {
     # moves from layer.1 to layer.2, which must be related by a factor of ag.fact
@@ -390,49 +298,35 @@ downsample.hts <- function ( hts, ..., numcores=getcores() ) {
     return(new.hts)
 }
 
-##
-# misc
+###
+# OLD STUFF
+#   ...unused except in older scripts
 
-selfname <- function (x) { names(x) <- make.names(x); x }
 
-##
-# plotting whatnot
-
-plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
-    # use this to make a quick plotting function
-    require(raster)
-    values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
-    load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
-    ph <- function (x,...) { 
-        values(layer)[nonmissing] <- x
-        opar <- par(par.args)  # plotting layers messes up margins
-        plot(layer,...)
-        points(tort.coords.rasterGCS,pch=20,cex=.25)
-        par(opar)
+make.G <- function (aa,AA) {
+    G <- aa[1] * AA[[1]]
+    if (length(AA)>1) for (k in 2:length(AA)) {
+        G <- G + aa[k] * AA[[k]]
     }
-    environment(ph) <- new.env()
-    assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
-    return(ph)
+    return(G)
 }
 
-colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), zero=FALSE, trim=0, breaks, return.breaks=FALSE) {
-    if (is.numeric(x) & trim>0) {
-        x[ x<quantile(x,trim,na.rm=TRUE) ] <- quantile(x,trim,na.rm=TRUE)
-        x[ x>quantile(x,1-trim,na.rm=TRUE) ] <- quantile(x,1-trim,na.rm=TRUE)
-    }
-    if (missing(breaks) & is.numeric(x)) {
-        if (zero) {
-            breaks <- seq( (-1)*max(abs(x),na.rm=TRUE), max(abs(x),na.rm=TRUE), length.out=nc )
-        } else {
-            breaks <- seq( min(x,na.rm=TRUE), max(x,na.rm=TRUE), length.out=nc )
-        }
-        x <- cut(x,breaks=breaks,include.lowest=TRUE)
-    } else {
-        x <- factor(x)
-    }
-    if (return.breaks) {
-        return(breaks)
-    } else {
-        return( colfn(nlevels(x))[as.numeric(x)] )
-    }
+estimate.aa <- function (hts,locs,AA) {
+    # Estimate alphas given full hitting times
+    # don't count these cells:
+    zeros <- locs + (0:(length(locs)-1))*nrow(hts)
+    # here are the B^j, the C^j, Q, and b
+    BB <- lapply( AA, "%*%", hts )
+    CC <- sapply( BB, function (B) { B[zeros] <- 0; rowSums(B) } )
+    b <- (-1) * colSums(CC) * ncol(hts)  # WHY THIS EXTRA FACTOR OF m?
+    Q <- crossprod(CC)
+    return( solve( Q, b ) )
+}
+
+iterate.aa <- function (aa,hts,locs,AA) {
+    G <- make.G(aa,AA)
+    # interpolate hitting times
+    interp.hts <- interp.hitting( G, locs, hts )
+    # infer aa from these
+    estimate.aa(interp.hts,locs,AA)
 }

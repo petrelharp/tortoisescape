@@ -8,6 +8,8 @@
 
 \begin{document}
 
+\section{Linear jump rates}
+
 Suppose that 
 \begin{align}
   G = \sum_k \alpha_k A_k,
@@ -200,7 +202,7 @@ fortunately, the constraint that $Pz$ be close to the observed values provides s
 
 
 %%%%%%%% %%%%%%%%%%%%
-\subsection*{More general resistances}
+\section*{More general relationships}
 
 We probably don't want migration rates to be proportional to the landscape layers,
 at least in all cases.
@@ -321,32 +323,62 @@ and
   \partial_{\delta_k} F(\beta,\gamma,\delta) &= 2 \sum_{i=1}^m \sum_{z \neq y_i} \left( \sum_{x \neq z} (L^k_z + L^k_x) (1-\rho(\delta(L_z+L_x))) G_{zx} (H_{xy_i}-H_{zy_i}) \right) \left( \sum_x G_{zx} H_{xy_i} + 1 \right)  \\
 \end{align}
 
+
+%%%%%%%%%%%%%%
+\section{Derivative and curvature}
+
+Let us return to the situation we started with initially:
+find parameters to minimize
+\begin{align}
+  L = \sum_{ij} \left( \hat H_{x_i,A_j} - T_{ij} \right)^2 .
+\end{align}
+
+Now, recall that
+\begin{align}
+  H_{x,A_j} = \begin{cases}
+    (G^{-A_j})^{-1} \bone \quad & \text{if } x \notin A_j \\
+    0 \quad & \text{otherwise.}
+  \end{cases}
+\end{align}
+For the moment, fix $A_j$, and work with only vecotrs with $A_j$ removed;
+letting $\bar G = G^{-A_j}$, and $\bar H_x = H_{x,A_j}^{-A_j}$.
+Then
+\begin{align}
+  \partial_\theta \bar H_x 
+  &= - \delta_x \bar G^{-1} (\partial_\theta \bar G) \bar G^{-1} (-\bone) \\
+  &= - \delta_x \bar G^{-1} (\partial_\theta \bar G) \bar H ,
+\end{align}
+and
+\begin{align}
+  \partial_\theta \partial_\phi \bar H_x 
+    &= \delta_x \bar G^{-1} \left( 
+    (\partial_\theta \bar G) \bar G^{-1} (\partial_\phi \bar G)
+    + (\partial_\phi \bar G) \bar G^{-1} (\partial_\theta \bar G)
+    - (\partial_\phi \partial_\theta \bar G)
+    \right) \bar G^{-1} (-\bone) \\
+    &= \delta_x \bar G^{-1} \left\{
+    (\partial_\theta \bar G) ( \partial_\phi \bar H ) 
+    + (\partial_\phi \bar G) ( \partial_\theta \bar H )
+    - (\partial_\phi \partial_\theta \bar G) \bar H
+    \right\}
+\end{align}
+
+Now since
+\begin{align}
+  \partial_\theta (H_{x_i,A_j} - T_{ij})^2 
+    &= 2 ( \partial_\theta H_{x_i,A_j} )(H_{x_i,A_j} - T_{ij})
+\end{align}
+and
+\begin{align}
+  \partial_\theta \partial_\phi (H_{x_i,A_j} - T_{ij})^2 
+    &= 2 \left\{
+    ( \partial_\theta \partial_\phi H_{x_i,A_j} )(H_{x_i,A_j} - T_{ij})
+    + ( \partial_\theta H_{x_i,A_j} ) ( \partial_\phi H_{x_i,A_j} ) \right\} ,
+\end{align}
+we can use the expressions for the derivatives of $G$ above to find the derivative of $L$.
+Note that if the optimum is achievable, i.e.\ $H_{x_i,A_j} = T_{ij}$ for all $i$ and $j$, 
+then the second derivative is the inner product of the first derivatives of $H_{x_i,A_j}$,
+and so it is the Gram matrix of these first derivatives that determine the degeneracy of $L$.
+
 \end{document}
-
-
-%%%%%%%% %%%%%%%% 
-\section{Initial values}
- 
-It would be nice to get order-of-magnitude estimates
-for where to start the parameters above.
-To do this, we can pretend that space is flat.
-Let $\tau_r$ be the first hitting time of two-dimensional Brownian motion of a disk of radius $r$.
-Then with the motion begun at radius $x > r$,
-\begin{align}
-  \E_x[ e^{-\alpha \tau_r} ] = \frac{ K_0( x \sqrt{2 \alpha } ) }{ K_0( r \sqrt{2 \alpha } ) } ,
-\end{align}
-where $K_0(x)$ is the modified Bessel function of the second kind (Borodin \& Salminen 4.2.0.1).
-Differentiating, using Gradshteyn \& Ryzhik 8.486.13 and 8.446,
-that $\partial_z K_0(z) = - K_1(z)$,
-that $K_0(x) \sim \log(1/x)$ for small $x$,
-and $K_1(x) \sim 1/x$ for small $x$,
-\begin{align}
-  \E_x[ \tau_r ] &= - \partial_\alpha \frac{ K_0( x \sqrt{2 \alpha } ) }{ K_0( r \sqrt{2 \alpha } ) } \Bigg \vert_{\alpha=0} \\
-  &= \lim_{\alpha \to 0} \frac{ K_1( x \sqrt{2 \alpha} ) K_0(r \sqrt{2 \alpha}) - K_0(x \sqrt{2\alpha}) K_1( r \sqrt{2 \alpha} ) }{ K_0(r \sqrt{2\alpha} )^2 }  \\
-  &= \lim_{\alpha \to 0}  \frac{ \log(x \sqrt{2 \alpha}) / ( r \sqrt{2 \alpha} ) - \log(r \sqrt{2 \alpha}) / ( x \sqrt{2 \alpha} ) }{ \log( r \sqrt{2\alpha} )^2 } \\
-\end{align}
-
-Now suppose that typical points in the range are separated by $R$
-and that our discretization divides regions into pieces of width $\epsilon$.
-Then the mean hitting time 
 

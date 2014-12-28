@@ -191,3 +191,4 @@ plot.nearby <- function (f,params,fac,npoints=20,...) {
             return( cbind(parvals, fvals=fvals ) )
         } ) )
 }
+
