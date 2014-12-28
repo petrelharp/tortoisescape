@@ -1,6 +1,7 @@
 {
     "description" : "Configuration for inference, example file.",
     "layer_names" : [ "imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st" ],
+    "layer_prefix" : "../../../geolayers/multigrid/256x/crm_",
     "setup_files" : [ "../../../256x/crm_six-raster-list-setup.RData" ],
     "observed_ht_file" : "sim-hts.tsv",
     "fitted_ht_file" : "interp-hts.tsv",
@@ -14,14 +15,13 @@
     "paramscale" : {
             "beta"  : [ 0.01 ],
             "gamma" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ],
-            "delta" : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ]
+            "delta" : [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.001 ]
         },
     "paramtol" : {
             "beta"  : [ 1e-4 ],
             "gamma" : [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.001 ],
             "delta" : [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.001 ]
         },
-    "maxit" : 100,
+    "maxit" : 10,
     "maxstep" : 10
 }
-

@@ -3,11 +3,12 @@
 
 require(jsonlite)
 
-read.config <- function (...) {
+read.config <- function (...,usage=NULL) {
     # Read in and process the argments passed, and assign them in the parent environment
     # either from the command line or from scan(), depending if interactive or not.
     args <- list(...)
     argvec <- if (interactive()) { cat("Enter command-line parameters ( ", paste(names(args), collapse=", ")," ):\n"); scan(what="character") } else { commandArgs(TRUE) }
+    if ( (!is.null(usage)) && ( length(args) != length(argvec) ) ) { stop(usage) }
     for (k in seq_along(args)) { cat( names(args)[k], " : ", argvec[k], "\n" ) }
     argfns <- lapply( args, switch,
                 json=read.json.config,

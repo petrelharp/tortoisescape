@@ -400,6 +400,7 @@ selfname <- function (x) { names(x) <- make.names(x); x }
 
 plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
     # use this to make a quick plotting function
+    require(raster)
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
     ph <- function (x,...) { 

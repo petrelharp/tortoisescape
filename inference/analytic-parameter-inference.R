@@ -4,7 +4,7 @@ usage <- "
      Fit parameters to a set of landscape layers,
          Rscript analytic-parameter-inference.R (input json configuration file) (output json file)
        e.g.
-         Rscript analytic-parameter-inference.R test_six_layers/noise-0.00/256x/config.json test_six_layers/noise-0.00/256x/inference.json
+         Rscript analytic-parameter-inference.R test_six_layers/noise-0.00/256x/true-config.json test_six_layers/noise-0.00/256x/true-inference.json
 
 "
 if ( !interactive() && length(commandArgs(TRUE))<2 ) { stop(usage) }
@@ -47,7 +47,7 @@ for (this.step in 1:config$maxstep) {
     dG <- rowSums(G)
 
     # interpolate hitting times based on current parameters
-    hts <- interp.hitting( neighborhoods, G-diag(rowSums(G)), obs.ht, obs.locs=locs, alpha=config$alpha, numcores=numcores )
+    hts <- interp.hitting( neighborhoods, G-diag(dG), obs.ht, obs.locs=locs, alpha=config$alpha, numcores=numcores )
     if (!is.numeric(hts)) { print.and.dump() }
 
     # infer parameters based on full hitting times
@@ -61,22 +61,23 @@ for (this.step in 1:config$maxstep) {
     Lval <- L( init.params )
 
     param.optim <- optim( par=init.params, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(Lval)/10),maxit=config$maxit), method="BFGS" )
-    if (param.optim$convergence != 0) { warning("optim() failed to converge.  Continuing anyhow.") }
+    converged <- (param.optim$convergence == 0)
+    if (!converged) { warning("optim() failed to converge.  Continuing anyhow.") }
 
     paramvec(output.config) <- param.optim$par
 
     # to check things with:
     if (FALSE) {
-        true.hts <- hitting.analytic(neighborhoods, G-diag(rowSums(G)), numcores=numcores )
+        true.hts <- hitting.analytic(neighborhoods, G-diag(dG), numcores=numcores )
         range((hts-true.hts)/true.hts,na.rm=TRUE)
-        ph <- plot.ht.fn(layer.prefix=config$layer_prefix, nonmissing=nonmissing,homedir="../../../..")
+        ph <- plot.ht.fn(layer.prefix=file.path(config.dir,config$layer_prefix), nonmissing=nonmissing)
         true.LdL <- params.logistic.setup(paramvec(config),G,update.G,true.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
-        this.LdL <- params.logistic.setup(param.optim$par,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+        this.LdL <- params.logistic.setup(paramvec(output.config),G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
         layout(matrix(1:15,nrow=3))
-        plot.nearby( this.LdL$L, param.optim$par, fac=.1 )
+        plot.nearby( this.LdL$L, paramvec(output.config), fac=.1 )
     }
 
-    if (all( abs(param.optim$par-paramvec(output.config)) < unlist(config$paramtol) )) { 
+    if ( converged && all( abs(init.params-paramvec(output.config)) < unlist(config$paramtol) )) { 
         output.config$optim.results <- param.optim
         output.config$optim.nsteps <- this.step
         break
