@@ -34,7 +34,7 @@ dev.new()
 
 newparams <- function (params,dothese,do.layout=TRUE) {
     # params are parameters: for n layers,
-    #  params[1] is beta, overall multiplicative constant
+    #  params[1] is beta, of which exp(beta) is overall multiplicative constant
     #  params[2:(n+1)] is gamma, weights on the layers that give the stationary distribution
     #  params[(n+2):(2*n+1)] is delta, the weights on the layers that give the jump rates
     #

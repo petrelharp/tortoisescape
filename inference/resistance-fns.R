@@ -220,6 +220,14 @@ get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()
 }
 
 
+hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
+    # return a list whose [[k]]th entry is the matrix of derivatives 
+    #   of the hitting times with respect to the k-th parameter
+    G@x <- update.G(params)
+    hts <- hitting.analytic(locs,G,numcores)
+    return( list(
+            beta=XXX ) )
+}
 
 ########
 # Raster whatnot

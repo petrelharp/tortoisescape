@@ -38,7 +38,7 @@ rasterOptions(tmpdir=".")
 
     layer.names <- scan(layer.file,what='char')
 
-    init.params <- c( beta=1.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
+    init.params <- c( beta=0.0, gamma=rep(.01,length(layer.names)), delta=rep(.01,length(layer.names)) )
 
     ###
     # layer whatnot
@@ -75,7 +75,7 @@ rasterOptions(tmpdir=".")
         beta <- params[1]
         gamma <- params[1+(1:ngamma)]
         delta <- params[1+ngamma+(1:ndelta)]
-        return( beta * transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[Gjj] ) )
+        return( exp(beta) * transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[Gjj] ) )
     }
 
     G@x <- update.G(init.params)

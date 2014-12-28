@@ -32,11 +32,11 @@ params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layer
         update.aux(params)
         gamma <- params[1+(1:ngamma)]
         delta <- params[1 + ngamma + (1:ndelta)]
-        bgrad <- ( 2 / params[1] )* sum( weightings * rowSums(GH * (GH+sc.one)) )
-        ggrads <- sapply( 1:ncol(layers), function (kk) {
+        bgrad <- 2 * sum( weightings * rowSums(GH * (GH+sc.one)) )  # wrt beta
+        ggrads <- sapply( 1:ncol(layers), function (kk) {  # wrt gamma
                 2 * sum( weightings * rowSums( (layers[,kk] * (1-transfn(valfn(gamma))) * GH) * (GH+sc.one)) )
             } )
-        dgrads <- sapply( 1:ncol(layers), function (kk) {
+        dgrads <- sapply( 1:ncol(layers), function (kk) {  # wrt delta
                 GL <- G
                 GL@x <- G@x * ( layers[Gjj,kk] + layers[G@i+1L,kk] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
                 dGL <- rowSums(GL)
