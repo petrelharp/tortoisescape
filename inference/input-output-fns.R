@@ -40,17 +40,21 @@ write.json.config <- function (config,file) {
 
 paramvec <- function (config) {
     # access the parameters in a config list as a single vector with nice names
-    params <- config$params
+    params <- config$params[c("beta","gamma","delta")]
     names(params$gamma) <- names(params$delta) <- config$layer_names
     return(unlist(params))
 }
 
 "paramvec<-" <- function (config,value) {
     # the assignment function corresponding to paramvec()
+    value <- as.numeric(value)
     k <- 1
-    for ( kk in seq_along(config$params) ) {
-        config$params[[kk]][] <- value[seq(k,length.out=length(config$params[[kk]]))]
+    for (x in c("beta","gamma","delta")) {
+        nparams <- length(config$params[[x]]) 
+        config$params[[x]][] <- value[ seq(k,length.out=nparams) ]
+        k <-  k + nparams
     }
+    stopifnot( k == (length(value)+1) )
     return( config )
 }
 
@@ -90,7 +94,7 @@ write.sub.hts <- function ( hts, file ) {
 read.sub.hts <- function ( file, locs ) {
     # Read in the three-column format of hitting times with row and column labels
     #  TO-DO: should be using tortoise IDs, not row and column numbers like currently.
-    ht.df <- read.table( "test_six_layers/256x/six-raster-list-sim-0_00-hts.tsv",header=TRUE,stringsAsFactors=FALSE)
+    ht.df <- read.table( file, header=TRUE, stringsAsFactors=FALSE)
     ht <- matrix( NA, nrow=length(locs), ncol=length(locs) )
     ht[ cbind( ht.df$row, ht.df$col ) ] <- ht.df$DISTANCE
     return( ht )
@@ -131,3 +135,13 @@ openwrite <- function(arg) {
 print.and.dump <- function () {
  cat(paste("Error in \"", paste(commandArgs(),collapse=' '), "\": dumping frames.\n")); dump.frames(to.file = TRUE); q(status=1)
 } 
+
+###
+# random seed
+
+getset.seed <- function () {
+    new.seed <- as.integer(runif(1)*2e9)
+    set.seed(new.seed)
+    cat("Setting seed to ", new.seed, "\n")
+    return(new.seed)
+}

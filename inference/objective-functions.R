@@ -1,14 +1,9 @@
 ##
 # Functions to return setup for various optimization problems.
 
-params.logistic.setup <- function () {
+params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
     # For inferring parameters under the logistic model.
     #
-    # This works if the following are defined globally:
-    need.these <- c( "G", "update.G", "hts", "zeros", "sc.one", "layers", "transfn", "valfn", "ndelta", "ngamma" )
-    has.these <- sapply( need.these, exists )
-    if( ! all( has.these ) ) { print(has.these); stop("Needs all those defined.") }
-
     # setup: evaluating L and dL will change variables they share in a common scope
     L.env <- new.env()
     assign("update.aux", function (params,check=TRUE) {
@@ -190,7 +185,7 @@ plot.nearby <- function (f,params,fac,npoints=20,...) {
             parmat[,k] <- parvals
             fvals <- apply( parmat, 1, f )
             yrange <- range(fvals,f(params))
-            plot( parvals, fvals, ylim=yrange, main=names(params)[k],... )
+            plot( parvals, fvals, ylim=yrange, main=names(params)[k], ... )
             abline(v=params[k])
             abline(h=f(params))
             return( cbind(parvals, fvals=fvals ) )
