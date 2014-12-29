@@ -155,7 +155,14 @@ plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster
     require(raster)
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
-    ph <- function (x,...) { 
+    orig.locs <- cellFromXY( layer, tort.coords.rasterGCS )
+    locs <- match(orig.locs,nonmissing)
+    ph <- function (x,...,do.lims=TRUE) { 
+        if (do.lims) {  # restrict to the range observed in observed locations
+            lims <- range(x[locs],na.rm=TRUE)
+            lims <- mean(lims)+1.2*(lims-mean(lims))
+            x <- pmin(lims[2],pmax(lims[1],x))
+        }
         values(layer)[nonmissing] <- x
         opar <- par(par.args)  # plotting layers messes up margins
         plot(layer,...)
@@ -164,6 +171,7 @@ plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster
     }
     environment(ph) <- new.env()
     assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
+    assign("locs",locs,environment(ph))
     return(ph)
 }
 

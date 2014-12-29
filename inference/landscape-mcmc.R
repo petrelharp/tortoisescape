@@ -42,4 +42,4 @@ M <- function (params) {
 
 require(mcmc)
 
-mcmc.run <- metrop( M, initial=paramvec(config), nbatch=100, blen=1, scale=parscale )
+mcmc.run <- metrop( M, initial=paramvec(config), nbatch=10, blen=1, scale=parscale )

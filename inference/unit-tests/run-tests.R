@@ -3,17 +3,16 @@
 # will compare results to those previously computed with the same seed
 set.seed(12345)
 check.file <- "run-tests-saved-1234.RData"
-check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","gcheck.1","gcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5")
+check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","gcheck.1","gcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.checks", "hc")
 # do this at the end
 check.it <- function () { 
     if (do.check) {
         checks <- sapply( selfname(check.objects), function (check.me) {
-            if (! all.equal( get(check.me), get(check.me,envir=saved.env) ) ) {
-                stop( paste( check.me, "does not agree with saved version in", check.file ) )
-            } else { TRUE }
-        } )
-        print(checks)
-        if (all(checks)) { cat("\nrun-tests.R:\n  Everything checks out.\n") }
+                all.equal( get(check.me), get(check.me,envir=saved.env) ) } )
+        log.checks <- ( as.character(checks) == "TRUE" )
+        if ( any( ! log.checks ) ) {
+            stop( paste( paste( check.objects[!log.checks], checks[!log.checks], sep=" : " ), collapse="\n" ) )
+        } else { cat("\nrun-tests.R:\n  Everything checks out.\n") }
     } else  {
         save( list=check.objects, file=check.file )
         cat("Saved output in ", check.file, "\n")
@@ -126,7 +125,7 @@ hts <- true.hts
 hts[zeros] <- 0
 
 # obejctive funciton and gradient for parameter inference
-LdL <- params.logistic.setup()
+LdL <- params.logistic.setup(init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 L <- LdL$L
 dL <- LdL$dL
 
@@ -169,6 +168,39 @@ hts.5 <- interp.hitting( neighborhoods, G-diag(rowSums(G)), noisy.ht, obs.locs=l
 
 stopifnot( all.equal( hts.0, hts.4 ) )
 stopifnot( all( abs( ((hts.5-true.hts)/true.hts)[true.hts>0] ) < 5*eps ) )
+
+
+###
+# check derivative of hitting times wrt parameters
+
+
+hs <- hitting.sensitivity(true.params, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=numcores)
+epsval <- 1e-6
+hs.checks <- lapply( seq_along(true.params), function (k) {
+        eps <- epsval * ifelse( seq_along(true.params)==k, 1, 0 )
+        G@x <- update.G(true.params+eps)
+        d.true.hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
+        return( ( d.true.hts - true.hts ) - epsval * hs[[k]] )
+    } )
+stopifnot(all(abs(unlist(hs.checks)<1e-9)))
+
+# repeat a layer to create collinearity
+layers <- cbind( layers, layers[,1] )
+true.params <- c( true.params[1], true.params[1+(1:nlayers)], 0, true.params[1+nlayers+(1:nlayers)], 0 )
+ngamma <- ngamma+1
+ndelta <- ndelta+1
+# this should now be degenerate
+hc <- hitting.colinearity(params=true.params, locs=neighborhoods, obs.locs=locs, G=G, update.G=update.G, layers=layers, transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma, numcores=numcores)
+
+cvec.1 <- numeric(length(true.params))
+cvec.1[2] <- 1
+cvec.1[2+nlayers] <- (-1)
+stopifnot( all.equal( as.numeric(cvec.1 %*% hc %*% cvec.1), 0 ) )
+
+cvec.2 <- numeric(length(true.params))
+cvec.2[3+nlayers] <- 1
+cvec.2[3+2*nlayers] <- (-1)
+stopifnot( all.equal( as.numeric(cvec.2 %*% hc %*% cvec.2), 0 ) )
 
 ###
 # check everything agrees with previously saved versions

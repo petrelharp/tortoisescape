@@ -155,6 +155,79 @@ hitting.analytic <- function (locs, G, numcores=getcores()) {
     return(hts)
 }
 
+hitting.colinearity <- function (params, locs, obs.locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
+    # use hitting.sensitivity to construct the Gram matrix
+    # with rows and columns indexed by parameters
+    # giving the amount of colinearity between the effects of each parameter on the hitting times at the observed locations
+    hs <- hitting.sensitivity(params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=numcores)
+    obs.hs <- sapply( hs, function (x) { x[obs.locs,] } )
+    return( cov(obs.hs) )
+}
+
+hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
+    # return a list whose [[k]]th entry is the matrix of derivatives 
+    #   of the hitting times with respect to the k-th parameter
+    # FOR logistic transform
+    stopifnot( transfn(2) == 1/(1+exp(-2)) )
+    if ( numcores>1 && "parallel" %in% .packages()) {
+        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
+    } else {
+        this.apply <- function (...) { sapply( ... ) }
+    }
+    gamma <- params[1+(1:ngamma)]
+    delta <- params[1 + ngamma + (1:ndelta)]
+    G@x <- update.G(params)
+    G.d <- G - diag(rowSums(G))
+    hts <- hitting.analytic(locs,G.d,numcores)
+    zeros <- unlist(locs) + rep((seq_along(locs)-1)*nrow(hts),sapply(locs,length))
+    GH <- G.d %*% hts
+    GH[zeros] <- 0
+    bgrad <- list( this.apply( seq_along(locs), function (loc.ind) {
+                klocs <- locs[[loc.ind]][!is.na(locs[[loc.ind]])]
+                if (length(klocs)>0) {
+                    z <- numeric(nrow(G.d))
+                    z[-klocs] <- (-1) * as.vector( solve( G.d[-klocs,-klocs], GH[-klocs,loc.ind] ) )
+                    return( z )
+                } else {
+                    return(NA)
+                }
+            } ) )
+    names(bgrad) <- names(params)[1]
+    ggrad <- lapply( seq(1,length.out=ngamma), function (kg) {
+            LGH <- (layers[,kg] * (1-transfn(valfn(gamma)))) * GH
+            this.apply( seq_along(locs), function (loc.ind) {
+                    klocs <- locs[[loc.ind]][!is.na(locs[[loc.ind]])]
+                    if (length(klocs)>0) {
+                        z <- numeric(nrow(G.d))
+                        z[-klocs] <- (-1) * as.vector( solve( G.d[-klocs,-klocs], LGH[-klocs,loc.ind] ) )
+                        return( z )
+                    } else {
+                        return(NA)
+                    }
+                } )
+        } )
+    names(ggrad) <- names(params)[seq(2,length.out=ngamma)]
+    dgrad <- lapply( seq(1,length.out=ndelta), function (kd) {
+            GL <- G
+            GL@x <- G@x * ( layers[Gjj,kd] + layers[G@i+1L,kd] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
+            dGL <- rowSums(GL)
+            GLH <- GL %*% hts - dGL*hts
+            GLH[zeros] <- 0
+            this.apply( seq_along(locs), function (loc.ind) {
+                    klocs <- locs[[loc.ind]][!is.na(locs[[loc.ind]])]
+                    if (length(klocs)>0) {
+                        z <- numeric(nrow(G))
+                        z[-klocs] <- (-1) * as.vector( solve( G.d[-klocs,-klocs], GLH[-klocs,loc.ind] ) )
+                        return( z )
+                    } else {
+                        return(NA)
+                    }
+                } )
+        } )
+    names(dgrad) <- names(params)[seq(2+ngamma,length.out=ndelta)]
+    return( c( bgrad, ggrad, dgrad ) )
+}
+
 interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcores() ) {
     # interpolate hitting times by minimizing squared error:
     #       G is a generator matrix WITH diagonal
@@ -219,15 +292,6 @@ get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()
         }, mc.cores=numcores )
 }
 
-
-hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
-    # return a list whose [[k]]th entry is the matrix of derivatives 
-    #   of the hitting times with respect to the k-th parameter
-    G@x <- update.G(params)
-    hts <- hitting.analytic(locs,G,numcores)
-    return( list(
-            beta=XXX ) )
-}
 
 ########
 # Raster whatnot
