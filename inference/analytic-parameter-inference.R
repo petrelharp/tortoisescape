@@ -47,7 +47,7 @@ for (this.step in 1:config$maxstep) {
     dG <- rowSums(G)
 
     # interpolate hitting times based on current parameters
-    hts <- interp.hitting( neighborhoods, G-diag(dG), obs.ht, obs.locs=locs, alpha=config$alpha, numcores=numcores )
+    hts <- interp.hitting( neighborhoods, G, obs.ht, obs.locs=locs, alpha=config$alpha, numcores=numcores )
     if (!is.numeric(hts)) { print.and.dump() }
 
     # infer parameters based on full hitting times
@@ -68,7 +68,7 @@ for (this.step in 1:config$maxstep) {
 
     # to check things with:
     if (FALSE) {
-        true.hts <- hitting.analytic(neighborhoods, G-diag(dG), numcores=numcores )
+        true.hts <- hitting.analytic(neighborhoods, G, numcores=numcores )
         range((hts-true.hts)/true.hts,na.rm=TRUE)
         ph <- plot.ht.fn(layer.prefix=file.path(config.dir,config$layer_prefix), nonmissing=nonmissing)
         true.LdL <- params.logistic.setup(paramvec(config),G,update.G,true.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)

@@ -23,7 +23,7 @@ do.check <- file.exists(check.file)
 if (do.check) {
     saved.env <- new.env(parent=emptyenv())
     saved.objects <- load( file=check.file, env=saved.env )
-    stopifnot( all( check.objects %in% saved.objects ) )
+    if( !all( check.objects %in% saved.objects ) ) { stop(paste("Missing", paste(setdiff(check.objects,saved.objects),collapse=", "), "from", check.file) ) }
 }
 
 require(raster)

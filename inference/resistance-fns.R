@@ -132,18 +132,26 @@ hitting.jacobi <- function (locs,G,hts,idG=1/rowSums(G),b=-1.0,tol=1e-6,kmax=100
 }
 
 
-hitting.analytic <- function (locs, G, numcores=getcores()) {
+hitting.analytic <- function (locs, G, numcores=getcores(), blocked=numeric(0)) {
     # compute analytical expected hitting times
     #   here `locs` is a vector of (single) locations
     #     or a list of vectors
-    #   G is a generator matrix WITH diagonal
+    #   G is a generator matrix WITHOUT diagonal
+    # Optionally, block all movement through celled indexed by 'blocked'
     if ( numcores>1 && "parallel" %in% .packages()) {
         this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
+    # zero out entries into or out of cells indexed in 'blocked'
+    if (is.list(blocked)) { blocked <- unlist(blocked) }
+    if (length(blocked)>0) {
+        Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+        G@x[Gjj%in%blocked] <- 0
+    }
+    G <- G - Diagonal(nrow(G),rowSums(G))
     hts <- this.apply( locs, function (k) { 
-                klocs <- k[!is.na(k)]
+                klocs <- c( k[!is.na(k)], blocked )
                 if (length(klocs)>0) {
                     z <- numeric(nrow(G))
                     z[-klocs] <- as.vector( solve( G[-klocs,-klocs], rep.int(-1.0,nrow(G)-length(klocs)) ) )
@@ -177,7 +185,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
     gamma <- params[1+(1:ngamma)]
     delta <- params[1 + ngamma + (1:ndelta)]
     G@x <- update.G(params)
-    G.d <- G - diag(rowSums(G))
+    G.d <- G - Diagonal(nrow(G),rowSums(G))
     hts <- hitting.analytic(locs,G.d,numcores)
     zeros <- unlist(locs) + rep((seq_along(locs)-1)*nrow(hts),sapply(locs,length))
     GH <- G.d %*% hts
@@ -230,7 +238,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
 
 interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcores() ) {
     # interpolate hitting times by minimizing squared error:
-    #       G is a generator matrix WITH diagonal
+    #       G is a generator matrix WITHOUT diagonal
     #       locs is a vector of indices, or a list of vectors, of the rows of G for which we have data
     #       obs.ht is the (locs x locs) matrix of mean hitting times
     #       obs.locs is the indices for which obs.ht correspond
@@ -243,6 +251,7 @@ interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcor
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
+    G <- G - Diagonal(nrow(G),rowSums(G))
     # Pmat projects full hitting times onto the obs.locs
     Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(G)) )
     PtP <- alpha * crossprod(Pmat)
@@ -297,8 +306,11 @@ get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()
 # Raster whatnot
 
 get.neighborhoods <- function ( ndist, locations, nonmissing, layer, numcores=getcores(), na.rm=TRUE ) {
-    neighborhoods <- mclapply( seq_along(locations) , function (k) {
-        d_tort <- distanceFromPoints( layer, locations[k] )
+    # locations should be either a SpatialPoints object or a 2-column matrix of coordinates
+    if ( class(locations)=="SpatialPoints" ) { locations <- coordinates(locations) }  # this is the first thing distanceFromPoints does anyhow
+    if (is.null(dim(locations))) { locations <- matrix(locations,ncol=2) }
+    neighborhoods <- mclapply( 1:NROW(locations) , function (k) {
+        d_tort <- distanceFromPoints( layer, locations[k,] ) 
         match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
     }, mc.cores=numcores )
     if (na.rm) { neighborhoods <- lapply(neighborhoods,function (x) { x[!is.na(x)] }) }

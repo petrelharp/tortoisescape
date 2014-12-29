@@ -25,7 +25,7 @@ transfn <- function (x) { 1/(1+exp(-x)) }
 dem <- raster(paste(layer.prefix,"dem_30_m800_sq",sep=''))
 
 ## look at where samples go
-ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing)
+ph <- plot.ht.fn(layer.prefix,nonmissing,"dem_30_m800_sq")
 plot(dem)
 # NOT tort_IDs but indices (what are passed in via dothese below)
 with(environment(ph),text(tort.coords.rasterGCS,labels=ifelse(seq_along(tort.coords.rasterGCS)%in%na.indiv,"*",cumsum(!seq_along(tort.coords.rasterGCS)%in%na.indiv))))
@@ -47,7 +47,7 @@ newparams <- function (params,dothese,do.layout=TRUE) {
         layout( matrix(1:(nplotrows*ceiling(nplots/nplotrows)),nrow=nplotrows) )
     }
     G@x <- update.G(params)
-    hts <- hitting.analytic( neighborhoods[dothese], G-diag(rowSums(G)), numcores=numcores )
+    hts <- hitting.analytic( neighborhoods[dothese], G, numcores=numcores )
     hts[hts<0] <- NA
     # 'locs' are indices of tortoise locations
     ymax <- 1.5*max(hts[locs,])  # 1.5 times maximum hitting time to another tortoise location

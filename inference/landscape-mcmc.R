@@ -35,7 +35,7 @@ parscale <- unlist( config$paramscale )
 
 M <- function (params) {
     G@x <- update.G(params)
-    hts <- hitting.analytic(neighborhoods, G-diag(rowSums(G)), numcores=numcores )
+    hts <- hitting.analytic(neighborhoods, G, numcores=numcores )
     ans <- (-1) * ( sum( ( hts[locs,] - obs.ht )^2 ) )
     return( if (!is.finite(ans)) { Inf } else { ans } )
 }

@@ -43,7 +43,7 @@ neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
 tort.nums <- seq_along(orig.locs)[-na.indiv]
 
 load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
-ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing,par.args=list(mar=c(2,2,3,2)+.1))
+ph <- plot.ht.fn(layer.prefix,nonmissing,"annual_precip",par.args=list(mar=c(2,2,3,2)+.1))
 
 hts <- as.matrix( read.table(ht.file,header=TRUE) )
 

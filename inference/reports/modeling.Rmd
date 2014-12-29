@@ -1,0 +1,142 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+inflate <- function (x,fac=.2) { xr <- range(x); mean(xr) + (1+fac) * (xr-mean(xr)) }
+```
+
+A landscape model
+=================
+
+We model the movement on the landscape as a function of the various landscape layers.
+These and related setup are stored in a JSON configuration file:
+
+```{r layer_setup}
+config <- read.json.config("report-config.json")
+layer.names <- config$layer_names
+for (x in config$setup_files) {
+    show(load( x ) )
+}
+```
+
+Everything is stored in order of the nonmissing entries of the raster layers;
+let's set up a quick plotting function for these data,
+and look at the layers.
+Note that by default this helper function `ph()` truncates everything 20% outside of the range
+of the values at the sample locations; we'll turn that off for this plot.
+
+```{r plot_layers, fig.height=3*fig.dim}
+ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
+layout(matrix(1:6,nrow=3))
+for (k in seq_along(layer.names)) {
+    ph(layers[,k],main=layer.names[k],do.lims=FALSE)
+}
+```
+
+The parameters determine the model.
+The parameters are
+```{r show_params}
+params <- paramvec(config)
+params
+```
+The first parameter, `beta`, is an overall multiplier (by `exp(beta)`).
+
+The second set of parameters, `gamma`, determine the stationary distribution as a logistic transform
+of a linear combination of the layers:
+```{r show_gamma, fig.height=fig.dim}
+gamma <- params[2:(1+length(layer.names))]
+stationary.base <- rowSums( layers * gamma[col(layers)] )
+stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
+layout(t(1:2))
+ph( stationary.base, main="beta, linear combination" )
+ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
+```
+
+The third set of parameters, `delta`,
+determine relative jump rates between adjacent cells,
+again by a logistic transform of a linear combination:
+larger numbers mean higher jump rate.
+These parameters need to be put together into the entries of the generator matrix `G`,
+which then allows us to also visualize total jump rates out of each cell:
+```{r show_delta, fig.height=fig.dim}
+delta <- params[1+length(layer.names)+(1:length(layer.names))]
+jump.base <- rowSums( layers * delta[col(layers)] )
+G@x <- update.G(params)
+layout(t(1:2))
+ph( jump.base, main="delta, linear combination" )
+ph( rowSums(G), main="total jump rate", do.lims=FALSE )
+```
+
+Now we can compute hitting times of each raster cell to a neighborhood about each sampled point.
+These look, for instance, like this:
+(note that labels are not, at present tortoise ID numbers)
+```{r hts, fig.height=2*fig.dim, cache=TRUE}
+hts <- hitting.analytic(neighborhoods,G)
+plot.inds <- c(1,2,16,23,27,54,77,98,107)
+layout(matrix(1:9,nrow=3))
+for (k in plot.inds) {
+    ph( hts[,k], main=k )
+}
+```
+
+Removing chunks of the landscape
+================================
+
+We'd like to know how much removing a chunk of some size from the landscape would affect hitting times.
+Here's how to examine that.
+First, let's identify all the raster cells within 15km of a given location
+```{r remove_piece, fig.height=fig.dim, fig.width=fig.dim}
+layer <- with( environment(ph), layer )
+footprint.center <- matrix( c( -1.8e6, -3e5 ), ncol=2 )  # in real coordinates
+footprint <- get.neighborhoods( 15e3, footprint.center, nonmissing, layer )
+# here is the removed bit
+ph( ifelse(1:nrow(layers)%in%footprint[[1]],1,0), do.lims=FALSE, main="removed bit" )
+```
+and see how that affects a few hitting times:
+```{r remove_hts, fig.height=2*fig.dim}
+zeroed.hts <- hitting.analytic(neighborhoods[plot.inds],G,blocked=footprint)
+# and here is how it has changed a few hitting times
+layout(matrix(1:4,nrow=2,byrow=TRUE))
+ph( hts[,plot.inds[3]], main="before", zlim=inflate(c(hts[locs,plot.inds[3]],zeroed.hts[locs,3])) )
+ph( zeroed.hts[,3], main="after", zlim=inflate(c(hts[locs,plot.inds[3]],zeroed.hts[locs,3])) )
+ph( hts[,plot.inds[8]], main="before", zlim=inflate(c(hts[locs,plot.inds[5]],zeroed.hts[locs,5])) )
+ph( zeroed.hts[,8], main="after", zlim=inflate(c(hts[locs,plot.inds[5]],zeroed.hts[locs,5])) )
+```
+
+But, we need a way of visualizing overall impact of removing a chunk.
+Here are two ways to do this:
+- For each point, plot the average change in mean hitting time to a bunch of other locations on the landscape.
+- Draw lines between pairs of points whose hitting times increase by a certain amount.
+Let's try it out.
+
+
+
+Sensitivity of hitting times to the parameters
+==============================================
+
+Now, we only observe hitting times between the observed locations (points on the plots).
+We can compute how much each parameter affects those hitting times.
+First we compute the derivative of each hitting time plotted above with respect to each parameter,
+which we can then visualize.
+Here, rows are parameters; columns are hitting times to individuals shown in the previous plot;
+white is zero, blue colors are negative, and red colors are positive.
+```{r sensitivity, fig.width=4*fig.dim, fig.height=4*fig.dim, cache=TRUE}
+hs <- hitting.sensitivity(params, neighborhoods[plot.inds], G, update.G, layers, transfn, valfn, ndelta, ngamma)
+obs.hs <- sapply( hs, function (x) { x[locs,] } )
+layout(matrix(1:(length(params)*(length(plot.inds)+1)),nrow=length(params),byrow=TRUE))
+par(mar=c(0,0,0,0)+.1)
+for (j in seq_along(params)) {
+    plot(c(0,2), c(0,2), type='n', xaxt='n', yaxt='n')
+    text(1,1,label=names(params)[j],offset=0)
+    for (k in seq_along(plot.inds)) {
+        ph( hs[[j]][,k], xaxt='n', yaxt='n', par.args=list(mar=c(0,0,0,0)+.1), legend=FALSE, zlim=1.2*c(-1,1)*max(abs(obs.hs)), col=diverge_hcl(255) )
+    }
+}
+```
+We see the hitting times are least sensitive to the `delta` parameters,
+and that hitting times to the second individual (who is isolated) are the most sensitive.
+
+

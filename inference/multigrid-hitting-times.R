@@ -133,7 +133,7 @@ step <- function (init.hts,oldpos,newpos,maxit) {
 }
 
 # for plotting
-phs <- lapply( res.envs, function (env) { with(env, plot.ht.fn(file.path(layer.dir,subdir,layer.prefix),"annual_precip",nonmissing)) } )
+phs <- lapply( res.envs, function (env) { with(env, plot.ht.fn(file.path(layer.dir,subdir,layer.prefix),nonmissing,"annual_precip")) } )
 
 stepres <- rep(c(1,2),20)
 maxits <- c(10,100)[stepres[-1]]

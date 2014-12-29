@@ -62,12 +62,12 @@ if (method=="analytic") {
     # in places where migration rates are very small
     # ... how to pick alpha?
 
-    hts <- interp.hitting( neighborhoods, G-diag(rowSums(G)), obs.ht, obs.locs=locs, alpha=alpha, numcores=numcores )
+    hts <- interp.hitting( neighborhoods, G, obs.ht, obs.locs=locs, alpha=alpha, numcores=numcores )
 
 
     if (FALSE) { # testing
         hts.list <- lapply( seq(0.0,0.2,length.out=5), function (alpha) { 
-                interp.hitting( neighborhoods[1:2], G-diag(rowSums(G)), obs.ht[,1:2], obs.locs=locs, alpha=alpha, numcores=numcores )
+                interp.hitting( neighborhoods[1:2], G, obs.ht[,1:2], obs.locs=locs, alpha=alpha, numcores=numcores )
             } )
         sapply( hts.list, interp.tradeoff, neighborhoods[1:2], G, dG, obs.ht[,1:2], obs.locs=locs, numcores=numcores )
     }
@@ -115,7 +115,7 @@ if (FALSE) {
     load("../tort.coords.rasterGCS.Robj")
     load(paste(subdir,"/",basename(layer.prefix),"alllocs.RData",sep='')) # all.locs.dists
     load("torts-info.RData")
-    ph <- plot.ht.fn(layer.prefix,"dem_30",nonmissing)
+    ph <- plot.ht.fn(layer.prefix,nonmissing,"dem_30")
 
     optim.hts[cbind(1+locs,seq_along(locs))] <- NA
 

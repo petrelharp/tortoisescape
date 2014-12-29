@@ -62,7 +62,7 @@ G@x <- update.G(init.params)
 
 if (method=="analytic") {
 
-    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
+    hts <- hitting.analytic( neighborhoods, G, numcores=numcores )
 
 } else if (method=="numeric") {
     if (!file.exists(prev.ht)) { stop("For method 'numeric' need to specify a starting point (previous hts).") }
@@ -155,7 +155,7 @@ write.full.hts( hts, locs, file=outfile )
 ## look at results
 if (FALSE) {
         load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
-        ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
+        ph <- plot.ht.fn(layer.prefix,nonmissing,"annual_precip")
 
         layout(matrix(1:6,nrow=2))
         for (k in 1:ncol(hts)) {
@@ -183,7 +183,7 @@ if (FALSE) {  ## DEBUGGING/EXPLORATION
 
     # look at convergence
     load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
-    ph <- plot.ht.fn(layer.prefix,"annual_precip",nonmissing)
+    ph <- plot.ht.fn(layer.prefix,nonmissing,"annual_precip")
 
 
     loc.ind <- 10

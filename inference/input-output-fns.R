@@ -150,14 +150,14 @@ getset.seed <- function () {
 ##
 # plotting whatnot
 
-plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",par.args=list(mar=c(5,4,4,7)+.1)) {
+plot.ht.fn <- function (layer.prefix,nonmissing,layer.name="dem_30",layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",default.par.args=list(mar=c(5,4,4,7)+.1)) {
     # use this to make a quick plotting function
     require(raster)
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
-    load(paste(homedir,"tort.coords.rasterGCS.Robj",sep='/'))
+    load(file.path(homedir,"tort.coords.rasterGCS.Robj"))
     orig.locs <- cellFromXY( layer, tort.coords.rasterGCS )
     locs <- match(orig.locs,nonmissing)
-    ph <- function (x,...,do.lims=TRUE) { 
+    ph <- function (x,...,do.lims=TRUE,par.args=default.par.args) { 
         if (do.lims) {  # restrict to the range observed in observed locations
             lims <- range(x[locs],na.rm=TRUE)
             lims <- mean(lims)+1.2*(lims-mean(lims))
@@ -172,6 +172,7 @@ plot.ht.fn <- function (layer.prefix,layer.name="dem_30",nonmissing,layer=raster
     environment(ph) <- new.env()
     assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
     assign("locs",locs,environment(ph))
+    assign("default.par.args",default.par.args,environment(ph))
     return(ph)
 }
 
