@@ -5,7 +5,7 @@ require(colorspace)
 require(raster)
 fig.dim <- 5
 opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
-inflate <- function (...,fac=.2) { xr <- range(...); mean(xr) + (1+fac) * (xr-mean(xr)) }
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
 ```
 
 A landscape model
@@ -85,6 +85,7 @@ for (k in plot.inds) {
 }
 ```
 
+
 Removing a chunk from the landscape
 ===================================
 
@@ -95,7 +96,7 @@ First, let's identify all the raster cells within 15km of a given location
 footprint.center <- matrix( c( -1.8e6, -3e5 ), ncol=2 )  # in real coordinates
 footprint <- get.neighborhoods( 15e3, footprint.center, nonmissing, layer )
 # here is the removed bit
-ph( ifelse(1:nrow(layers)%in%footprint[[1]],1,0), do.lims=FALSE, main="removed bit" )
+ph( ifelse(1:nrow(layers)%in%footprint[[1]],1,0), do.lims=FALSE, main="removed bit", legend=FALSE )
 ```
 and see how that affects a few hitting times:
 ```{r remove_hts, fig.height=4/3*fig.dim}
@@ -105,8 +106,8 @@ layout(matrix(1:6,nrow=2,byrow=TRUE))
 ph( hts[,plot.inds[3]], main="before", zlim=inflate(c(hts[locs,plot.inds[3]],zeroed.hts[locs,3])) )
 ph( zeroed.hts[,3], main="after", zlim=inflate(c(hts[locs,plot.inds[3]],zeroed.hts[locs,3])) )
 ph( zeroed.hts[,3]-hts[,plot.inds[3]], main="diff" )
-ph( hts[,plot.inds[8]], main="before", zlim=inflate(c(hts[locs,plot.inds[5]],zeroed.hts[locs,5])) )
-ph( zeroed.hts[,8], main="after", zlim=inflate(c(hts[locs,plot.inds[5]],zeroed.hts[locs,5])) )
+ph( hts[,plot.inds[8]], main="before", zlim=inflate(c(hts[locs,plot.inds[8]],zeroed.hts[locs,8])) )
+ph( zeroed.hts[,8], main="after", zlim=inflate(c(hts[locs,plot.inds[8]],zeroed.hts[locs,8])) )
 ph( zeroed.hts[,8]-hts[,plot.inds[8]], main="diff" )
 ```
 
@@ -162,21 +163,22 @@ Computing hitting times above once a chunk is removed takes `r system.time( {hit
 so we can't do *too* many of them at once.
 First, let's pick the centers of some footprints:
 ```{r many_footprints, fig.width=fig.dim, fig.height=fig.dim}
-footprint.centers <- expand.grid( x=seq(-17e5,-19e5, length.out=5), y=seq(-2e5,-4e5,length.out=5) )
+footprint.centers <- expand.grid( x=seq(-19e5,-17e5, length.out=5), y=seq(-2e5,-4e5,length.out=5) )
 footprints <- get.neighborhoods( 15e3, footprint.centers, nonmissing, layer )
-ph( ifelse(1:nrow(layers)%in%unlist(footprints),1,0), do.lims=FALSE, main="removed bits" )
+ph( ifelse(1:nrow(layers)%in%unlist(footprints),1,0), do.lims=FALSE, main="removed bits", legend=FALSE )
 ```
 and compute hitting times
-```{r many_footprints_hts, fig.width=4*fig.dim, fig.height=4*fig.dim}
+```{r many_footprints_hts, fig.width=4*fig.dim, fig.height=4*fig.dim, cache=TRUE}
 do.ref.inds <- lapply( footprints, function (fp) { ref.inds[ ! locs[ref.inds] %in% fp ] } )
 diff.ht.list <- lapply( seq_along(footprints), function (k) { 
         hitting.analytic(neighborhoods[do.ref.inds[[k]]],G,blocked=footprints[[k]]) - hts[,do.ref.inds[[k]]] 
     } )
-ref.diffs <- sapply( seq_along(footprints), function (k) { rowMeans( diff.ht.list[[k]][locs[do.ref.inds[[k]]],] ) } )
-zlims <- inflate( ref.diffs )
-layout( matrix(1:25,nrow=5,ncol=5) )
+mean.diffs <- sapply( diff.ht.list, rowMeans )
+for (k in 1:ncol(mean.diffs)) { mean.diffs[footprints[[k]],k] <- NA }
+zlims <- inflate( mean.diffs[locs[ref.inds],] )
+layout( matrix(1:25,nrow=5,byrow=TRUE) )
 for (k in seq_along(footprints)) {
-    ph( rowMeans( diff.ht.list[[k]] ), par.args=list(mar=c(0,0,0,0)+.1), zlim=zlims, legend=FALSE )
+    ph( mean.diffs[,k], par.args=list(mar=c(0,0,0,0)+.1), zlim=zlims, legend=(((k-1)%%5)==4) )
 }
 ```
 

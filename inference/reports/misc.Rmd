@@ -1,0 +1,22 @@
+
+Greatest bottleneck on the landscape
+====================================
+
+The top eigenvector of `G` should look like the top prinicpal component of the data,
+and means similar things.
+Let's compute it.
+```{r top_eigenvector}
+sym.G <- G
+sym.G@x <- sym.G@x * sqrt( transfn(valfn(gamma))[Gjj] / transfn(valfn(gamma))[G@i+1L] )
+dG <- rowSums(G)
+require(svd)
+# this function multiplies v by (sym.G-diag(dG))^-
+minvG <- function (v) { as.numeric( v - solve( Diagonal(nrow(G),1-dG)+sym.G, v ) ) }
+invG.extmat <- extmat( mul=minvG, tmul=minvG, nrow=nrow(G), ncol=ncol(G) )
+# find the SVD of (sym.G-diag(dG))^-
+inv.svd <- trlan.svd( invG.extmat, neig=4, opts=list(kmax=100) )
+# the singular values are
+1/(1-inv.svd$d)
+plot( inv.svd$u[,1], sym.G%*% inv.svd$u[,1] - dG*inv.svd$u[,1] )
+```
+
