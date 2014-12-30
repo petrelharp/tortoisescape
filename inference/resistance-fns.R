@@ -151,7 +151,7 @@ hitting.analytic <- function (locs, G, numcores=getcores(), blocked=numeric(0)) 
     }
     G <- G - Diagonal(nrow(G),rowSums(G))
     hts <- this.apply( locs, function (k) { 
-                klocs <- c( k[!is.na(k)], blocked )
+                klocs <- unique(c( k[!is.na(k)], blocked ))
                 if (length(klocs)>0) {
                     z <- numeric(nrow(G))
                     z[-klocs] <- as.vector( solve( G[-klocs,-klocs], rep.int(-1.0,nrow(G)-length(klocs)) ) )
@@ -338,6 +338,19 @@ which.nonoverlapping <- function (neighborhoods) {
         goodones[k] <- ( 0 == length( intersect( neighborhoods[[k]], unlist(neighborhoods[goodones]) ) ) )
     }
     return( which(goodones) )
+}
+
+LinesFromIndices <- function ( ind.pairs, locations, layer, proj4string=CRS(sp::proj4string(layer)) ) {
+    # Returns a SpatialLines-class list of Lines objects, one for each pair of indices in ind.pairs,
+    # with these indexing the poitns in sample.coords.
+    #  ind.pairs : a two-column matrix of indices
+    #  locations : a two-column matrix of coordinates
+    #  layer : something to extract a proj4string from
+    #  proj4string : a CRS object with a valid proj4string
+    if ( class(locations)=="SpatialPoints" ) { locations <- coordinates(locations) }  # this is the first thing distanceFromPoints does anyhow
+    SpatialLines( apply( ind.pairs, 1, function (ij) {
+            Lines( Line( rbind( locations[ij[1],], locations[ij[2],] ) ), ID=paste(ij,collapse=":") )
+        } ), proj4string=proj4string )
 }
 
 ##

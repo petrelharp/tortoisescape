@@ -5,7 +5,7 @@ require(colorspace)
 require(raster)
 fig.dim <- 5
 opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
-inflate <- function (x,fac=.2) { xr <- range(x); mean(xr) + (1+fac) * (xr-mean(xr)) }
+inflate <- function (...,fac=.2) { xr <- range(...); mean(xr) + (1+fac) * (xr-mean(xr)) }
 ```
 
 A landscape model
@@ -27,6 +27,7 @@ let's set up a quick plotting function for these data,
 and look at the layers.
 Note that by default this helper function `ph()` truncates everything 20% outside of the range
 of the values at the sample locations; we'll turn that off for this plot.
+For future use we'll also get some other things out of here.
 
 ```{r plot_layers, fig.height=3*fig.dim}
 ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
@@ -34,6 +35,8 @@ layout(matrix(1:6,nrow=3))
 for (k in seq_along(layer.names)) {
     ph(layers[,k],main=layer.names[k],do.lims=FALSE)
 }
+layer <- with( environment(ph), layer )
+sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
 ```
 
 The parameters determine the model.
@@ -82,36 +85,101 @@ for (k in plot.inds) {
 }
 ```
 
-Removing chunks of the landscape
-================================
+Removing a chunk from the landscape
+===================================
 
 We'd like to know how much removing a chunk of some size from the landscape would affect hitting times.
 Here's how to examine that.
 First, let's identify all the raster cells within 15km of a given location
 ```{r remove_piece, fig.height=fig.dim, fig.width=fig.dim}
-layer <- with( environment(ph), layer )
 footprint.center <- matrix( c( -1.8e6, -3e5 ), ncol=2 )  # in real coordinates
 footprint <- get.neighborhoods( 15e3, footprint.center, nonmissing, layer )
 # here is the removed bit
 ph( ifelse(1:nrow(layers)%in%footprint[[1]],1,0), do.lims=FALSE, main="removed bit" )
 ```
 and see how that affects a few hitting times:
-```{r remove_hts, fig.height=2*fig.dim}
+```{r remove_hts, fig.height=4/3*fig.dim}
 zeroed.hts <- hitting.analytic(neighborhoods[plot.inds],G,blocked=footprint)
 # and here is how it has changed a few hitting times
-layout(matrix(1:4,nrow=2,byrow=TRUE))
+layout(matrix(1:6,nrow=2,byrow=TRUE))
 ph( hts[,plot.inds[3]], main="before", zlim=inflate(c(hts[locs,plot.inds[3]],zeroed.hts[locs,3])) )
 ph( zeroed.hts[,3], main="after", zlim=inflate(c(hts[locs,plot.inds[3]],zeroed.hts[locs,3])) )
+ph( zeroed.hts[,3]-hts[,plot.inds[3]], main="diff" )
 ph( hts[,plot.inds[8]], main="before", zlim=inflate(c(hts[locs,plot.inds[5]],zeroed.hts[locs,5])) )
 ph( zeroed.hts[,8], main="after", zlim=inflate(c(hts[locs,plot.inds[5]],zeroed.hts[locs,5])) )
+ph( zeroed.hts[,8]-hts[,plot.inds[8]], main="diff" )
 ```
 
 But, we need a way of visualizing overall impact of removing a chunk.
 Here are two ways to do this:
 - For each point, plot the average change in mean hitting time to a bunch of other locations on the landscape.
 - Draw lines between pairs of points whose hitting times increase by a certain amount.
-Let's try it out.
 
+Let's try it out the first one.
+First, pick a subset of sample locations whose 15km neighborhoods are nonoverlapping,
+and none of which are in the removed chunk:
+```{r get_nonoverlapping, fig.width=fig.dim, fig.height=fig.dim}
+ref.inds <- which.nonoverlapping(neighborhoods)
+ref.inds <- ref.inds[ ! locs[ref.inds] %in% footprint[[1]] ]
+ph( ifelse(1:nrow(layers)%in%unlist(neighborhoods[ref.inds]),1,0), main="reference locations" )
+```
+There are `r length(ref.inds)` of these.
+Now compute, and plot, average change in mean hitting time:
+first, absolute change; then relative change.
+```{r remove_diff, fig.width=2*fig.dim, fig.height=fig.dim}
+zeroed.hts <- hitting.analytic(neighborhoods[ref.inds],G,blocked=footprint)
+diff.hts <- (zeroed.hts - hts[,ref.inds])
+layout(t(1:2))
+ph( rowMeans(diff.hts), main="mean hitting time difference" )
+ph( rowMeans(diff.hts)/rowMeans(hts[,ref.inds]), main="relative hitting time difference" )
+```
+That looks sensible.
+
+Now, lets put lines on top of that between pairs of the reference locations
+that are in the 2.5% tails of the distribution,
+colored by whether they increase or decrease.
+```{r remove_tails, fig.height=fig.dim}
+layout(t(1:2))
+hist(diff.hts[locs[ref.inds],], main="hitting time differences")
+tails <- quantile(diff.hts[locs[ref.inds],],c(0.025,0.975))
+abline(v=tails,col=c("blue","red"))
+lower.tails <- arrayInd( which( diff.hts[locs[ref.inds],] < tails[1] ), .dim=dim(diff.hts[locs[ref.inds],]) )
+lower.lines <- LinesFromIndices( lower.tails, sample.coords, layer )
+upper.tails <- arrayInd( which( diff.hts[locs[ref.inds],] > tails[2] ), .dim=dim(diff.hts[locs[ref.inds],]) )
+upper.lines <- LinesFromIndices( upper.tails, sample.coords, layer )
+ph( rowMeans(diff.hts), main="mean hitting time difference" )
+lines( lower.lines, col='blue' )
+lines( upper.lines, col='red' )
+```
+So, removing that chunk has mostly affected the location that's right next to the removed chunk.
+
+
+Comparing the effects of several chunks
+=======================================
+
+Now, let's compare the effects of removing several chunks.
+Computing hitting times above once a chunk is removed takes `r system.time( {hitting.analytic(neighborhoods[ref.inds],G,blocked=footprint) } )["elapsed"]` seconds,
+so we can't do *too* many of them at once.
+First, let's pick the centers of some footprints:
+```{r many_footprints, fig.width=fig.dim, fig.height=fig.dim}
+footprint.centers <- expand.grid( x=seq(-17e5,-19e5, length.out=5), y=seq(-2e5,-4e5,length.out=5) )
+footprints <- get.neighborhoods( 15e3, footprint.centers, nonmissing, layer )
+ph( ifelse(1:nrow(layers)%in%unlist(footprints),1,0), do.lims=FALSE, main="removed bits" )
+```
+and compute hitting times
+```{r many_footprints_hts, fig.width=4*fig.dim, fig.height=4*fig.dim}
+zeroed.ht.list <- lapply( footprints, function (fp) { 
+        do.ref.inds <- ref.inds[ ! locs[ref.inds] %in% fp ]
+        hitting.analytic(neighborhoods[do.ref.inds],G,blocked=fp) 
+    } )
+diff.ht.list <- lapply( zeroed.ht.list, "-", hts[,ref.inds] )
+ref.diffs <- sapply( diff.ht.list, function (x) { rowMeans( x[locs[ref.inds],] ) } )
+zlims <- inflate( ref.diffs )
+layout( matrix(1:25,nrow=5,ncol=5)[,5:1] )
+for (k in seq_along(footprints)) {
+    ph( rowMeans( diff.ht.list[[k]] ), par.args=list(mar=c(0,0,0,0)+.1) )
+}
+```
 
 
 Sensitivity of hitting times to the parameters
