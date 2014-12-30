@@ -168,16 +168,15 @@ ph( ifelse(1:nrow(layers)%in%unlist(footprints),1,0), do.lims=FALSE, main="remov
 ```
 and compute hitting times
 ```{r many_footprints_hts, fig.width=4*fig.dim, fig.height=4*fig.dim}
-zeroed.ht.list <- lapply( footprints, function (fp) { 
-        do.ref.inds <- ref.inds[ ! locs[ref.inds] %in% fp ]
-        hitting.analytic(neighborhoods[do.ref.inds],G,blocked=fp) 
+do.ref.inds <- lapply( footprints, function (fp) { ref.inds[ ! locs[ref.inds] %in% fp ] } )
+diff.ht.list <- lapply( seq_along(footprints), function (k) { 
+        hitting.analytic(neighborhoods[do.ref.inds[[k]]],G,blocked=footprints[[k]]) - hts[,do.ref.inds[[k]]] 
     } )
-diff.ht.list <- lapply( zeroed.ht.list, "-", hts[,ref.inds] )
-ref.diffs <- sapply( diff.ht.list, function (x) { rowMeans( x[locs[ref.inds],] ) } )
+ref.diffs <- sapply( seq_along(footprints), function (k) { rowMeans( diff.ht.list[[k]][locs[do.ref.inds[[k]]],] ) } )
 zlims <- inflate( ref.diffs )
-layout( matrix(1:25,nrow=5,ncol=5)[,5:1] )
+layout( matrix(1:25,nrow=5,ncol=5) )
 for (k in seq_along(footprints)) {
-    ph( rowMeans( diff.ht.list[[k]] ), par.args=list(mar=c(0,0,0,0)+.1) )
+    ph( rowMeans( diff.ht.list[[k]] ), par.args=list(mar=c(0,0,0,0)+.1), zlim=zlims, legend=FALSE )
 }
 ```
 
