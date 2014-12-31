@@ -182,6 +182,44 @@ for (k in seq_along(footprints)) {
 }
 ```
 
+We see that reomving some chunks has a larger effect (those maps with more contrasting colors)
+and others do not (those that are uniformly pink).
+
+
+Identifying basins : a curiousity?
+==================================
+
+[Corollary 2.10 in Aldous & Fill](http://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch2.S2.html#Ch2.ThmLemma10) implies that for any locations $i$, $j$, and $k$,
+with $i \neq k$ and $j \neq k$, that the probability, beginning at $i$, that $j$ is reached before $k$,
+is $(E_i T_k + E_k T_j - E_i T_j) / ( E_j T_k + E_k T_j )$,
+where $E_i T_k$ is the mean hitting time of $k$ from $i$.
+We cannot precisely apply this, as we compute mean hitting times to sets of states
+rather than single ones,
+but what we do compute should be close.
+
+In other words, for any pair of reference locations $j$ and $k$,
+we can ask which points are *closer* to $j$ than $k$ in this sense.
+Let's see what that does.
+```{r hitting_probs, fig.height=fig.dim, fig.width=3*fig.dim}
+hit.first <- function (hts, locs, j, k) {
+    # probability that j is hit before k as a function of initial location
+    ( hts[,k] + hts[locs[k],j] - hts[,j] ) / ( hts[locs[j],k] + hts[locs[k],j] )
+}
+hit.probs <- cbind(
+        hit.first( hts, locs, 27, 77 ),
+        hit.first( hts, locs, 77, 98 ),
+        hit.first( hts, locs, 98, 27 )
+    )
+layout(t(1:3))
+for (k in 1:3) { ph( hit.probs[,k], do.lims=FALSE ) }
+```
+
+The resulting values range between `r min(hit.probs)` and `r max(hit.probs)`,
+so are not quite probabilities,
+because of using hitting times of sets rather than points,
+but the discrepancy is minor.
+
+
 
 Sensitivity of hitting times to the parameters
 ==============================================
@@ -201,11 +239,34 @@ for (j in seq_along(params)) {
     plot(c(0,2), c(0,2), type='n', xaxt='n', yaxt='n')
     text(1,1,label=names(params)[j],offset=0)
     for (k in seq_along(plot.inds)) {
-        ph( hs[[j]][,k], xaxt='n', yaxt='n', par.args=list(mar=c(0,0,0,0)+.1), legend=FALSE, zlim=1.2*c(-1,1)*max(abs(obs.hs)), col=diverge_hcl(255) )
+        ph( hs[[j]][,k], xaxt='n', yaxt='n', par.args=list(mar=c(0,0,0,0)+.1), legend=FALSE, 
+            zlim=1.2*c(-1,1)*max(abs(obs.hs)), col=diverge_hcl(255) )
     }
 }
 ```
 We see the hitting times are least sensitive to the `delta` parameters,
 and that hitting times to the second individual (who is isolated) are the most sensitive.
 
+
+
+Sensitivity of parameters to the hitting times
+==============================================
+
+Suppose we know, without error,
+pairwise hitting times between the reference sampling locations.
+Do these uniquely determine the parameters?
+Below, we vary each parameter, with the others fixed at their true values,
+and plot the mean squared difference between the hitting times at the new parameter value
+and at the original, "true" value.
+```{r parameter_basin, cache=TRUE}
+d.hts <- function (params) {
+    G@x <- update.G(params)
+    sum( (hitting.analytic(neighborhoods[ref.inds],G)[locs[ref.inds],] - hts[locs[ref.inds],ref.inds])^2 )
+}
+c.beta <- compute.plot.nearby( d.hts, params, fac=.1, do.params=1 )
+plot.nearby( computed=c.beta )
+c.other <- compute.plot.nearby( d.hts, params, fac=.1, do.params=seq_along(params)[-1] )
+layout( matrix(1:12,ncol=3) )
+plot.nearby( computed=c.other )
+```
 

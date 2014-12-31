@@ -174,21 +174,36 @@ check.parscale <- function (f, params, parscale, fnscale, eps=0.01) {
     return(results)
 }
 
-plot.nearby <- function (f,params,fac,npoints=20,...) {
-    # Make marginal plots of the function f nearby to fac by an additive factor 'fac'
-    # makes length(param) plots.
+compute.plot.nearby <- function (f,params,fac,npoints=20,do.params=seq_along(params)) {
     if (length(fac)==1) { fac <- rep(fac,length(params)) }
-    invisible( lapply( seq_along(params), function (k) {
+    c( 
+        lapply( do.params, function (k) {
             parvals <- seq( params[k]-fac[k], params[k]+fac[k], length.out=npoints )
             parmat <- matrix( rep(params,each=npoints), nrow=npoints )
             colnames(parmat) <- names(params)
             parmat[,k] <- parvals
             fvals <- apply( parmat, 1, f )
-            yrange <- range(fvals,f(params))
-            plot( parvals, fvals, ylim=yrange, main=names(params)[k], ... )
-            abline(v=params[k])
-            abline(h=f(params))
-            return( cbind(parvals, fvals=fvals ) )
-        } ) )
+            return( data.frame(parvals=parvals, fvals=fvals ) )
+        } ),
+        list(baseval=f(params),params=params,do.params=do.params)
+    )
+}
+
+plot.nearby <- function (f,params,fac,npoints=20,do.params=seq_along(params),
+    computed=compute.plot.nearby(f,params,fac,npoints,do.params), ...) {
+    # Make marginal plots of the function f nearby to fac by an additive factor 'fac'
+    # makes length(do.params) plots.
+    baseval <- computed$baseval
+    params <- computed$params
+    do.params <- computed$do.params
+    for (k in seq_along(do.params)) {
+        with( computed[[k]], {
+            yrange <- range(fvals,baseval)
+            plot( parvals, fvals, ylim=yrange, main=names(params)[do.params[k]], ... )
+            abline(v=params[do.params[k]])
+            abline(h=baseval)
+        } )
+    }
+    return(invisible(computed))
 }
 
