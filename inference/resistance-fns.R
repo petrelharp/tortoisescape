@@ -163,11 +163,12 @@ hitting.analytic <- function (locs, G, numcores=getcores(), blocked=numeric(0)) 
     return(hts)
 }
 
-hitting.colinearity <- function (params, locs, obs.locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
+hitting.colinearity <- function (params, locs, obs.locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, 
+    hs=hitting.sensitivity(params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=numcores),
+    numcores=getcores()) {
     # use hitting.sensitivity to construct the Gram matrix
     # with rows and columns indexed by parameters
     # giving the amount of colinearity between the effects of each parameter on the hitting times at the observed locations
-    hs <- hitting.sensitivity(params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=numcores)
     obs.hs <- sapply( hs, function (x) { x[obs.locs,] } )
     return( cov(obs.hs) )
 }
