@@ -2,10 +2,19 @@
 # Functions to return setup for various optimization problems.
 
 params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
-    # For inferring parameters under the logistic model.
+    # Given hitting times (hts), find parameters to minimize | G %*% hts + 1 |^2 .
     #
     # setup: evaluating L and dL will change variables they share in a common scope
     L.env <- new.env()
+    assign( "G", G, L.env )
+    assign( "update.G", update.G, L.env )
+    assign( "hts", hts, L.env )
+    assign( "zeros", zeros, L.env )
+    assign( "sc.one", sc.one, L.env )
+    assign( "transfn", transfn, L.env )
+    assign( "valfn", valfn, L.env )
+    assign( "ndelta", ndelta, L.env )
+    assign( "ngamma", ngamma, L.env )
     assign("update.aux", function (params,check=TRUE) {
             if ( (!check) || any(params != get("params", L.env ) ) ) { 
                 assign("params", params,  L.env )
@@ -103,6 +112,35 @@ interp.ht.setup <- function () {
     return( list( H=H, dH=dH ) )
 }
 
+
+d.hts.setup <- function (G,neighborhoods,locs,hts,params,obs.hts) {
+    # setup for inferring parameters
+    # based instead on minimizing | hts[obs,] - obs.hts |^2 
+    R.env <- new.env()
+    assign("G", G, R.env)
+    assign("neighborhoods", neighborhoods, R.env)
+    assign("locs", locs, R.env)
+    assign("hts", hts, R.env)
+    assign("params", params, R.env)
+    assign("obs.hts", obs.hts, R.env)
+    assign("update.aux", function (new.params) {
+            if (any(new.params!=params)) {
+                evalq(G@x <- update.G(params), R.env)
+                evalq(hts <- hitting.analytic(neighborhoods,G), R.env)
+                evalq(params <- new.params, R.env)
+            }
+        }, R.env )
+    d.hts <- function (new.params) {
+        update.aux(new.params)
+        return( mean( ( hts[locs,] - obs.hts )^2 ) )
+    }
+    gr.d.hts <- function (new.params) {
+        update.aux(new.params)
+        bgrad <- XXX
+        return(mean(ans))
+    }
+}
+
 ###
 # general purpose
 
@@ -190,7 +228,8 @@ compute.plot.nearby <- function (f,params,fac,npoints=20,do.params=seq_along(par
 }
 
 plot.nearby <- function (f,params,fac,npoints=20,do.params=seq_along(params),
-    computed=compute.plot.nearby(f,params,fac,npoints,do.params), ...) {
+    computed=compute.plot.nearby(f,params,fac,npoints,do.params), 
+    grads=NULL, vlines=NULL, ...) {
     # Make marginal plots of the function f nearby to fac by an additive factor 'fac'
     # makes length(do.params) plots.
     baseval <- computed$baseval
@@ -199,11 +238,34 @@ plot.nearby <- function (f,params,fac,npoints=20,do.params=seq_along(params),
     for (k in seq_along(do.params)) {
         with( computed[[k]], {
             yrange <- range(fvals,baseval)
-            plot( parvals, fvals, ylim=yrange, main=names(params)[do.params[k]], ... )
-            abline(v=params[do.params[k]])
+            plot( parvals, fvals, ylim=yrange, main=names(params)[do.params[k]], xlim=range(c(parvals,vlines[k])), ... )
+            abline(v=c(params[do.params[k]],vlines[k]),col=c("black","red"),lty=c(1,2))
             abline(h=baseval)
+            if (length(grads)>0) {
+                d.eps <- diff(range(parvals,vlines[k]))/10
+                dirn <- (-1)*sign(grads[k])
+                arrows( x0=params[do.params[k]], x1=params[do.params[k]]+dirn*d.eps, y0=baseval, y1=baseval+dirn*d.eps*grads[k], col='green' )
+            }
         } )
     }
     return(invisible(computed))
 }
 
+compute.slice.nearby <- function (f,params,fac,npoints=7,pdir1,pdir2) {
+    # take a slice through parameter space in the directions given by pdir1 and pdir2
+    # and evaluate f there
+    if (length(pdir1)==1) { pdir1 <- ifelse( seq_along(params)==pdir1, 1, 0 ) }
+    if (length(pdir2)==1) { pdir2 <- ifelse( seq_along(params)==pdir2, 1, 0 ) }
+    res <- matrix(NA,nrow=npoints,ncol=npoints)
+    eps <- seq(-fac,fac,length.out=npoints)
+    for (j in 1:npoints) { 
+        for (k in 1:npoints) {
+            res[j,k] <- f( params + eps[j]*pdir1 + eps[k]*pdir2 )
+        } 
+    }
+    return( list( eps=eps, res=res, pdir1=pdir1, params=params ) )
+}
+
+plot.slice.nearby <- function (f,params,fac,npoints=7,pdir1,pdir2,col=diverge_hcl(64),computed=compute.slice.nearby(f,params,fac,npoints=7,pdir1,pdir2)) {
+    image( computed$eps, computed$eps, computed$res, xlab="pdir1", ylab="pdir2", col=col )
+}

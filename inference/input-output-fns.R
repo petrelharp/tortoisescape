@@ -150,17 +150,20 @@ getset.seed <- function () {
 ##
 # plotting whatnot
 
-plot.ht.fn <- function (layer.prefix,nonmissing,layer.name="dem_30",layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",default.par.args=list(mar=c(5,4,4,7)+.1)) {
+plot.ht.fn <- function (layer.prefix,nonmissing,layer.name="dem_30",
+        layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",
+        default.par.args=list(mar=c(5,4,4,7)+.1),
+        default.zlim.fac=1.2) {
     # use this to make a quick plotting function
     require(raster)
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
     load(file.path(homedir,"tort.coords.rasterGCS.Robj"))
     orig.locs <- cellFromXY( layer, tort.coords.rasterGCS )
     locs <- match(orig.locs,nonmissing)
-    ph <- function (x,...,do.lims=TRUE,par.args=default.par.args) { 
+    ph <- function (x,...,do.lims=TRUE,par.args=default.par.args,zlim.fac=default.zlim.fac) { 
         if (do.lims) {  # restrict to the range observed in observed locations
             lims <- range(x[locs],na.rm=TRUE)
-            lims <- mean(lims)+1.2*(lims-mean(lims))
+            lims <- mean(lims)+zlim.fac*(lims-mean(lims))
             x <- pmin(lims[2],pmax(lims[1],x))
         }
         values(layer)[nonmissing] <- x
@@ -198,3 +201,14 @@ colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), ze
     }
 }
 
+plot.model <- function(params,layer.names,layers,G,update.G,ph) {
+    # plot the stationary distribution and jump rates for a model
+    gamma <- params[2:(1+length(layer.names))]
+    stationary.base <- rowSums( layers * gamma[col(layers)] )
+    stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
+    ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
+    delta <- params[1+length(layer.names)+(1:length(layer.names))]
+    jump.base <- rowSums( layers * delta[col(layers)] )
+    G@x <- update.G(params)
+    ph( rowSums(G), main="total jump rate", do.lims=FALSE )
+}

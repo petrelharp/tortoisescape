@@ -1,4 +1,4 @@
-```{r setup}
+```{r setup, include=FALSE}
 source("../resistance-fns.R")
 require(parallel)
 require(colorspace)
@@ -126,3 +126,42 @@ layout(t(1:3))
 plot.nearby( computed=fuzz.nearby[[2]] )
 ```
 but it is still overall quite promising.
+
+
+Far away from the true parameters
+---------------------------------
+
+That's all very nice, but what if we try to do gradient descent from a distant starting point?
+```{r tweak_init_0, cache=TRUE, fig.height=fig.dim}
+tweak.params <- c(1,2,8)
+init.params <- params 
+init.params[tweak.params] <- c(1.5,-1.2,-2)
+rand.nearby <- compute.plot.nearby( d.hts, init.params, fac=.5, do.params=tweak.params, npoints=11 )
+layout(t(1:3))
+plot.nearby( computed=rand.nearby, vlines=params[tweak.params])
+```
+Hm.  It seems that even with all but these three parameters held fixed,
+the slope for $\delta_1$ is in the wrong direction.  
+Let's try moving $\delta_1$ by hand that way to see what happens.
+```{r tweak_init_1, cache=TRUE, fig.height=fig.dim}
+init.params[tweak.params[3]] <- (-2.7)
+rand.nearby <- compute.plot.nearby( d.hts, init.params, fac=.5, do.params=tweak.params, npoints=11 )
+layout(t(1:3))
+plot.nearby( computed=rand.nearby, vlines=params[tweak.params])
+```
+Well, the minima for the other two parameters are still in the right places.  
+Let's move them there and see.
+```{r tweak_init_2, cache=TRUE, fig.height=fig.dim}
+init.params[tweak.params[1:2]] <- c(2,-1)
+rand.nearby <- compute.plot.nearby( d.hts, init.params, fac=.5, do.params=tweak.params, npoints=11 )
+layout(t(1:3))
+plot.nearby( computed=rand.nearby, vlines=params[tweak.params])
+```
+Hm, that looks fine.
+
+Let's look at some slices of parameter space.
+```{r param_slice_0, cache=TRUE, fig.width=fig.dim, fig.height=fig.dim}
+sliced.0 <- compute.slice.nearby( d.hts, params, fac=0.2, pdir1=c(1,rep(0,length(params)-1)), pdir2=c(0,1,rep(0,length(params)-2)) )
+plot.slice.nearby(computed=sliced.0)
+contour( sliced.0$eps, sliced.0$eps, z=sliced.0$res, add=TRUE )
+```

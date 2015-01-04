@@ -328,6 +328,37 @@ and
 %%%%%%%%%%%%%%
 \section{Derivative and curvature}
 
+\subsection{A simplifying observation}
+
+For the moment, fix $A_j$, and work with only vectors with $A_j$ removed;
+letting $\bar G = G^{-A_j}$, and $\bar H_x = H_{x,A_j}^{-A_j}$.
+\begin{align}
+  \partial_\theta ( \bar G \bar H + 1 )_i^2 &= 2 ( \partial_\theta \bar G \bar H )_i (\bar G \bar H +1)_i \\
+  \partial_\theta \partial_\phi ( \bar G \bar H + 1 )_i^2 
+    &= 2 \left\{ ( \partial_\theta \partial_\phi \bar G \bar H )_i (\bar G \bar H +1)_i 
+      ( \partial_\theta \bar G \bar H )_i ( \partial_\phi \bar G \bar H )_i \right\}
+\end{align}
+and as above, if
+\begin{align}
+  G_{xy} = e^\beta \rho(\gamma A_x) \rho(\delta B_{xy})
+\end{align}
+(where $B$ is symmetric, but no matter)
+then
+\begin{align}
+  \partial_\beta G_{xy} &= G_{xy} \\
+  \partial_\gamma G_{xy} &= A_x (1-\rho(\gamma A_x)) G_{xy} \\
+  \partial_\delta G_{xy} &= B_{xy} (1-\rho(\delta B_{xy})) G_{xy}  .
+\end{align}
+and also 
+\begin{align}
+  \partial_\beta \partial_\gamma G_{xy} &= \partial_\gamma G_{xy} \\
+  \partial_\beta \partial_\delta G_{xy} &= \partial_\delta G_{xy} \\
+  \partial_\gamma \partial_\delta G_{xy} &= A_x (1-\rho(\gamma A_x)) B_{xy} (1-\rho(\delta B_{xy})) G_{xy}  .
+\end{align}
+
+
+\subsection{Matching hitting times, again}
+
 Let us return to the situation we started with initially:
 find parameters to minimize
 \begin{align}
@@ -341,7 +372,7 @@ Now, recall that
     0 \quad & \text{otherwise.}
   \end{cases}
 \end{align}
-For the moment, fix $A_j$, and work with only vecotrs with $A_j$ removed;
+For the moment, fix $A_j$, and work with only vectors with $A_j$ removed;
 letting $\bar G = G^{-A_j}$, and $\bar H_x = H_{x,A_j}^{-A_j}$.
 Then
 \begin{align}

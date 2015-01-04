@@ -171,6 +171,7 @@ ph( ifelse(1:nrow(layers)%in%unlist(footprints),1,0), do.lims=FALSE, main="remov
 ```
 and compute hitting times
 ```{r many_footprints_hts, fig.width=4*fig.dim, fig.height=4*fig.dim, cache=TRUE}
+ref.inds <- which.nonoverlapping(neighborhoods)
 do.ref.inds <- lapply( footprints, function (fp) { ref.inds[ ! locs[ref.inds] %in% fp ] } )
 diff.ht.list <- lapply( seq_along(footprints), function (k) { 
         hitting.analytic(neighborhoods[do.ref.inds[[k]]],G,blocked=footprints[[k]]) - hts[,do.ref.inds[[k]]] 
@@ -243,5 +244,5 @@ XXX DO THIS XXX
 ```{r next_setup, include=FALSE}
 # save things out for next file to use
 save.objects <- c( "params", "plot.inds", "ref.inds", "hts", "layer", "sample.coords", "ph", "config", "layer.names" )
-save(file="cache/model-description-saved-state.RData")
+save(list=save.objects,file="cache/model-description-saved-state.RData")
 ```

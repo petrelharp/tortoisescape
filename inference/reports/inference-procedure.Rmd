@@ -1,0 +1,229 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+# read config
+config <- read.json.config("report-config.json")
+layer.names <- config$layer_names
+for (x in config$setup_files) { load( x ) }
+# set up 
+# plotting stuff
+ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
+layer <- with( environment(ph), layer )
+sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
+```
+
+Proposed inference method
+=========================
+
+The proposed method to infer parameters, given observed hitting times $T_{x_i,j}$,
+is:
+0. Pick some starting parameters.
+1. With these parameters, interpolate observed hitting times to the rest of the landscape.
+2. Find the parameters that best fit these full hitting times.
+
+Let's see how this works.
+
+Hitting time interpolation
+==========================
+
+First, compute the full matrix of true hitting times, which we assume are observed only on a well-spread-out subset of the space:
+```{r true_hts, cache=TRUE}
+ref.inds <- which.nonoverlapping(neighborhoods)
+true.params <- paramvec(config)
+G@x <- update.G(true.params)
+true.hts <- hitting.analytic(neighborhoods[ref.inds],G)
+#  and subset out the observed ones:
+true.obs.hts <- true.hts[locs[ref.inds],]
+```
+
+True parameters
+---------------
+
+Now, to interpolate these.
+The interpolation depends on a parameter $0 \le \alpha < \infty$
+that controls how much the interpolation tries to match the observed values ($\alpha \to \infty$)
+or tries only to find valid hitting times ($\alpha=0$).
+First, check that we get back the correct hitting times with no noise at the correct parameters and $\alpha=0$:
+```{r interp_hts, fig.width=2*fig.dim, fig.height=fig.dim, cache=TRUE}
+interp.hts.0 <- interp.hitting( neighborhoods[ref.inds], G, true.obs.hts, obs.locs=locs[ref.inds], alpha=0 )
+interp.hts.1 <- interp.hitting( neighborhoods[ref.inds], G, true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
+# looks pretty good
+layout(t(1:2))
+plot(1+as.vector(true.hts), 1+as.vector(interp.hts.0), log='xy', xlab="true hitting times", ylab="interpolated hitting times", main=expression(alpha==0)); abline(0,1)
+plot(1+as.vector(true.hts), 1+as.vector(interp.hts.1), log='xy', xlab="true hitting times", ylab="interpolated hitting times", main=expression(alpha==1)); abline(0,1)
+```
+For $\alpha=0$, the relative difference is not zero, but between 
+`r min((true.hts-interp.hts.0)/true.hts, na.rm=TRUE )`
+and
+`r max((true.hts-interp.hts.0)/true.hts, na.rm=TRUE )`,
+and restricted to neighborhoods of the observed locations, is between
+`r min(((true.hts-interp.hts.0)/true.hts)[ref.inds], na.rm=TRUE )`
+and
+`r max(((true.hts-interp.hts.0)/true.hts)[ref.inds], na.rm=TRUE )`.
+For $\alpha=1$, it is between
+`r min((true.hts-interp.hts.1)/true.hts, na.rm=TRUE )`
+and
+`r max((true.hts-interp.hts.1)/true.hts, na.rm=TRUE )`,
+and restricted to neighborhoods of the observed locations, is between
+`r min(((true.hts-interp.hts.1)/true.hts)[ref.inds], na.rm=TRUE )`
+and
+`r max(((true.hts-interp.hts.1)/true.hts)[ref.inds], na.rm=TRUE )`.
+Here's what the difference in hitting times look like for two chosen individuals on the map:
+```{r interp_hts_0, fig.width=2*fig.dim, fig.height=fig.dim}
+check.inds <- c(9,19)
+layout(t(1:2))
+for (k in check.inds) { ph( interp.hts.0[,k]-true.hts[,k], zlim.fac=10, main=expression(paste("difference, ", alpha==0)) ) }
+```
+```{r interp_hts_1, fig.width=2*fig.dim, fig.height=fig.dim}
+layout(t(1:2))
+for (k in check.inds) { ph( interp.hts.0[,k]-true.hts[,k], zlim.fac=10, main=expression(paste("difference, ", alpha==0)) ) }
+```
+
+Now let's see what happens when we try to infer parameters
+based on the interpolated hitting times, with $\alpha=1$.
+```{r param_setup_1}
+zeros <- unlist(neighborhoods[ref.inds]) + rep((seq_along(neighborhoods[ref.inds])-1)*nrow(G),sapply(neighborhoods[ref.inds],length))
+parscale <- unlist( config$paramscale )
+sc.one <- 1
+LdL <- params.logistic.setup(true.params,G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+```
+Let's check the function to be optimized has a local minimum at the truth:
+```{r param_nearby_1, fig.width=fig.dim, fig.height=fig.dim}
+plot.nearby( f=LdL$L, params=true.params, fac=0.5, npoints=11, do.params=1 )
+```
+```{r param_nearby_1_gamma, fig.width=2*fig.dim, fig.height=3*fig.dim}
+layout(matrix(1:6,ncol=2))
+plot.nearby( f=LdL$L, params=true.params, fac=0.5, npoints=11, do.params=2:7 )
+```
+The function we use is much more sensitive to the $\delta$ parameters than the $\gamma$:
+```{r param_nearby_1_delta, fig.width=2*fig.dim, fig.height=3*fig.dim}
+layout(matrix(1:6,ncol=2))
+plot.nearby( f=LdL$L, params=true.params, fac=0.5, npoints=11, do.params=8:13 )
+```
+
+This is also an optimization procedure,
+and so depends on the initial guess at the parameters.
+```{r param_optim_2, cache=TRUE}
+init.params <- true.params + rnorm(length(true.params),sd=0.5)
+Lval <- LdL$L( init.params )
+param.optim <- optim( par=init.params, fn=LdL$L, gr=LdL$dL, control=list(parscale=parscale,fnscale=max(1,abs(Lval)/10),maxit=100), method="BFGS" )
+paste("convergence:", param.optim$convergence)
+infer.params.1 <- param.optim$par
+```
+The function is showing a local minimum at small $e^\beta$:
+```{r param_nearby_2, fig.width=fig.dim, fig.height=fig.dim}
+plot.nearby( f=LdL$L, params=infer.params.1, fac=0.5, npoints=11, do.params=1, vlines=true.params[1] )
+```
+at which point the function doesn't depend on the other parameters hardly at all
+```{r param_nearby_2_gamma, fig.width=2*fig.dim, fig.height=3*fig.dim}
+layout(matrix(1:6,ncol=2))
+plot.nearby( f=LdL$L, params=infer.params.1, fac=0.5, npoints=11, do.params=2:7, vlines=true.params[2:7] )
+```
+```{r param_nearby_2_delta, fig.width=2*fig.dim, fig.height=3*fig.dim}
+layout(matrix(1:6,ncol=2))
+plot.nearby( f=LdL$L, params=infer.params.1, fac=0.5, npoints=11, do.params=8:13, vlines=true.params[8:13] )
+```
+The problem seems to be that the optimization is just shrinking $\beta$ to something small,
+at which point nothing else matters.
+
+Here are some randomly chosen parameters:
+```{r rand_params, fig.height=2*fig.dim}
+init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
+names(init.params) <- names(true.params)
+layout(matrix(1:6,ncol=2))
+plot.nearby( f=LdL$L, params=init.params, fac=0.5, npoints=11, do.params=c(1,2,3,4,8,9), vlines=true.params[c(1,2,3,4,8,9)], grads=LdL$dL(init.params)[c(1,2,3,4,8,9)] )
+```
+
+Let's try first inferring the other parameters with $\beta$ fixed:
+```{r param_optim_trace, cache=TRUE, fig.height=fig.dim}
+this.parscale <- c(1e-6,rep(0.1,length(true.params)-1))
+nsteps <- 20
+param.optim.trace <- matrix(NA,ncol=length(true.params),nrow=nsteps)
+colnames(param.optim.trace) <- names(init.params)
+param.optim.trace[1,] <- init.params
+for (k in 2:nsteps) {
+    param.optim.trace[k,] <- optim( par=param.optim.trace[k-1,], fn=LdL$L, gr=LdL$dL, 
+        control=list(parscale=this.parscale,maxit=5), method="BFGS" )$par
+}
+layout(t(1:2))
+matplot( param.optim.trace,type='l', col=rainbow(16), lty=1 )
+abline(h=true.params, col=rainbow(16), lty=3 )
+plot( true.params, param.optim.trace[nsteps,], ylim=range(param.optim.trace), xlab="true parameters", ylab="inferred parameters" )
+points( true.params, init.params, col='red' )
+abline(0,1)
+legend("topleft",pch=1,col=c("black","red"),legend=c("inferred","initial"))
+```
+
+Here's what the surface looks like around where we end up:
+```{param_optim_trace_res, fig.height=2*fig.dim}
+layout(matrix(1:6,ncol=2))
+plot.nearby( f=LdL$L, params=param.optim.trace[nsteps,], fac=0.5, npoints=11, do.params=c(1,2,3,4,8,9), 
+    vlines=true.params[c(1,2,3,4,8,9)], grads=LdL$dL(param.optim.trace[nsteps,])[c(1,2,3,4,8,9)] )
+```
+
+Hm, that's a lot steeper in the $\delta$ parameters.
+Let's adjust the parameter scale and try again.
+```{r param_optim_trace_2, cache=TRUE, fig.height=fig.dim}
+this.parscale <- c(1e-6,rep(0.1,length(layer.names)),rep(1e-4,length(layer.names)))
+pot.2 <- matrix(NA,ncol=length(true.params),nrow=nsteps)
+colnames(pot.2) <- names(init.params)
+pot.2[1,] <- param.optim.trace[nsteps,]
+for (k in 2:nsteps) {
+    pot.2[k,] <- optim( par=pot.2[k-1,], fn=LdL$L, gr=LdL$dL, 
+        control=list(parscale=this.parscale,maxit=5), method="BFGS" )$par
+}
+layout(t(1:2))
+matplot( pot.2,type='l', col=rainbow(16), lty=1 )
+abline(h=true.params, col=rainbow(16), lty=3 )
+plot( true.params, pot.2[nsteps,], ylim=range(pot.2), xlab="true parameters", ylab="inferred parameters" )
+points( true.params, init.params, col='red' )
+points( true.params, param.optim.trace[nsteps,], col='green' )
+abline(0,1)
+legend("topleft",pch=1,col=c("black","green","red"),legend=c("inferred","first round","initial"))
+```
+
+And, where are we at?
+```{param_optim_trace_res_2, fig.height=2*fig.dim}
+layout(t(matrix(1:14,ncol=2,byrow=TRUE)))
+plot( apply(pot.2,1,LdL$L), ylab="function value" )
+plot.nearby( f=LdL$L, params=pot.2[nsteps,], fac=0.5, npoints=11, 
+    vlines=true.params, grads=LdL$dL(pot.2[nsteps,]) )
+```
+Looks pretty good.  One of the parameters is still converging, but heck.
+
+
+Now allow $\beta$ to vary also:
+```{r param_optim_trace_3, cache=TRUE, fig.height=fig.dim}
+that.parscale <- c(0.1, rep(0.1,length(layer.names)), rep(1e-4,length(layer.names)) )
+pot.3 <- matrix(NA,ncol=length(true.params),nrow=nsteps)
+pot.3[1,] <- pot.2[nsteps,]
+for (k in 2:nsteps) {
+    pot.3[k,] <- optim( par=pot.3[k-1,], fn=LdL$L, gr=LdL$dL, 
+        control=list(parscale=that.parscale,maxit=20), method="BFGS" )$par
+}
+layout(t(1:2))
+matplot( pot.3,type='l', col=rainbow(16), lty=1 )
+abline(h=true.params, col=rainbow(16), lty=3 )
+plot( true.params, pot.3[nsteps,], ylim=range(pot.3), xlab="true parameters", ylab="inferred parameters" )
+points( true.params, init.params, col='red' )
+points( true.params, param.optim.trace[nsteps,], col='green' )
+points( true.params, pot.2[nsteps,], col='purple' )
+abline(0,1)
+legend("topleft",pch=1,col=c("black","purple","green","red"),legend=c("inferred","fixed beta 2","fixed beta 1","initial"))
+```
+
+And, where are we at?
+```{param_optim_trace_res_3, fig.height=2*fig.dim}
+layout(t(matrix(1:14,ncol=2,byrow=TRUE)))
+plot( apply(pot.3,1,LdL$L), ylab="function value" )
+plot.nearby( f=LdL$L, params=pot.3[nsteps,], fac=0.5, npoints=11, 
+    vlines=true.params, grads=LdL$dL(pot.3[nsteps,]) )
+```
+
+Well, that works.  It took some hand-holding, though.
+
