@@ -227,3 +227,37 @@ plot.nearby( f=LdL$L, params=pot.3[nsteps,], fac=0.5, npoints=11,
 
 Well, that works.  It took some hand-holding, though.
 
+
+
+"Trust region" optimization
+===========================
+
+Based on, well, guesswork observing the behavior of the optimizer above,
+I'm suspecting that the automatic guesswork that BFGS does to keep an estimate of the Hessian around
+is not working out so well.
+The `trust` package by Charlie Geyer implements a method that allows for analytically computed Hessians, which we can do.
+Let's try it out.
+```{r try_trust, cache=TRUE}
+require(trust)
+init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
+LddL <- logistic.trust.setup(init.params,G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+trust.optim <- trust( objfun=LddL, parinit=init.params, rinit=0.25, rmax=5, iterlim=100, blather=TRUE )
+layout(t(1:2))
+matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
+plot( true.params, trust.optim$argument, xlab="true parameters", ylab="inferred" )
+abline(0,1)
+```
+
+Well, gee, that works quite nicely.
+
+Let's try it on another set of starting values.
+```{r try_trust_2, cache=TRUE}
+init.params.2 <- true.params + rnorm(length(true.params))
+trust.optim.2 <- trust( objfun=LddL, parinit=init.params.2, rinit=0.25, rmax=5, iterlim=100, blather=TRUE )
+layout(t(1:2))
+matplot( sweep(trust.optim.2$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
+plot( true.params, trust.optim.2$argument, xlab="true parameters", ylab="inferred" )
+abline(0,1)
+```
+
+Hum, yes.  I have a new favorite optimization procedure.
