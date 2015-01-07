@@ -336,7 +336,7 @@ letting $\bar G = G^{-A_j}$, and $\bar H_x = H_{x,A_j}^{-A_j}$.
   \partial_\theta ( \bar G \bar H + 1 )_i^2 &= 2 ( \partial_\theta \bar G \bar H )_i (\bar G \bar H +1)_i \\
   \partial_\theta \partial_\phi ( \bar G \bar H + 1 )_i^2 
     &= 2 \left\{ ( \partial_\theta \partial_\phi \bar G \bar H )_i (\bar G \bar H +1)_i 
-      ( \partial_\theta \bar G \bar H )_i ( \partial_\phi \bar G \bar H )_i \right\}
+      + ( \partial_\theta \bar G \bar H )_i ( \partial_\phi \bar G \bar H )_i \right\}
 \end{align}
 and as above, if
 \begin{align}
@@ -349,13 +349,18 @@ then
   \partial_\gamma G_{xy} &= A_x (1-\rho(\gamma A_x)) G_{xy} \\
   \partial_\delta G_{xy} &= B_{xy} (1-\rho(\delta B_{xy})) G_{xy}  .
 \end{align}
-and also 
+and also, since $\rho''(u) = (\rho(u)(1-\rho(u)))' = \rho(u)(1-\rho(u))(1-2\rho(u))$,
+\begin{align}
+  \partial_\beta^2 G_{xy} &= G_{xy} \\
+  \partial_\gamma^2 G_{xy}  &= A_x^2 (1-\rho(\gamma A_x)) (1-2\rho(\gamma A_x)) G_{xy} \\
+  \partial_\delta^2 G_{xy} &= B_{xy}^2 (1-\rho(\delta B_{xy})) (1-2\rho(\delta B_{xy})) G_{xy} 
+\end{align}
+and
 \begin{align}
   \partial_\beta \partial_\gamma G_{xy} &= \partial_\gamma G_{xy} \\
   \partial_\beta \partial_\delta G_{xy} &= \partial_\delta G_{xy} \\
   \partial_\gamma \partial_\delta G_{xy} &= A_x (1-\rho(\gamma A_x)) B_{xy} (1-\rho(\delta B_{xy})) G_{xy}  .
 \end{align}
-
 
 \subsection{Matching hitting times, again}
 

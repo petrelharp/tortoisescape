@@ -3,7 +3,7 @@
 # will compare results to those previously computed with the same seed
 set.seed(12345)
 check.file <- "run-tests-saved-1234.RData"
-check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","gcheck.1","gcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.checks", "hc")
+check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","gcheck.1","gcheck.2","hcheck.1","hcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.checks", "hc")
 # do this at the end
 check.it <- function () { 
     if (do.check) {
@@ -138,8 +138,24 @@ stopifnot( all( abs( gcheck.1[,3] - gcheck.1[,4] ) < 1e-8 ) )
 gcheck.2 <- gcheck(f=L, df=dL, params=init.params+0.1, eps=1e-8)
 stopifnot( all( abs( gcheck.2[,3] - gcheck.2[,4] ) < 1e-8 ) )
 
+##
+# check the hessian computation
+LddL <- logistic.trust.setup(init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+hcheck.1 <- hcheck(f=LddL, params=init.params, eps=1e-6)
+hcheck.2 <- hcheck(f=LddL, params=init.params+0.1, eps=1e-6)
 
-###
+check.hcheck <- function (hc) {
+    stopifnot( all( abs( hc["diff",] - hc["df0",] ) < 1e-6 ) && all( abs( hc["diff",] - hc["df1",] ) < 1e-6 ) )  # first order diff
+    stopifnot( all( abs( hc["diff",] - hc["df2.0",] ) < 1e-9 ) && all( abs( hc["diff",] - hc["df2.1",] ) < 1e-9 ) )  # second order
+    for (k in 1:(2*nlayers+1)) {
+        stopifnot( all( abs( hc[6+(2*nlayers+1)+k,] - hc[6+k+2*(2*nlayers+1),] ) < 1e-6 ) && all( abs( hc[6+k+(2*nlayers+1),] - hc[6+k+3*(2*nlayers+1),] ) < 1e-6 ) ) # diff for grad
+    }
+}
+check.hcheck(hcheck.1)
+check.hcheck(hcheck.2)
+
+
+###########
 # check hitting time interpolation
 
 obs.ht <- true.hts[locs,]

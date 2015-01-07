@@ -1,10 +1,90 @@
 ##
 # Functions to return setup for various optimization problems.
 
+logistic.trust.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
+    # set up for 'trust' region optimization
+    # that uses first and second deriv
+    #
+    # overlaps with params.logistic.setup()
+    weightings <- 1/rowMeans(hts,na.rm=TRUE)
+    nomitted <- sum( weightings[row(hts)[zeros]] )
+    L <- function(params) {
+        gamma <- params[1+(1:ngamma)]
+        delta <- params[1 + ngamma + (1:ndelta)]
+        G@x <- update.G(params)
+        dG <- rowSums(G)
+        GH <- G %*% hts - dG*hts
+        GH[zeros] <- 0
+        # function value
+        value <- ( sum( weightings*rowSums((GH+sc.one)^2) ) - (nomitted)*sc.one^2 )
+        grad <- numeric(length(params))
+        hess <- matrix(0,nrow=length(params),ncol=length(params))
+        # first, deriv wrt beta:
+        grad[1] <- 2 * sum( weightings * rowSums(GH * (GH+sc.one)) )
+        hess[1,1] <- grad[1] + 2 * sum( weightings * rowSums(GH^2) )
+        # now, gamma:
+        ZZ <- (1-transfn(valfn(gamma))) * GH * (
+                (1-transfn(valfn(gamma))) * GH +
+                (1-2*transfn(valfn(gamma))) * (GH+sc.one) 
+            )
+        for (kk in 1+(1:ncol(layers))) {
+            l.kk <- kk-1
+            grad[kk] <- 2 * sum( weightings * rowSums( (layers[,l.kk] * (1-transfn(valfn(gamma))) * GH) * (GH+sc.one)) )
+            hess[1,kk] <- hess[kk,1] <- grad[kk] + 2 * sum( weightings * rowSums( (layers[,l.kk] * (1-transfn(valfn(gamma))) * GH^2) ) )
+            for (jj in seq(2,length.out=kk-1)) {
+                l.jj <- jj-1
+                hess[kk,jj] <- hess[jj,kk] <- 2 * ( sum( weightings * rowSums( layers[,l.kk] * layers[,l.jj] * ZZ ) ) )
+            }
+        }
+        # now, delta:
+        GLH <- vector(mode="list",length=ncol(layers))  # may be necessary to re-compute each time rather than to store this
+        for (kk in 1+ncol(layers)+(1:ncol(layers))) {
+            l.kk <- kk-(1+ncol(layers))
+            GL <- G
+            GL@x <- G@x * ( layers[Gjj,l.kk] + layers[G@i+1L,l.kk] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
+            dGL <- rowSums(GL)
+            GLH[[kk]] <- GL %*% hts - dGL*hts
+            GLH[[kk]][zeros] <- 0
+            grad[kk] <- ( 2 * sum( weightings * rowSums( GLH[[kk]] * (GH+sc.one) )  ) )
+            hess[1,kk] <- hess[kk,1] <- grad[kk] + 2 * sum( weightings * rowSums( GLH[[kk]] * GH ) )
+            for (jj in 1+(1:ncol(layers))) {
+                l.jj <- jj-1
+                # mixed deriv wrt gamma[jj], delta[kk]
+                hess[jj,kk] <- hess[kk,jj] <- 2 * sum( weightings * ( rowSums( layers[,l.jj] * (1-transfn(valfn(gamma))) * GLH[[kk]] * (2*GH+sc.one) ) ) )
+            }
+            for (ll in seq(2+ncol(layers),length.out=kk-ncol(layers)-1)) {
+                # wrt delta[ll] and delta[kk]: product of first partials
+                hess[ll,kk] <- hess[kk,ll] <- 2 * sum( weightings * ( rowSums( GLH[[kk]] * GLH[[ll]] ) ) )
+            }
+            GL@x <- GL@x * 
+            for (ll in seq(2+ncol(layers),length.out=kk-ncol(layers)-1)) {
+                l.ll <- ll-(1+ncol(layers))
+                # wrt delta[ll] and delta[kk]: mixed second deriv
+                GL@x <- GL@x * ( layers[Gjj,l.ll] + layers[G@i+1L,l.ll] ) * (1-2*transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
+                dGL <- rowSums(GL)
+                ZZ <- GL %*% hts - dGL * hts
+                ZZ[zeros] <- 0
+                hess[ll,kk] <- hess[kk,ll] <- hess[ll,kk] + 2 * sum( weightings * rowSums( ZZ * (GH+sc.one) ) )
+            }
+        }
+        return( list( value=value, gradient=grad, hessian=hess ) )
+    }
+}
+
 params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
-    # Given hitting times (hts), find parameters to minimize | G %*% hts + 1 |^2 .
+    # Given hitting times (hts), return objective function and gradient function of parameters for | G %*% hts + 1 |^2 .
     #
     # setup: evaluating L and dL will change variables they share in a common scope
+    # but NOTE: this is actually unnecessary
+    #  since L and dL will share the environment created when this function is called.
+    # example:
+    #  f <- function (x) { e <- environment(); list(u=function (y) { x+y }, v=function(z) {assign("x",z,e)} ) }
+    #  gh <- f(3)
+    #  gh$u(2)
+    #  [1] 5
+    #  gh$v(2)
+    #  gh$u(2)
+    #  [1] 4
     L.env <- new.env()
     assign( "G", G, L.env )
     assign( "update.G", update.G, L.env )
@@ -15,6 +95,8 @@ params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layer
     assign( "valfn", valfn, L.env )
     assign( "ndelta", ndelta, L.env )
     assign( "ngamma", ngamma, L.env )
+    assign( "weightings",  1/rowMeans(hts,na.rm=TRUE), L.env )
+    assign( "nomitted",  sum( get("weightings",L.env)[row(hts)[zeros]] ), L.env )
     assign("update.aux", function (params,check=TRUE) {
             if ( (!check) || any(params != get("params", L.env ) ) ) { 
                 assign("params", params,  L.env )
@@ -24,11 +106,8 @@ params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layer
                 evalq( GH[zeros] <- 0, L.env )
             }
         }, L.env )
-    # weightings <- ifelse( rowMeans(hts) < quantile(hts,.5), dG, 0 )  # indexes locations; note may overlap with zeros
-    # weightings <- ifelse( 1:nrow(hts) %in% locs, 1, 0 )
-    assign( "weightings",  1/rowMeans(hts,na.rm=TRUE), L.env )
-    assign( "nomitted",  sum( get("weightings",L.env)[row(hts)[zeros]] ), L.env )
 
+    # initialize
     evalq( update.aux(init.params,check=FALSE), L.env )
 
     L <- function (params) {
@@ -162,6 +241,43 @@ gcheck <- function (f,df,params,eps=1e-8) {
         print( results[k,] )
         cat("\n")
     }
+    return(results)
+}
+
+hcheck <- function (f,params,eps=1e-8) {
+    # check gradient and hessian: 
+    # want f(p+dp)-f(p) = dp * f'(p) [ + (1/2) dp * f''(p) * dp ]
+    # and f'(p+dp)-f'(p) = dp * f''(p)
+    hcheck.fn <- function (k) {
+        dirn <- ifelse(seq_along(init.params)==k,1,0)
+        dp <- eps*dirn
+        f0 <- f(params)
+        f1 <- f(params+dp)
+        v0 <- f0$value
+        v1 <- f1$value
+        g0 <- f0$gradient
+        g1 <- f1$gradient
+        h0 <- f0$hessian
+        h1 <- f1$hessian
+        c( f0=v0, 
+                diff=v1-v0, 
+                df0=sum(dp*g0), 
+                df1=sum(dp*g1),
+                df2.0=sum(dp*g0)+sum(dp*h0%*%dp)/2, 
+                df2.1=sum(dp*g1)+sum(dp*h1%*%dp)/2, 
+                grad=g0,
+                dgrad=g1-g0, 
+                ddf0=h0%*%dp, 
+                ddf1=h1%*%dp
+            )
+    }
+    results <- sapply( seq_along(params), function (k) {
+            # cat("Checking parameter ", k, " : ", names(params)[k], " .\n")
+            res <- hcheck.fn(k)
+            # print( res )
+            # cat("\n")
+            return(res)
+        } )
     return(results)
 }
 
