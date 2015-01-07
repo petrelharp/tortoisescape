@@ -42,12 +42,15 @@ sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
 ```
 
 The parameters determine the model.
-The parameters are
 ```{r show_params}
 params <- paramvec(config)
-params
 ```
-The first parameter, `beta`, is an overall multiplier (by `exp(beta)`).
+The parameters are:
+- $\beta$ : `r params[1]`
+- $\gamma$: `r params[1+(1:length(layer.names))]`
+- $\delta$: `r params[1+length(layer.names)+(1:length(layer.names))]`
+
+The first parameter, `beta`, is an overall multiplier of movement rates (by `exp(beta)`).
 
 The second set of parameters, `gamma`, determine the stationary distribution as a logistic transform
 of a linear combination of the layers:
@@ -127,16 +130,19 @@ ref.inds <- ref.inds[ ! locs[ref.inds] %in% footprint[[1]] ]
 ph( ifelse(1:nrow(layers)%in%unlist(neighborhoods[ref.inds]),1,0), main="reference locations" )
 ```
 There are `r length(ref.inds)` of these.
-Now compute, and plot, average change in mean hitting time:
-first, absolute change; then relative change.
-```{r remove_diff, fig.width=2*fig.dim, fig.height=fig.dim}
+Now compute, and plot, average *absolute value* of change in mean hitting time:
+first, absolute change; then divide by mean hitting time to get relative change.
+```{r remove_diff, fig.width=2*fig.dim, fig.height=fig.dim, cache='TRUE'}
 zeroed.hts <- hitting.analytic(neighborhoods[ref.inds],G,blocked=footprint)
 diff.hts <- (zeroed.hts - hts[,ref.inds])
 layout(t(1:2))
-ph( rowMeans(diff.hts), main="mean hitting time difference" )
-ph( rowMeans(diff.hts)/rowMeans(hts[,ref.inds]), main="relative hitting time difference" )
+ph( rowMeans(abs(diff.hts)), main="mean absolute hitting time difference" )
+ph( rowMeans(abs(diff.hts))/rowMeans(hts[,ref.inds]), main="relative hitting time difference" )
 ```
-That looks sensible.
+That looks sensible.  Rather than means, it might be better to look at the maximum difference:
+```{r remove_diff_max, fig.width=fig.dim, fig.height=fig.dim}
+ph( apply(abs(diff.hts),1,max), main="max absolute hitting time difference" )
+```
 
 Now, lets put lines on top of that between pairs of the reference locations
 that are in the 2.5% tails of the distribution,
@@ -176,7 +182,7 @@ do.ref.inds <- lapply( footprints, function (fp) { ref.inds[ ! locs[ref.inds] %i
 diff.ht.list <- lapply( seq_along(footprints), function (k) { 
         hitting.analytic(neighborhoods[do.ref.inds[[k]]],G,blocked=footprints[[k]]) - hts[,do.ref.inds[[k]]] 
     } )
-mean.diffs <- sapply( diff.ht.list, rowMeans )
+mean.diffs <- sapply( diff.ht.list, function (x) { rowMeans(abs(x)) } )
 for (k in 1:ncol(mean.diffs)) { mean.diffs[footprints[[k]],k] <- NA }
 zlims <- inflate( mean.diffs[locs[ref.inds],] )
 layout( matrix(1:25,nrow=5,byrow=TRUE) )

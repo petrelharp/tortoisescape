@@ -40,10 +40,11 @@ and that hitting times to the second individual (who is isolated) are the most s
 
 Which direction can we change the parameters in while changing the observed hitting times the least?
 First, let's compute the covariance matrix of the parameters:
-```{r param_covariance, fig.width=fig.dim, fig.height=fig.dim}
+```{r param_covariance, fig.width=fig.dim, fig.height=fig.dim, cache=TRUE}
 hs <- hitting.sensitivity(params, neighborhoods[ref.inds], G, update.G, layers, transfn, valfn, ndelta, ngamma)
 param.cov <- hitting.colinearity(obs.locs=locs[ref.inds],hs=hs)
-image(Matrix(param.cov))
+image(Matrix(param.cov),main="Covariance matrix")
+image(Matrix(cov2cor(param.cov)),main="Correlation matrix")
 # direction of minimal and maximal change:
 min.dirn <- eigen(param.cov)$vectors[,length(params)]
 max.dirn <- eigen(param.cov)$vectors[,1]
