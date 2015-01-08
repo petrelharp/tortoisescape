@@ -1,4 +1,5 @@
 #!/usr/bin/Rscript
+require(trust)
 
 # # find what directory this file is in
 frame_files <- lapply(sys.frames(), function(x) x$ofile)

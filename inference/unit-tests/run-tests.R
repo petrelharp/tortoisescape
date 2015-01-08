@@ -3,7 +3,7 @@
 # will compare results to those previously computed with the same seed
 set.seed(12345)
 check.file <- "run-tests-saved-1234.RData"
-check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","gcheck.1","gcheck.2","hcheck.1","hcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.checks", "hc")
+check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","sub.true.hts","gcheck.1","gcheck.2","hcheck.1","hcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.checks", "hc")
 # do this at the end
 check.it <- function () { 
     if (do.check) {
@@ -112,6 +112,11 @@ G@x <- update.G(true.params)
 
 # analytically computed hitting times
 true.hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=1 )
+
+# can compute subsets?
+check.inds <- 2:4
+sub.true.hts <- hitting.analytic( neighborhoods[check.inds], G-diag(rowSums(G)) )
+stopifnot(all( abs( true.hts[,check.inds]-sub.true.hts ) < 1e-16 ) )
 
 ###
 # check parameter inference

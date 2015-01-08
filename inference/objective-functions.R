@@ -1,12 +1,13 @@
 ##
 # Functions to return setup for various optimization problems.
+require(trust)
 
 logistic.trust.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
     # set up for 'trust' region optimization
     # that uses first and second deriv
     #
     # overlaps with params.logistic.setup()
-    weightings <- 1/rowMeans(hts,na.rm=TRUE)
+    weightings <- 1/rowMeans(abs(hts),na.rm=TRUE)
     nomitted <- sum( weightings[row(hts)[zeros]] )
     L <- function(params) {
         gamma <- params[1+(1:ngamma)]
@@ -95,7 +96,7 @@ params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layer
     assign( "valfn", valfn, L.env )
     assign( "ndelta", ndelta, L.env )
     assign( "ngamma", ngamma, L.env )
-    assign( "weightings",  1/rowMeans(hts,na.rm=TRUE), L.env )
+    assign( "weightings",  1/rowMeans(abs(hts),na.rm=TRUE), L.env )
     assign( "nomitted",  sum( get("weightings",L.env)[row(hts)[zeros]] ), L.env )
     assign("update.aux", function (params,check=TRUE) {
             if ( (!check) || any(params != get("params", L.env ) ) ) { 
