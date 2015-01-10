@@ -89,10 +89,30 @@ Wrong initial parameters
 
 Now, what if we interpolate, but using the wrong parameters?
 
+
+### Singular matrices?
+
+Well, the first thing that happens in a numerical error
+```{r singular_LU}
+init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )  # these make a singular matrix
+G@x <- update.G(init.params)
+check.inds <- c(9,19)
+wrong.hts <- hitting.analytic( neighborhoods[ref.inds[check.inds]], G )
+wrong.interp.hts <- interp.hitting( neighborhoods[ref.inds[check.inds]], G, true.obs.hts[check.inds,check.inds], obs.locs=locs[ref.inds[check.inds]], alpha=0, numcores=1 )
+```
+
+Since $\alpha=0$, the interpolation problem has the same answer as the hitting time problem.
+```{r fix_singular_LU}
+small.jump.rates <- which( rowSums(G)<1e-20 )
+wrong.interp.hts <- interp.hitting( neighborhoods[ref.inds[check.inds]], G, true.obs.hts[check.inds,check.inds], obs.locs=locs[ref.inds[check.inds]], alpha=0, numcores=1, blocked=small.jump.rates )
+```
+
+
+### Back to the problem
+
 Here's some randomly chosen parameters (rounded, and after trying a few that gave singular matrices),
 and what hitting times look like for them:
 ```{r op_hts, fig.width=2*fig.dim, fig.height=fig.dim, cache=TRUE}
-# init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )  # these make a singular matrix
 init.params.1 <- c( 1.5, -0.3, 1.0, 0.8, -1.2, -0.4, 1.3, -2.7, 1.8, -1.1, 0.1, -1.0, 0.7 )
 G@x <- update.G(init.params.1)
 check.inds <- c(9,19)

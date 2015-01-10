@@ -237,7 +237,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
     return( c( bgrad, ggrad, dgrad ) )
 }
 
-interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcores() ) {
+interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, blocked=numeric(0), numcores=getcores() ) {
     # interpolate hitting times by minimizing squared error:
     #       G is a generator matrix WITHOUT diagonal
     #       locs is a vector of indices, or a list of vectors, of the rows of G for which we have data
@@ -252,12 +252,17 @@ interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, numcores=getcor
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
+    if (is.list(blocked)) { blocked <- unlist(blocked) }
+    if (length(blocked)>0) {
+        Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+        G@x[Gjj%in%blocked] <- 0
+    }
     G <- G - Diagonal(nrow(G),rowSums(G))
     # Pmat projects full hitting times onto the obs.locs
     Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(G)) )
     PtP <- alpha * crossprod(Pmat)
     hts <- this.apply( seq_along(locs), function (k) {
-            klocs <- unlist(locs[k])[!is.na(k)]
+            klocs <- unique(c( unlist(locs[k])[!is.na(unlist(locs[k]))], blocked ))
             if (length(klocs)>0) {
                 bvec <- as.vector( alpha * crossprod(Pmat[,-klocs],obs.ht[,k]) + crossprod( G[-klocs,-klocs], rep(-1.0,nrow(G)-length(klocs)) ) )
                 z <- numeric(nrow(G))
