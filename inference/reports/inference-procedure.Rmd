@@ -92,20 +92,62 @@ Now, what if we interpolate, but using the wrong parameters?
 
 ### Singular matrices?
 
-Well, the first thing that happens in a numerical error
+Well, the first thing that happens is a numerical error
 ```{r singular_LU}
 init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )  # these make a singular matrix
 G@x <- update.G(init.params)
 check.inds <- c(9,19)
+# can find hitting times in the usual way
 wrong.hts <- hitting.analytic( neighborhoods[ref.inds[check.inds]], G )
-wrong.interp.hts <- interp.hitting( neighborhoods[ref.inds[check.inds]], G, true.obs.hts[check.inds,check.inds], obs.locs=locs[ref.inds[check.inds]], alpha=0, numcores=1 )
+# but not the associated quadratic interpolation problem
+try( { wrong.interp.hts <- interp.hitting( neighborhoods[ref.inds[check.inds]], G, true.obs.hts[check.inds,check.inds], obs.locs=locs[ref.inds[check.inds]], alpha=0, numcores=1 ) } )
+```
+Since $\alpha=0$, the two answers should be the same.
+
+```{r fix_singular_LU}
+small.jump.rates <- which( rowSums(G)<1e-8 )
+try( { wrong.interp.hts <- interp.hitting( neighborhoods[ref.inds[check.inds]], G, true.obs.hts[check.inds,check.inds], obs.locs=locs[ref.inds[check.inds]], alpha=0, numcores=1, blocked=small.jump.rates ) } )
+length(G[-1,1]) # run this to avoid segfault after "computationally singular" error
+klocs <- neighborhoods[[1]]
+GG <- crossprod( (G-Diagonal(nrow(G),rowSums(G)))[-klocs,-klocs] )
+tmp <- solve(GG, rep(-1,nrow(GG)))
+length(G[-1,1]) # run this to avoid segfault after "computationally singular" error
 ```
 
-Since $\alpha=0$, the interpolation problem has the same answer as the hitting time problem.
-```{r fix_singular_LU}
-small.jump.rates <- which( rowSums(G)<1e-20 )
-wrong.interp.hts <- interp.hitting( neighborhoods[ref.inds[check.inds]], G, true.obs.hts[check.inds,check.inds], obs.locs=locs[ref.inds[check.inds]], alpha=0, numcores=1, blocked=small.jump.rates )
+Let's try with the symmetrized version of $G$, i.e.\ $J_{ij} = G_{ij} \sqrt{\pi_j/\pi_i}$. 
+Let $Z$ be the diagonal matrix with $\sqrt{\pi}$ on the diagonal,
+so that $J=Z^{-1} G Z$.
+Then if $y = Z^{-1}x$, and $\nu_i = 1/\sqrt{\pi_i}$, then
+$$
+  G x = ZJy = Z \nu = -1  \iff Jy = \nu .
+$$
+Note that $J_{ii} = G_{ii}$.
+```{r try_symm, fig.width=fig.dim, fig.height=fig.dim, cache=TRUE}
+pivec <- stationary.dist( init.params, layers, transfn )
+# try with the symmetrized matrix
+J <- G
+J@x <- G@x * ( sqrt(pivec)[Gjj] / sqrt(pivec)[1L+G@i] )
+range(J-t(J)) # check this is actually numerically symmetric
+J <- forceSymmetric(J)
+nu <- (-1)/sqrt(pivec)
+# check this will give us hitting times
+sym.hts <- numeric(nrow(G))
+kn <- neighborhoods[[ref.inds[1]]]
+sym.hts[-kn] <- as.vector( solve( (J-Diagonal(nrow(G),rowSums(G)))[-kn,-kn], nu[-kn] ) * sqrt(pivec[-kn]) )
+orig.hts <- hitting.analytic( neighborhoods[ref.inds[1]], G )
+range( ((G-Diagonal(nrow(G),rowSums(G)))%*%sym.hts)[-kn] )
+range( ((G-Diagonal(nrow(G),rowSums(G)))%*%orig.hts)[-kn] )
+plot( orig.hts, sym.hts, log='xy'); abline(0,1)
 ```
+That checks out.  Now, let's plug $J$ in for $G$ in the interpolation routine:
+```{r interp_sym, fig.width=fig.dim, fig.height=fig.dim, cache=TRUE}
+sym.bvec <- as.vector( crossprod( (J-Diagonal(nrow(G),rowSums(G)))[-klocs,-klocs], nu[-kn] ) )
+sym.hts.2 <- numeric(nrow(G))
+sym.hts.2[-kn] <- as.vector( solve( crossprod( (J-Diagonal(nrow(G),rowSums(G)))[-klocs,-klocs] ), sym.bvec ) * sqrt(pivec[-kn]) )
+range( ((G-Diagonal(nrow(G),rowSums(G)))%*%sym.hts.2)[-kn] )
+plot( orig.hts, sym.hts.2, log='xy'); abline(0,1)
+```
+Looks good!
 
 
 ### Back to the problem

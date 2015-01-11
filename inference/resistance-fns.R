@@ -275,6 +275,39 @@ interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, blocked=numeric
     return(hts)
 }
 
+interp.hitting.sym <- function ( locs, J, pivec, obs.ht, obs.locs, alpha=1, blocked=numeric(0), numcores=getcores() ) {
+    # as interp.hitting
+    #   but G = pivec^(-1/2) J pivec^(1/2)
+    if ( numcores>1 && "parallel" %in% .packages()) {
+        this.apply <- function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
+    } else {
+        this.apply <- function (...) { sapply( ... ) }
+    }
+    if (is.list(blocked)) { blocked <- unlist(blocked) }
+    if (length(blocked)>0) {
+        Jjj <- rep( seq.int(length(J@p)-1), diff(J@p) )
+        J@x[Jjj%in%blocked] <- 0
+    }
+    sqrt.pi <- sqrt(pivec)
+    nu <- 1/sqrt.pi
+    J <- J - Diagonal( nrow(J), sqrt.pi*(J%*%nu) )
+    # Pmat projects full hitting times onto the obs.locs
+    Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(J)) )
+    PtP <- alpha * crossprod(Pmat)
+    hts <- this.apply( seq_along(locs), function (k) {
+            klocs <- unique(c( unlist(locs[k])[!is.na(unlist(locs[k]))], blocked ))
+            if (length(klocs)>0) {
+                bvec <- as.vector( alpha * crossprod(Pmat[,-klocs],obs.ht[,k]) + crossprod( J[-klocs,-klocs], nu[-klocs] ) )
+                z <- numeric(nrow(G))
+                z[-klocs] <- sqrt.pi[-klocs] * as.vector( solve( PtP[-klocs,-klocs] + crossprod(J[-klocs,-klocs]), bvec ) )
+                return( z )
+            } else {
+                return( NA )
+            }
+    } )
+    return(hts)
+}
+
 interp.tradeoff <- function ( hts, locs, G, dG, obs.ht, obs.locs, numcores=getcores() ) {
     # Evaluate the two quantities that are being minimized by interp.hitting:
     #   | G %*% hts + 1 |  and  | hts[obs.locs,] - obs.ht |
@@ -307,6 +340,15 @@ get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()
         }, mc.cores=numcores )
 }
 
+
+####
+# model things
+
+stationary.dist <- function (params,layers,transfn) {
+    # proportional to the stationary distribution
+    gamma <- params[2:(1+ncol(layers))]
+    transfn( rowSums( layers * gamma[col(layers)] ) )
+}
 
 ########
 # Raster whatnot

@@ -1,0 +1,110 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+# read config
+config <- read.json.config("report-config.json")
+layer.names <- config$layer_names
+for (x in config$setup_files) { load( x ) }
+# set up 
+# plotting stuff
+ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
+layer <- with( environment(ph), layer )
+sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
+# more setup from inference-procedure.Rmd
+ref.inds <- which.nonoverlapping(neighborhoods)
+true.params <- paramvec(config)
+true.G <- G
+true.G@x <- update.G(true.params)
+true.hts <- hitting.analytic(neighborhoods[ref.inds],true.G)
+#  and subset out the observed ones:
+true.obs.hts <- true.hts[locs[ref.inds],]
+```
+
+
+
+Hitting time interpolation
+==========================
+
+The first thing that often happens when we try to interpolate hitting times
+using a randomly chosen set of parameters is a numerical error (the matrix is nearly singular).
+It turns out (below) that switching from the matrix $G$ to its symmetrized version helps,
+perhaps because this lets us `solve()` using a Cholesky decomposition rather than the LU decomposition.
+
+Singular matrices?
+------------------
+
+Here is the error:
+```{r singular_LU}
+init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )  # these make a singular matrix
+G@x <- update.G(init.params)
+check.inds <- c(9,19)
+# can find hitting times in the usual way
+wrong.hts <- hitting.analytic( neighborhoods[ref.inds[check.inds]], G )
+# but not the associated quadratic interpolation problem
+try( { wrong.interp.hts <- interp.hitting( neighborhoods[ref.inds[check.inds]], G, true.obs.hts[check.inds,check.inds], obs.locs=locs[ref.inds[check.inds]], alpha=0, numcores=1 ) } )
+invisible(G[-1,1])
+```
+Since $\alpha=0$, the two problems should be the same.
+
+Let's try with the symmetrized version of $G$, i.e.\ $J_{ij} = G_{ij} \sqrt{\pi_j/\pi_i}$. 
+Let $Z$ be the diagonal matrix with $\sqrt{\pi}$ on the diagonal,
+so that $J=Z^{-1} G Z$.
+Then if $y = Z^{-1}x$, and $\nu_i = 1/\sqrt{\pi_i}$, then
+$$
+  G x = ZJy = Z \nu = -1  \iff Jy = \nu .
+$$
+Note that $J_{ii} = G_{ii}$.
+```{r try_symm, fig.width=fig.dim, fig.height=fig.dim}
+pivec <- stationary.dist( init.params, layers, transfn )
+# try with the symmetrized matrix
+J <- G
+J@x <- G@x * ( sqrt(pivec)[Gjj] / sqrt(pivec)[1L+G@i] )
+range(J-t(J)) # check this is actually numerically symmetric
+J <- forceSymmetric(J)
+nu <- (-1)/sqrt(pivec)
+# check this will give us hitting times
+sym.hts <- numeric(nrow(G))
+kn <- neighborhoods[[ref.inds[1]]]
+sym.hts[-kn] <- as.vector( solve( (J-Diagonal(nrow(G),rowSums(G)))[-kn,-kn], nu[-kn] ) * sqrt(pivec[-kn]) )
+orig.hts <- hitting.analytic( neighborhoods[ref.inds[1]], G )
+range( ((G-Diagonal(nrow(G),rowSums(G)))%*%sym.hts)[-kn] )
+range( ((G-Diagonal(nrow(G),rowSums(G)))%*%orig.hts)[-kn] )
+plot( 1+orig.hts, 1+sym.hts, log='xy'); abline(0,1)
+```
+
+That checks out.  Now, let's plug $J$ in for $G$ in the interpolation routine:
+```{r interp_sym, fig.width=fig.dim, fig.height=fig.dim}
+sym.bvec <- as.vector( crossprod( (J-Diagonal(nrow(G),rowSums(G)))[-kn,-kn], nu[-kn] ) )
+sym.hts.2 <- numeric(nrow(G))
+sym.hts.2[-kn] <- as.vector( solve( crossprod( (J-Diagonal(nrow(G),rowSums(G)))[-kn,-kn] ), sym.bvec ) * sqrt(pivec[-kn]) )
+range( ((G-Diagonal(nrow(G),rowSums(G)))%*%sym.hts.2)[-kn] )
+plot( 1+orig.hts, 1+sym.hts.2, log='xy'); abline(0,1)
+```
+That looks pretty good, although the solution is somewhat less good than before.
+
+Now, to interpolate, we want to find $x$ so that $Gx=-1$ and $x=t$;
+or if $y=Z^{-1}x$, 
+we want $Jy=\nu$ and $y=Zt$.
+This is solved by:
+```{r interp_sym_1, fig.width=fig.dim, fig.height=fig.dim}
+# check this will give us hitting times
+sym.interp <- numeric(nrow(G))
+kn <- neighborhoods[[ref.inds[1]]]
+obs.locs <- locs[ref.inds]
+alpha <- 1
+Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(J)) )
+PtP <- alpha * crossprod(Pmat)
+interp.bvec <- as.vector( alpha * crossprod(Pmat[,-kn],true.obs.hts[,1]) + crossprod( J[-kn,-kn], nu[-kn] ) )
+sym.interp[-kn] <- sqrt(pivec)[-kn] * as.vector( solve( PtP[-kn,-kn] + crossprod(J[-kn,-kn]), interp.bvec ) )
+plot(1+true.hts[,1], 1+sym.interp, log='xy', pch=20, col=adjustcolor("black",.2), xlab="true hitting times", ylab="interpolated hitting times", main=expression(alpha==1)); abline(0,1)
+points( 1+as.vector(true.hts[locs[ref.inds],1]), 1+as.vector(sym.interp[locs[ref.inds]]), col='red', pch=20 )
+# # as implemented: numerically singular
+# orig.interp <- interp.hitting( neighborhoods[ref.inds[1]], G, true.obs.hts, obs.locs=obs.locs, alpha=alpha )
+# c( "absolute difference"=range(sym.interp-orig.interp), "relative difference"=range((sym.interp-orig.interp)/sym.interp,finite=TRUE))
+# plot( 1+orig.interp, 1+sym.interp, log='xy'); abline(0,1)
+```
