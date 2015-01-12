@@ -275,6 +275,16 @@ interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, blocked=numeric
     return(hts)
 }
 
+J.from.G <- function (params,layers,transfn,G) {
+    pivec <- stationary.dist( params, layers, transfn )
+    # try with the symmetrized matrix
+    Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+    J <- G
+    J@x <- G@x * ( sqrt(pivec)[Gjj] / sqrt(pivec)[1L+G@i] )
+    J <- forceSymmetric(J)
+    return( list(pivec=pivec, J=J) )
+}
+
 interp.hitting.sym <- function ( locs, J, pivec, obs.ht, obs.locs, alpha=1, blocked=numeric(0), numcores=getcores() ) {
     # as interp.hitting
     #   but G = pivec^(-1/2) J pivec^(1/2)
