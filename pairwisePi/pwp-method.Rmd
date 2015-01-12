@@ -107,7 +107,7 @@ for (k in 1:4) {
 That looks pretty good.
 
 
-"With replacement" weighting
+"With replacement" computation
 ----------------------------
 
 Let's try the alternative estimator, which estimates the probability that two reads differ, sampling *with* replacement:
@@ -143,6 +143,48 @@ for (k in 1:4) {
     hist( pwp.rep.list[k,], breaks=hpwp$breaks, col=adjustcolor("red",.5), add=TRUE )
     abline(v=true.pwp[k],col='green',lwd=2)
     if (k==2) { legend("topleft",fill=adjustcolor(c("black","red"),.5),legend=c("without replacement","with replacement") ) }
+}
+```
+
+
+"With replacement" weighting only
+---------------------------------
+
+Now let's experiment with changing the *weightings*, which shouldn't affect the correctness of the estimator in this case,
+since we haven't yet put in any correlations between coverage and error (say).
+```{r pwp_fn_wei}
+pwp.wei <- function (counts,coverages) {
+    pwp <- numeric( ncol(coverages)^2 )
+    dim(pwp) <- c( ncol(coverages), ncol(coverages) )
+    for (i in 1:ncol(coverages)) {
+        for (j in 1:ncol(coverages)) {
+            weights <- (coverages[,i]) * coverages[,j]
+            if (i!=j) {
+                probs <- counts[,i]/coverages[,i] * (1-counts[,j]/coverages[,j]) + (1-counts[,i]/coverages[,i]) * counts[,j]/coverages[,j]
+                pwp[i,j] <- sum( weights*probs, na.rm=TRUE ) / sum(weights)
+            } else {
+                usethese <- ( coverages[,i] > 1 )
+                probs <- 2 * counts[,i] * (coverages[,i]-counts[,i]) / ( coverages[,i] * (coverages[,i]-1) )
+                pwp[i,i] <- sum( (weights*probs)[usethese] ) / sum(weights[usethese])
+            }
+        }
+    }
+    return(pwp)
+}
+```
+
+and on the same data as above,
+```{r compute_wei}
+pwp.wei.list <- sapply( simdata.list, function (ll) {
+        pwp.wei( ll$counts, ll$coverages )
+    } )
+hpwp <- hist( unlist(c(pwp.list,pwp.wei.list)), breaks=30, plot=FALSE )
+layout(matrix(1:4,nrow=2))
+for (k in 1:4) {
+    hist( pwp.list[k,], breaks=hpwp$breaks, main=sim.names[k], col=adjustcolor("black",.5) )
+    hist( pwp.wei.list[k,], breaks=hpwp$breaks, col=adjustcolor("blue",.5), add=TRUE )
+    abline(v=true.pwp[k],col='green',lwd=2)
+    if (k==2) { legend("topleft",fill=adjustcolor(c("black","blue"),.5),legend=c("without replacement weighting","with replacement weighting") ) }
 }
 ```
 
