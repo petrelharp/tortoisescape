@@ -1,0 +1,32 @@
+options(error=recover)
+source(list.files()[grepl("space.mix.MCMC",list.files())])
+load(list.files()[grepl("dataset",list.files())])
+
+run.spacemix.analysis(	n.fast.reps = 5,
+						fast.MCMC.ngen = 5e6,
+						fast.model.option = "target",
+						long.model.option = "source_and_target",
+						data.type = "sample.covariance",
+						fast.likelihood.option = "wishart",
+						long.likelihood.option = "wishart",
+						proj.mat.option=NULL,
+						sample.frequencies=NULL,
+						mean.sample.sizes= tort270_spacemix_dataset$mean.sample.sizes,
+						counts = NULL,
+						sample.sizes = NULL,
+						sample.covariance = tort270_spacemix_dataset$sample.covariance,
+						target.spatial.prior.scale=NULL,
+						source.spatial.prior.scale=NULL,
+						spatial.prior.X.coordinates = runif(nrow(tort270_spacemix_dataset$sample.covariance)),
+						spatial.prior.Y.coordinates = runif(nrow(tort270_spacemix_dataset$sample.covariance)),
+						round.earth = TRUE,
+						long.run.initial.parameters=NULL,
+						k = nrow(tort270_spacemix_dataset$sample.covariance),
+						loci = 5e7,
+						ngen = 1e8,
+						printfreq = 1e3,
+						samplefreq = 1e5,
+						mixing.diagn.freq = 100,
+						savefreq = 1e6,
+						directory=NULL,
+						prefix="tort_270")
