@@ -136,7 +136,7 @@ require(trust)
 init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
 zeros <- unlist(neighborhoods[ref.inds]) + rep((seq_along(neighborhoods[ref.inds])-1)*nrow(G),sapply(neighborhoods[ref.inds],length))
 sc.one <- 1
-LddL <- logistic.trust.setup(init.params,G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+LddL <- logistic.trust.setup(G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 trust.optim <- trust( objfun=LddL, parinit=init.params, rinit=0.25, rmax=5, iterlim=100, blather=TRUE )
 layout(t(1:2))
 matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
@@ -172,7 +172,7 @@ init.params <- true.params + rnorm(length(true.params),sd=.01)
 G@x <- update.G(init.params)
 Jpi <- J.from.G(init.params,layers,transfn,G)
 op.interp.hts <- interp.hitting.sym( neighborhoods[ref.inds], J=Jpi$J, pivec=Jpi$pivec, obs.ht=true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
-LddL <- logistic.trust.setup(init.params,G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+LddL <- logistic.trust.setup(G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 init.params.2 <- true.params + rnorm(length(true.params))
 trust.optim <- trust( objfun=LddL, parinit=init.params.2, rinit=0.25, rmax=5, iterlim=50, blather=TRUE )
 layout(t(1:2))
@@ -193,7 +193,7 @@ init.params <- true.params + rnorm(length(true.params),sd=.1)
 G@x <- update.G(init.params)
 Jpi <- J.from.G(init.params,layers,transfn,G)
 op.interp.hts <- interp.hitting.sym( neighborhoods[ref.inds], J=Jpi$J, pivec=Jpi$pivec, obs.ht=true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
-LddL <- logistic.trust.setup(init.params,G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+LddL <- logistic.trust.setup(G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 init.params.2 <- true.params + rnorm(length(true.params))
 trust.optim <- trust( objfun=LddL, parinit=init.params.2, rinit=0.25, rmax=5, iterlim=50, blather=TRUE )
 layout(t(1:2))
@@ -213,7 +213,7 @@ init.params <- trust.optim$argument
 G@x <- update.G(init.params)
 Jpi <- J.from.G(init.params,layers,transfn,G)
 op.interp.hts <- interp.hitting.sym( neighborhoods[ref.inds], J=Jpi$J, pivec=Jpi$pivec, obs.ht=true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
-LddL <- logistic.trust.setup(init.params,G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+LddL <- logistic.trust.setup(G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 trust.optim <- trust( objfun=LddL, parinit=init.params, rinit=0.25, rmax=5, iterlim=50, blather=TRUE )
 layout(t(1:2))
 matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth",
@@ -224,6 +224,7 @@ points( true.params, init.params, pch=2, cex=0.5, col=c(1,rep(2:7,2)) )
 legend("topleft",pch=1:2,legend=c('inferred','initial'))
 abline(0,1)
 ```
+Hm, nope.
 
 What do hitting times with the new parameter values look like?
 ```{r check_trust, fig.height=fig.dim, fig.width=3*fig.dim}
@@ -232,15 +233,42 @@ trust.G@x <- update.G(trust.optim$argument)
 trust.hts <- hitting.analytic(neighborhoods[ref.inds],trust.G)
 plot.these <- sample.int(length(true.hts),1e4)
 layout(t(1:3))
-plot( 1+as.vector(true.hts)[plot.these], 1+as.vector(trust.hts)[plot.these], log='xy', pch=20, col=adjustcolor("black",.25) )
+plot( 1+as.vector(true.hts)[plot.these], 1+as.vector(trust.hts)[plot.these], log='xy', pch=20, col=adjustcolor("black",.25),
+   xlab="True hitting times", ylab="Hitting times under inferred parameters" )
 points( 1+as.vector(true.hts[locs[ref.inds],]), 1+as.vector(trust.hts[locs[ref.inds],]), pch=20, col='red' )
 abline(0,1)
-plot( 1+as.vector(true.hts)[plot.these], 1+as.vector(op.interp.hts)[plot.these], log='xy', pch=20, col=adjustcolor("black",.25) )
+plot( 1+as.vector(true.hts)[plot.these], 1+as.vector(op.interp.hts)[plot.these], log='xy', pch=20, col=adjustcolor("black",.25),
+   xlab="True hitting times", ylab="Interpolated hitting times used to infer parameters" )
 points( 1+as.vector(true.hts[locs[ref.inds],]), 1+as.vector(op.interp.hts[locs[ref.inds],]), pch=20, col='red' )
 abline(0,1)
-plot( 1+as.vector(op.interp.hts)[plot.these], 1+as.vector(trust.hts)[plot.these], log='xy', pch=20, col=adjustcolor("black",.25) )
+plot( 1+as.vector(op.interp.hts)[plot.these], 1+as.vector(trust.hts)[plot.these], log='xy', pch=20, col=adjustcolor("black",.25),
+   xlab="Interpolated hitting times used to infer parameters", ylab="Hitting times under inferred parameters"  )
 points( 1+as.vector(op.interp.hts[locs[ref.inds],]), 1+as.vector(trust.hts[locs[ref.inds],]), pch=20, col='red' )
 abline(0,1)
+```
+
+The parameter inference step is pulling the observed hitting times far away from the truth again.
+What the parameter inference is actually trying to minimize is how well the hitting times
+solve the hitting time equation.
+Here are plots of the generator matrix applied to the hitting times:
+```{r check_ht_eqn, fig.height=fig.dim, fig.width=3*fig.dim}
+ht.eq <- function (hts,G) { Ghts <- (G-Diagonal(nrow(G),rowSums(G)))%*%hts; Ghts[zeros] <- NA; return(Ghts) }
+trust.G.true.ht <- ht.eq(true.hts,trust.G)
+trust.G.interp.ht <- ht.eq(op.interp.hts,trust.G)
+trust.G.trust.ht <- ht.eq(trust.hts,trust.G)
+layout(t(1:3))
+plot( as.vector(trust.G.true.ht)[plot.these], as.vector(trust.G.trust.ht)[plot.these], pch=20, col=adjustcolor("black",.25),
+   xlab="True hitting times", ylab="Hitting times under inferred parameters" )
+points( as.vector(trust.G.true.ht[locs[ref.inds],]), as.vector(trust.G.trust.ht[locs[ref.inds],]), pch=20, col='red' )
+abline(0,1); abline(h=-1,v=-1)
+plot( as.vector(trust.G.true.ht)[plot.these], as.vector(trust.G.interp.ht)[plot.these], pch=20, col=adjustcolor("black",.25),
+   xlab="True hitting times", ylab="Interpolated hitting times used to infer parameters" )
+points( as.vector(trust.G.true.ht[locs[ref.inds],]), as.vector(trust.G.interp.ht[locs[ref.inds],]), pch=20, col='red' )
+abline(0,1); abline(h=-1,v=-1)
+plot( as.vector(trust.G.interp.ht)[plot.these], as.vector(trust.G.trust.ht)[plot.these], pch=20, col=adjustcolor("black",.25),
+   xlab="Interpolated hitting times used to infer parameters", ylab="Hitting times under inferred parameters"  )
+points( as.vector(trust.G.interp.ht[locs[ref.inds],]), as.vector(trust.G.trust.ht[locs[ref.inds],]), pch=20, col='red' )
+abline(0,1); abline(h=-1,v=-1)
 ```
 
 
@@ -252,7 +280,7 @@ init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -
 Jpi <- J.from.G(init.params,layers,transfn,G)
 op.interp.hts <- interp.hitting.sym( neighborhoods[ref.inds], J=Jpi$J, pivec=Jpi$pivec, obs.ht=true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
 G@x <- update.G(init.params)
-LddL <- logistic.trust.setup(init.params,G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+LddL <- logistic.trust.setup(G,update.G,op.interp.hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 trust.optim <- trust( objfun=LddL, parinit=init.params, rinit=0.25, rmax=5, iterlim=50, blather=TRUE )
 layout(t(1:2))
 matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth",
@@ -314,9 +342,24 @@ ph( rowSums(fit.vector(trust.optim$argument)), do.lims=FALSE, main="final fit" )
 ```
 Well, that's doing the right thing.
 
-```{r}
-G@x <- update.G(trust.optim$argument)
-dG <- rowSums(G)
-GH <- G %*% with(environment(LddL),hts) - dG*with(environment(LddL),hts)
-GH[with(environment(LddL),zeros)] <- 0
+
+Simultaneous optimization
+=========================
+
+Let's take a different tack:
+simultaneously find the hitting times and parameters.
+
+Here's how we'll update the hitting times, given parameters:
+```{r simul_interp_setup}
+jiter <- jacobi.interp.setup( obs.hts=true.obs.hts, obs.locs=locs[ref.inds], zeros=zeros, alpha=0.2 )
+range( (true.hts - jiter(G=true.G,hts=true.hts,niter=3))/(1+true.hts) )  # should be small
+```
+
+And, here's how we'll update the parameters, given the hitting times.
+```{r simul_trust_setup}
+init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
+zeros <- unlist(neighborhoods[ref.inds]) + rep((seq_along(neighborhoods[ref.inds])-1)*nrow(G),sapply(neighborhoods[ref.inds],length))
+sc.one <- 1
+LddL <- logistic.trust.setup(G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+trust.optim <- trust( objfun=LddL, parinit=init.params, rinit=0.25, rmax=5, iterlim=100, blather=TRUE )
 ```

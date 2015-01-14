@@ -2,7 +2,7 @@
 # Functions to return setup for various optimization problems.
 require(trust)
 
-logistic.trust.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
+logistic.trust.setup <- function (G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
     # set up for 'trust' region optimization
     # that uses first and second deriv
     #
@@ -219,6 +219,20 @@ d.hts.setup <- function (G,neighborhoods,locs,hts,params,obs.hts) {
         bgrad <- XXX
         return(mean(ans))
     }
+}
+
+jacobi.interp.setup <- function ( obs.hts, obs.locs, zeros, alpha=0.2 ) {
+    return( function (G,hts,niter) {
+        inv.dG <- 1/rowSums(G)
+        R <- G
+        R@x <- G@x*inv.dG[1L+G@i]
+        for (j in 1:niter) {
+            hts <- 0.5 * ( hts + inv.dG + R%*%hts )
+            hts[obs.locs,] <- (1-alpha) * hts[obs.locs,] + alpha * obs.hts
+            hts[zeros] <- 0
+        }
+        return(hts)
+    } )
 }
 
 ###

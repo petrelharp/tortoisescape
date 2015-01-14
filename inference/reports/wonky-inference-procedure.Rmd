@@ -241,7 +241,7 @@ Let's try it out.
 ```{r try_trust, cache=TRUE}
 require(trust)
 init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
-LddL <- logistic.trust.setup(init.params,G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+LddL <- logistic.trust.setup(G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 trust.optim <- trust( objfun=LddL, parinit=init.params, rinit=0.25, rmax=5, iterlim=100, blather=TRUE )
 layout(t(1:2))
 matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
