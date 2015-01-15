@@ -275,6 +275,16 @@ interp.hitting <- function ( locs, G, obs.ht, obs.locs, alpha=1, blocked=numeric
     return(hts)
 }
 
+J.from.G <- function (params,layers,transfn,G) {
+    pivec <- stationary.dist( params, layers, transfn )
+    # try with the symmetrized matrix
+    Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+    J <- G
+    J@x <- G@x * ( sqrt(pivec)[Gjj] / sqrt(pivec)[1L+G@i] )
+    J <- forceSymmetric(J)
+    return( list(pivec=pivec, J=J) )
+}
+
 interp.hitting.sym <- function ( locs, J, pivec, obs.ht, obs.locs, alpha=1, blocked=numeric(0), numcores=getcores() ) {
     # as interp.hitting
     #   but G = pivec^(-1/2) J pivec^(1/2)
@@ -290,16 +300,17 @@ interp.hitting.sym <- function ( locs, J, pivec, obs.ht, obs.locs, alpha=1, bloc
     }
     sqrt.pi <- sqrt(pivec)
     nu <- 1/sqrt.pi
-    J <- J - Diagonal( nrow(J), sqrt.pi*(J%*%nu) )
+    Jd <- J - Diagonal( nrow(J), as.vector(sqrt.pi*(J%*%nu)) )
+    obs.nu <- obs.ht*nu[obs.locs]
     # Pmat projects full hitting times onto the obs.locs
-    Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(J)) )
+    Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(Jd)) )
     PtP <- alpha * crossprod(Pmat)
     hts <- this.apply( seq_along(locs), function (k) {
             klocs <- unique(c( unlist(locs[k])[!is.na(unlist(locs[k]))], blocked ))
             if (length(klocs)>0) {
-                bvec <- as.vector( alpha * crossprod(Pmat[,-klocs],obs.ht[,k]) + crossprod( J[-klocs,-klocs], nu[-klocs] ) )
+                bvec <- as.vector( alpha * crossprod(Pmat[,-klocs],obs.nu[,k]) + crossprod( Jd[-klocs,-klocs], (-1)*nu[-klocs] ) )
                 z <- numeric(nrow(G))
-                z[-klocs] <- sqrt.pi[-klocs] * as.vector( solve( PtP[-klocs,-klocs] + crossprod(J[-klocs,-klocs]), bvec ) )
+                z[-klocs] <- sqrt.pi[-klocs] * as.vector( solve( PtP[-klocs,-klocs] + crossprod(Jd[-klocs,-klocs]), bvec ) )
                 return( z )
             } else {
                 return( NA )
