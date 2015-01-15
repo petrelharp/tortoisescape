@@ -80,6 +80,7 @@ rasterOptions(tmpdir=".")
 
     G@x <- update.G(init.params)
 
+	dir.create(subdir,showWarnings=FALSE,recursive=TRUE)
     G.outfile <- paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='')
     save( G, Gjj, update.G, ndelta, ngamma, transfn, valfn, layers, file=G.outfile )
     cat("Saved to G, updating info to ", G.outfile, " .\n")

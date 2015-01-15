@@ -11,12 +11,12 @@ source(file.path(.PATH,"input-output-fns.R"))
 getcores <- function (subdir) {
     if ( "parallel" %in% .packages()) {
         cpupipe <- pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")
-        numcores <- 1+as.numeric(scan(cpupipe))
+	numcores <- 1+as.numeric(scan(cpupipe))
         close(cpupipe)
     } else {
         numcores <- 1
     }
-    if ( !missing(subdir) && ( as.numeric(gsub("x","",subdir)) < 50 ) ) {
+    if ( length(numcores)==0 || ( !missing(subdir) && ( as.numeric(gsub("x","",subdir)) < 50 ) ) ) {
         numcores <- 1
     }
     return(numcores)
