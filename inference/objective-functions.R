@@ -72,6 +72,15 @@ logistic.trust.setup <- function (G,update.G,hts,zeros,sc.one,layers,transfn,val
     }
 }
 
+update.logistic.trust.setup <- function (L,hts,update.weightings=FALSE) {
+    eL <- environment(L)
+    assign("hts",hts,eL)
+    if (update.weightings) {
+        assign("weightings", 1/rowMeans(abs(hts)), eL)
+        assign("nomitted", sum( get("weightings",eL)[row(hts)[get("zeros",eL)]] ), eL)
+    }
+}
+
 params.logistic.setup <- function (init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
     # Given hitting times (hts), return objective function and gradient function of parameters for | G %*% hts + 1 |^2 .
     #

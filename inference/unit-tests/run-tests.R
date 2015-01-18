@@ -145,7 +145,7 @@ stopifnot( all( abs( gcheck.2[,3] - gcheck.2[,4] ) < 1e-8 ) )
 
 ##
 # check the hessian computation
-LddL <- logistic.trust.setup(init.params,G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+LddL <- logistic.trust.setup(G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
 hcheck.1 <- hcheck(f=LddL, params=init.params, eps=1e-6)
 hcheck.2 <- hcheck(f=LddL, params=init.params+0.1, eps=1e-6)
 

@@ -351,15 +351,49 @@ simultaneously find the hitting times and parameters.
 
 Here's how we'll update the hitting times, given parameters:
 ```{r simul_interp_setup}
+zeros <- unlist(neighborhoods[ref.inds]) + rep((seq_along(neighborhoods[ref.inds])-1)*nrow(G),sapply(neighborhoods[ref.inds],length))
 jiter <- jacobi.interp.setup( obs.hts=true.obs.hts, obs.locs=locs[ref.inds], zeros=zeros, alpha=0.2 )
 range( (true.hts - jiter(G=true.G,hts=true.hts,niter=3))/(1+true.hts) )  # should be small
 ```
 
 And, here's how we'll update the parameters, given the hitting times.
 ```{r simul_trust_setup}
-init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
-zeros <- unlist(neighborhoods[ref.inds]) + rep((seq_along(neighborhoods[ref.inds])-1)*nrow(G),sapply(neighborhoods[ref.inds],length))
-sc.one <- 1
-LddL <- logistic.trust.setup(G,update.G,interp.hts.1,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
-trust.optim <- trust( objfun=LddL, parinit=init.params, rinit=0.25, rmax=5, iterlim=100, blather=TRUE )
+LddL <- logistic.trust.setup(G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma)
+piter <- function (params,hts,niter,rinit=0.25) {
+    sc.one <- 1
+    update.logistic.trust.setup(LddL,ht.list[[k-1]])  # NONLOCAL effects
+    trust.optim <- trust( objfun=LddL, parinit=params, rinit=rinit, rmax=5, iterlim=niter, blather=TRUE )
+    return( trust.optim )
+}
 ```
+
+OK, now let's iterate, starting at something off by 0.1:
+```{r wrong_trust_0_1, cache=TRUE}
+init.params <- true.params + rnorm(length(true.params),sd=.1)
+nsteps <- 20
+j.niter <- 10
+p.niter <- 2
+param.mat <- matrix( 0, nrow=length(init.params), ncol=nsteps )
+param.mat[,1] <- init.params
+ht.list <- vector(nsteps,mode='list')
+ht.list[[1]] <- true.hts
+value.vec <- rinit.vec <- numeric(nsteps)
+rinit.vec[1] <- 0.25
+value.vec[1] <- 0
+for (k in 2:nsteps) {
+    G@x <- update.G( param.mat[,k-1] )
+    ht.list[[k]] <- jiter( G, ht.list[[k-1]], niter=j.niter )
+    trust.iter <- piter( param.mat[,k-1], ht.list[[k-1]], rinit=rinit.vec[k-1], niter=p.niter )
+    param.mat[,k] <- trust.iter$argument
+    rinit.vec[k] <- trust.iter$r[trust.iter$iterations]
+    value.vec[k] <- trust.iter$value
+}
+
+layout(t(1:3))
+plot(value.vec,main="value",log='y')
+plot(rinit.vec,main="rinit")
+matplot( t( param.mat-true.params ), type='l' ); abline(h=0,lty=3)
+
+
+```
+
