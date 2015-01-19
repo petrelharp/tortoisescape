@@ -1,0 +1,45 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+require(trust)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+config <- read.json.config("report-config.json")
+layer.names <- config$layer_names
+for (x in config$setup_files) {
+    show(load( x ) )
+}
+ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
+layer <- with( environment(ph), layer )
+sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
+ref.inds <- which.nonoverlapping(neighborhoods)
+true.params <- paramvec(config)
+true.G <- G
+true.G@x <- update.G(params)
+true.hts <- hitting.analytic(neighborhoods,G)
+true.obs.hts <- true.hts[locs[ref.inds],]
+true.interp.hts <- interp.hitting( neighborhoods[ref.inds], true.G, true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
+```
+
+Direct setup
+============
+
+We will try to do gradient ascent on the mean squared difference in hitting times, directly.
+Here's the set-up:
+```{r direct_setup}
+ds <- direct.setup(locs[ref.inds], true.obs.hts, neighborhoods[ref.inds], G, update.G, layers, transfn, valfn, ndelta, ngamma)
+system.time( ds(true.params) )
+```
+
+Now let's try it out.
+```{r run_trust}
+init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
+trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterlim=5, blather=TRUE )
+layout(t(1:2))
+matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
+plot( true.params, trust.optim$argument, xlab="true parameters", ylab="inferred" )
+abline(0,1)
+```

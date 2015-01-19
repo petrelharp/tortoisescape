@@ -1,0 +1,255 @@
+```{r setup, include=FALSE}
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+```
+
+Simulated data
+==============
+
+Here's a function to simulate data:
+```{r setup_params}
+siminds <- function (dhet,phet,coverage,nloci=1e6,perr=0.01) {
+    # dhet is density of segregegating sites
+    # phet and coverage are vectors
+    stopifnot(all(phet<=dhet))
+    nsamples <- length(coverage)
+    # same segregating sites between torts
+    het.sites <- rbinom( nloci, size=1, prob=dhet )
+    hets <- do.call( cbind, lapply( 1:nsamples, function (k) { 
+                rbinom( nloci, size=1, prob=ifelse(het.sites,phet[k]/dhet,0) )
+            } ) )
+    coverages <- do.call( cbind, lapply( 1:nsamples, function (k) { 
+                rpois( nloci, coverage[k] ) 
+            } ) )
+    counts <- sapply( 1:nsamples, function (k) {
+            rbinom( nloci, size=coverages[,k], prob=ifelse(hets[,k],1/2,perr) )
+        } )
+    return(list(coverages=coverages,counts=counts))
+}
+```
+
+
+And here's a function to compute heterozygosities:
+```{r pwp_fn}
+pwp <- function (counts,coverages) {
+    pwp <- numeric( ncol(coverages)^2 )
+    dim(pwp) <- c( ncol(coverages), ncol(coverages) )
+    for (i in 1:ncol(coverages)) {
+        for (j in 1:ncol(coverages)) {
+            weights <- (coverages[,i]) * (coverages[,j] - if (i==j){1}else{0} )
+            if (i!=j) {
+                w.probs <- counts[,i] * (coverages[,j]-counts[,j]) + (coverages[,i]-counts[,i]) * counts[,j]
+                pwp[i,j] <- sum( w.probs, na.rm=TRUE ) / sum(weights)
+            } else {
+                usethese <- ( coverages[,i] > 1 )
+                w.probs <- 2 * counts[,i] * (coverages[,i]-counts[,i])
+                pwp[i,i] <- sum( w.probs[usethese] ) / sum(weights[usethese])
+            }
+        }
+    }
+    return(pwp)
+}
+```
+
+And, a function to return the right answer:
+```{r true_pwp_fn}
+truth <- function (dhet, phet) {
+    # (not segr) * (diff in error) + (segr) * (prob diff if het in at least one) * (prob het if segr)
+    phet.mat <- (1-outer(1-phet/dhet,1-phet/dhet,"*"))
+    diag(phet.mat) <- phet/dhet
+    return( (1-dhet) * 2*perr*(1-perr) + dhet * (1/2) * phet.mat )
+}
+```
+
+Let's try it out, with a range of coverages:
+```{r sim_data}
+perr <- 0.01
+dhet <- 0.02
+coverage <- rep(c(4,2,1,0.5),each=2)
+phet <- rep(0.009,length(coverage))
+simdata <- siminds(dhet=dhet, phet=phet, coverage=coverage, perr=perr)
+true.pwp <- truth(dhet,phet)
+est.pwp <- pwp( simdata$counts, simdata$coverages )
+```
+
+The right answer should be `r true.pwp`; we get
+```{r test_pwp}
+est.pwp
+```
+with relative error
+```{r test_pwp_relerr}
+est.pwp/true.pwp - 1.0
+```
+
+Bias?
+-----
+
+Now let's do this a bunch of times to get the distribution of the estimator.
+I'll do it with fewer sites, so it doesn't take forever.
+```{r rep_est}
+coverage <- c(2,2)
+phet <- c(.009,.011)
+true.pwp <- truth(dhet,phet)
+simdata.list <- lapply( 1:200, function (k) { 
+        siminds( dhet=dhet, phet=phet, coverage=coverage, perr=perr, nloci=1e4 )
+    } )
+sim.names <- outer(1:2,1:2,paste,sep=" vs ")
+pwp.list <- sapply( simdata.list, function (ll) {
+        pwp( ll$counts, ll$coverages )
+    } )
+hpwp <- hist( unlist(pwp.list), breaks=30, plot=FALSE )
+layout(matrix(1:4,nrow=2))
+for (k in 1:4) {
+    hist( pwp.list[k,], breaks=hpwp$breaks, main=sim.names[k] )
+    abline(v=true.pwp[k],col='green',lwd=2)
+}
+```
+That looks pretty good.
+
+
+"With replacement" computation
+----------------------------
+
+Let's try the alternative estimator, which estimates the probability that two reads differ, sampling *with* replacement:
+```{r pwp_fn_rep}
+pwp.rep <- function (counts,coverages) {
+    pwp <- numeric( ncol(coverages)^2 )
+    dim(pwp) <- c( ncol(coverages), ncol(coverages) )
+    for (i in 1:ncol(coverages)) {
+        for (j in 1:ncol(coverages)) {
+            weights <- coverages[,i] * coverages[,j]
+            if (i!=j) {
+                w.probs <- counts[,i] * (coverages[,j]-counts[,j]) + (coverages[,i]-counts[,i]) * counts[,j]
+                pwp[i,j] <- sum( w.probs, na.rm=TRUE ) / sum(weights)
+            } else {
+                w.probs <- 2 * counts[,i] * (coverages[,i]-counts[,i])
+                pwp[i,i] <- sum( w.probs ) / sum(weights)
+            }
+        }
+    }
+    return(pwp)
+}
+```
+
+and on the same data as above,
+```{r compute_rep}
+pwp.rep.list <- sapply( simdata.list, function (ll) {
+        pwp.rep( ll$counts, ll$coverages )
+    } )
+hpwp <- hist( unlist(c(pwp.list,pwp.rep.list)), breaks=30, plot=FALSE )
+layout(matrix(1:4,nrow=2))
+for (k in 1:4) {
+    hist( pwp.list[k,], breaks=hpwp$breaks, main=sim.names[k], col=adjustcolor("black",.5) )
+    hist( pwp.rep.list[k,], breaks=hpwp$breaks, col=adjustcolor("red",.5), add=TRUE )
+    abline(v=true.pwp[k],col='green',lwd=2)
+    if (k==2) { legend("topleft",fill=adjustcolor(c("black","red"),.5),legend=c("without replacement","with replacement") ) }
+}
+```
+
+
+"With replacement" weighting only
+---------------------------------
+
+Now let's experiment with changing the *weightings*, which shouldn't affect the correctness of the estimator in this case,
+since we haven't yet put in any correlations between coverage and error (say).
+```{r pwp_fn_wei}
+pwp.wei <- function (counts,coverages) {
+    pwp <- numeric( ncol(coverages)^2 )
+    dim(pwp) <- c( ncol(coverages), ncol(coverages) )
+    for (i in 1:ncol(coverages)) {
+        for (j in 1:ncol(coverages)) {
+            weights <- (coverages[,i]) * coverages[,j]
+            if (i!=j) {
+                probs <- counts[,i]/coverages[,i] * (1-counts[,j]/coverages[,j]) + (1-counts[,i]/coverages[,i]) * counts[,j]/coverages[,j]
+                pwp[i,j] <- sum( weights*probs, na.rm=TRUE ) / sum(weights)
+            } else {
+                usethese <- ( coverages[,i] > 1 )
+                probs <- 2 * counts[,i] * (coverages[,i]-counts[,i]) / ( coverages[,i] * (coverages[,i]-1) )
+                pwp[i,i] <- sum( (weights*probs)[usethese] ) / sum(weights[usethese])
+            }
+        }
+    }
+    return(pwp)
+}
+```
+
+and on the same data as above,
+```{r compute_wei}
+pwp.wei.list <- sapply( simdata.list, function (ll) {
+        pwp.wei( ll$counts, ll$coverages )
+    } )
+hpwp <- hist( unlist(c(pwp.list,pwp.wei.list)), breaks=30, plot=FALSE )
+layout(matrix(1:4,nrow=2))
+for (k in 1:4) {
+    hist( pwp.list[k,], breaks=hpwp$breaks, main=sim.names[k], col=adjustcolor("black",.5) )
+    hist( pwp.wei.list[k,], breaks=hpwp$breaks, col=adjustcolor("blue",.5), add=TRUE )
+    abline(v=true.pwp[k],col='green',lwd=2)
+    if (k==2) { legend("topleft",fill=adjustcolor(c("black","blue"),.5),legend=c("without replacement weighting","with replacement weighting") ) }
+}
+```
+
+
+
+Efficiency
+==========
+
+Here's the original function
+```{r pwp_fn_1}
+pwp.1 <- function (counts,coverages) {
+    pwp <- numeric( ncol(coverages)^2 )
+    dim(pwp) <- c( ncol(coverages), ncol(coverages) )
+    for (i in 1:ncol(coverages)) {
+        for (j in 1:ncol(coverages)) {
+            weights <- (coverages[,i]) * (coverages[,j] - if (i==j){1}else{0} )
+            if (i!=j) {
+                probs <- counts[,i]/coverages[,i] * (1-counts[,j]/coverages[,j]) + (1-counts[,i]/coverages[,i]) * counts[,j]/coverages[,j]
+                pwp[i,j] <- sum( weights*probs, na.rm=TRUE ) / sum(weights)
+            } else {
+                usethese <- ( coverages[,i] > 1 )
+                probs <- 2 * counts[,i] * (coverages[,i]-counts[,i]) / ( coverages[,i] * (coverages[,i]-1) )
+                pwp[i,i] <- sum( (weights*probs)[usethese] ) / sum(weights[usethese])
+            }
+        }
+    }
+    return(pwp)
+}
+```
+
+And here's the more efficient version:
+```{r pwp_fn_2}
+pwp.2 <- function (counts,coverages) {
+    pwp <- numeric( ncol(coverages)^2 )
+    dim(pwp) <- c( ncol(coverages), ncol(coverages) )
+    for (i in 1:ncol(coverages)) {
+        for (j in 1:ncol(coverages)) {
+            weights <- (coverages[,i]) * (coverages[,j] - if (i==j){1}else{0} )
+            if (i!=j) {
+                w.probs <- counts[,i] * (coverages[,j]-counts[,j]) + (coverages[,i]-counts[,i]) * counts[,j]
+                pwp[i,j] <- sum( w.probs, na.rm=TRUE ) / sum(weights)
+            } else {
+                usethese <- ( coverages[,i] > 1 )
+                w.probs <- 2 * counts[,i] * (coverages[,i]-counts[,i])
+                pwp[i,i] <- sum( w.probs[usethese] ) / sum(weights[usethese])
+            }
+        }
+    }
+    return(pwp)
+}
+```
+
+Check these do the same thing:
+```{r check_fns, cache=TRUE}
+est.pwp.1 <- pwp.1( simdata$counts, simdata$coverages )
+est.pwp.2 <- pwp.2( simdata$counts, simdata$coverages )
+all.equal(est.pwp.1,est.pwp.2)
+```
+and the difference in speed
+```{r time_fns, cache=TRUE}
+require(microbenchmark)
+ns <- 1e4
+microbenchmark( pwp.1( simdata$counts[1:ns,], simdata$coverages[1:ns,] ), times=20 )
+microbenchmark( pwp.2( simdata$counts[1:ns,], simdata$coverages[1:ns,] ), times=20 )
+```
+Hm, a 20% speedup.  Not as much as I imagined, but worth it.
+
+Note that we'd save ourselves a lot of subtractions if we precomputed `coverages-counts`.

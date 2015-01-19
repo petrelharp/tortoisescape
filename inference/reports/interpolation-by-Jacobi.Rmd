@@ -1,0 +1,152 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+# read config
+config <- read.json.config("report-config.json")
+layer.names <- config$layer_names
+for (x in config$setup_files) { load( x ) }
+# set up 
+# plotting stuff
+ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
+layer <- with( environment(ph), layer )
+sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
+```
+
+Another method of interpolating hitting times
+=============================================
+
+First, compute the full matrix of true hitting times, which we assume are observed only on a well-spread-out subset of the space:
+```{r true_hts, cache=TRUE}
+ref.inds <- which.nonoverlapping(neighborhoods)
+obs.locs <- locs[ref.inds]
+true.params <- paramvec(config)
+true.G <- G
+true.G@x <- update.G(true.params)
+true.hts <- hitting.analytic(neighborhoods[ref.inds],true.G)
+#  and subset out the observed ones:
+true.obs.hts <- true.hts[locs[ref.inds],]
+```
+
+We interpolate by letting $P$ be the projection matrix from the full hitting times to the observed ones, and finding $H$ to minimize
+$$
+\| GH + 1 \|^2 + \alpha \|PH - T\|^2
+$$
+where $\alpha$ is a tuning parameter and $T$ are the observed hitting times.
+The minimizer of this solves
+$$
+\left( G^T G + \alpha P^T P \right) H = P^T T - G^T 1 
+$$
+
+Now, to interpolate these.
+Here are the solutions using `solve()`, for $\alpha=0$ and $\alpha=1$:
+```{r interp_hts, fig.width=2*fig.dim, fig.height=fig.dim, cache=TRUE}
+interp.hts.0 <- interp.hitting( neighborhoods[ref.inds], true.G, true.obs.hts, obs.locs=locs[ref.inds], alpha=0 )
+interp.hts.1 <- interp.hitting( neighborhoods[ref.inds], true.G, true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
+layout(t(1:2))
+plot(1+as.vector(true.hts), 1+as.vector(interp.hts.0), log='xy', xlab="true hitting times", ylab="interpolated hitting times", main=expression(alpha==0)); abline(0,1)
+plot(1+as.vector(true.hts), 1+as.vector(interp.hts.1), log='xy', xlab="true hitting times", ylab="interpolated hitting times", main=expression(alpha==1)); abline(0,1)
+```
+
+Now, let's try Jacobi iteration.
+Pulling from `interp.hitting`,
+```{r setup_jacobi, fig.width=fig.dim, fig.height=fig.dim}
+G <- true.G
+jacobi.problem <- function (k,alpha) {
+    klocs <- neighborhoods[[ref.inds[k]]]
+    obs.ht <- true.obs.hts
+    G.d <- G - Diagonal(nrow(G),rowSums(G))
+    # Pmat projects full hitting times onto the obs.locs
+    Pmat <- sparseMatrix( i=seq_along(obs.locs), j=obs.locs, x=1, dims=c(length(obs.locs),nrow(G)) )
+    PtP <- alpha * crossprod(Pmat)
+    bvec <- as.vector( alpha * crossprod(Pmat[,-klocs],obs.ht[,k]) + crossprod( G.d[-klocs,-klocs], rep(-1.0,nrow(G)-length(klocs)) ) )
+    GP <- PtP[-klocs,-klocs] + crossprod(G[-klocs,-klocs])
+    return( list( k=k, klocs=klocs, Dinv=1/diag(GP), R=GP-Diagonal(nrow(GP),diag(GP)), bvec=bvec ) )
+}
+jacobi.iter <- function (ht,jp) {
+    as.vector( (jp$Dinv) * ( jp$bvec - jp$R %*% ht ) )
+}
+jp <- jacobi.problem(1,alpha=1)
+# check this works
+plot( true.hts[-jp$klocs,1], jacobi.iter(true.hts[-jp$klocs,1],jp) ); abline(0,1)
+# and iterate
+interp.mat <- matrix( 0, nrow=nrow(true.hts), ncol=20 )
+interp.mat[-jp$klocs,1] <- mean(true.hts)
+for (k in 2:ncol(interp.mat)) {
+    interp.mat[-jp$klocs,k] <- jacobi.iter(interp.mat[-jp$klocs,k-1],jp)
+}
+matplot(t(sweep(interp.mat[,1:20],1,true.hts[,1],"-")),type='l')
+```
+No, that doesn't work.
+Hmph.
+
+Wait, let's try using some intuition here.
+Instead, let's modify the Jacobi step that we'd get from solving $GH=-1$
+to also keep the solution close to the observed hitting times:
+define the matrix $R_{xy} = G_{xy}/(-G_{xx})$ and $R_{xx}=0$, which subtracts the local average;
+so the Jacobi iteration to solve $GH=-1$ is:
+replace $H_x$ by $1/(-G_{xx}) + RH_x$,
+which is (time to jump from x) + (local average of H).
+Instead, for sites where we have observed $T$, we can replace $H_x$ with
+$(1-\alpha)(1/(-G_{xx}) + RH_x) + \alpha T_x$.
+```{r setup_jacobi_2, fig.width=fig.dim, fig.height=fig.dim}
+G <- true.G
+jacobi.problem.2 <- function (k) {
+    locs <- neighborhoods[ref.inds]
+    obs.ht <- true.obs.hts[,k]
+    dG <- rowSums(G)
+    R <- G
+    R@x <- G@x/dG[1L+G@i]
+    klocs <- unlist(locs[k])[!is.na(unlist(locs[k]))]
+    return( list( k=k, klocs=klocs, inv.dG=1/dG, R=R, obs.ht=obs.ht ) )
+}
+jacobi.iter.2 <- function (ht,jp,alpha) {
+    z <- as.vector( 0.5 * ( ht + jp$inv.dG + jp$R%*%ht ) )
+    z[ obs.locs ] <- (1-alpha)*z[ obs.locs ] + alpha*jp$obs.ht
+    z[ jp$klocs ] <- 0
+    return(z)
+}
+jp.2 <- jacobi.problem.2(1)
+layout(t(1:2))
+plot( 1+true.hts[,1], 1+jacobi.iter.2(true.hts[,1],jp.2,alpha=0), log='xy' ); abline(0,1)
+plot( 1+true.hts[,1], 1+jacobi.iter.2(true.hts[,1],jp.2,alpha=0.1), log='xy' ); abline(0,1)
+```
+That works.  Iteration?
+
+```{r iter_jacobi_2, fig.width=2*fig.dim, fig.height=fig.dim}
+interp.mat <- matrix( 0, nrow=nrow(true.hts), ncol=500 )
+interp.mat[,1] <- true.hts[,1] * exp( rnorm(nrow(true.hts),sd=1.0) )
+for (k in 2:ncol(interp.mat)) {
+    interp.mat[,k] <- jacobi.iter.2(interp.mat[,k-1],jp.2,alpha=1.0)
+}
+layout(t(1:2))
+norm.error <- (interp.mat - true.hts[,1])/(1+true.hts[,1])
+matplot( t( norm.error[unlist(neighborhoods),] ), type='l', ylim=range(norm.error[20,]) )
+
+plot( 1+true.hts[,1], 1+interp.mat[,ncol(interp.mat)], log='xy', xlab='true hitting time', ylab='interpolated hitting time' )
+points( (1+true.hts[,1])[unlist(neighborhoods)], (1+interp.mat[,ncol(interp.mat)])[unlist(neighborhoods)], col='red', pch=20 )
+abline(0,1)
+```
+
+Here's what it's doing:
+```{r jacobi_images, fig.width=fig.dim, fig.height=10*fig.dim}
+layout(1:10)
+for (k in floor(seq(1,ncol(interp.mat),length.out=10)) ) {
+    # ph( log( (1+interp.mat[,k])/(1+true.hts[,1]) ) )
+    ph( interp.mat[,k], zlim=inflate(range(true.hts[obs.locs,])), main=k)
+}
+```
+
+```{r}
+# layout(t(1:2))
+# for (k in floor(seq(1,ncol(interp.mat),length.out=50)) ) {
+#     # ph( log( (1+interp.mat[,k])/(1+true.hts[,1]) ) )
+#     ph( interp.mat[,k], zlim=inflate(range(true.hts[obs.locs,])), main=k)
+#     ph( true.hts[,1]-interp.mat[,k], zlim=(range(true.hts[obs.locs,]-interp.mat[obs.locs,50])), main=k)
+#     if (length(locator(1))==0) { break; }
+# }
+```

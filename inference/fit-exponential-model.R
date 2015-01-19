@@ -124,11 +124,11 @@ if (FALSE) {
     range(GH*scaling)
 
     # CHECK AGAINST RIGHT ANSWER
-    ph <- plot.ht.fn(layer.prefix,"dem_30_m800_sq",nonmissing)
+    ph <- plot.ht.fn(layer.prefix,nonmissing,"dem_30_m800_sq")
     params <- init.params
     G@x <- update.G(params)
     dG <- rowSums(G)
-    hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=getcores() )
+    hts <- hitting.analytic( neighborhoods, G, numcores=getcores() )
     update.aux(params,environment(),check=FALSE)
 
     results <- optim( par=init.params*1.1, fn=L, gr=dL, control=list(parscale=parscale,fnscale=max(1,abs(L(init.params))/10)), method="BFGS" )

@@ -17,6 +17,19 @@ fi
 # compute hitting times,
 # then fit logistic model from them.
 
+### Prototype:
+if [[ '' ]]
+then
+    Rscript make-resistance-distances.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv analytic test_six_layers/256x/six-raster-list-hitting-times-full.tsv
+    for EPS in 0.00 0.005 0.01 0.05
+    do
+        Rscript fuzz-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x  six-raster-list test_six_layers/256x/six-raster-list-hitting-times-full.tsv ${EPS} test_six_layers/256x/six-raster-list-sim-$(echo $EPS|tr "." "_")-hts.tsv
+    done
+
+    Rscript initial-hitting-times.R ../geolayers/multigrid/256x/crm_ 256x six-raster-list test_six_layers/six-params.tsv test_six_layers/256x/six-raster-list-sim-0_01-hts.tsv 1.0 analytic test_six_layers/256x/six-raster-list-interp-hts.tsv 
+    ## NEXT: get multigrid going here
+fi
+
 BASEDIR="test_six_layers"
 BASEPARAMS="${BASEDIR}/six-params.tsv"
 NSIMS=8

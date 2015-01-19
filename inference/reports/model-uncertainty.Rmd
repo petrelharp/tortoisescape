@@ -1,0 +1,168 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+show( load("cache/model-description-saved-state.RData") )   # saved in model-description.R
+for (x in config$setup_files) { load(x) }
+```
+
+This continues from where [model-description.Rmd](model-description.html) leaves off.
+
+
+Sensitivity of hitting times to the parameters
+==============================================
+
+Now, we only observe hitting times between the observed locations (points on the plots).
+We can compute how much each parameter affects those hitting times.
+First we compute the derivative of each hitting time plotted above with respect to each parameter,
+which we can then visualize.
+Here, rows are parameters; columns are hitting times to individuals shown in the previous plot;
+white is zero, blue colors are negative, and red colors are positive.
+```{r sensitivity, fig.width=4*fig.dim, fig.height=4*fig.dim, cache=TRUE}
+hs <- hitting.sensitivity(params, neighborhoods[plot.inds], G, update.G, layers, transfn, valfn, ndelta, ngamma)
+obs.hs <- sapply( hs, function (x) { x[locs,] } )
+layout(matrix(1:(length(params)*(length(plot.inds)+1)),nrow=length(params),byrow=TRUE))
+par(mar=c(0,0,0,0)+.1)
+for (j in seq_along(params)) {
+    plot(c(0,2), c(0,2), type='n', xaxt='n', yaxt='n')
+    text(1,1,label=names(params)[j],offset=0)
+    for (k in seq_along(plot.inds)) {
+        ph( hs[[j]][,k], xaxt='n', yaxt='n', par.args=list(mar=c(0,0,0,0)+.1), legend=FALSE, 
+            zlim=1.2*c(-1,1)*max(abs(obs.hs)), col=diverge_hcl(255) )
+    }
+}
+```
+We see the hitting times are least sensitive to the `delta` parameters,
+and that hitting times to the second individual (who is isolated) are the most sensitive.
+
+Which direction can we change the parameters in while changing the observed hitting times the least?
+First, let's compute the covariance matrix of the parameters:
+```{r param_covariance, fig.width=fig.dim, fig.height=fig.dim, cache=TRUE}
+hs <- hitting.sensitivity(params, neighborhoods[ref.inds], G, update.G, layers, transfn, valfn, ndelta, ngamma)
+param.cov <- hitting.colinearity(obs.locs=locs[ref.inds],hs=hs)
+image(Matrix(param.cov),main="Covariance matrix")
+image(Matrix(cov2cor(param.cov)),main="Correlation matrix")
+# direction of minimal and maximal change:
+min.dirn <- eigen(param.cov)$vectors[,length(params)]
+max.dirn <- eigen(param.cov)$vectors[,1]
+names(min.dirn) <- names(max.dirn) <- names(params)
+rbind( min=min.dirn, max=max.dirn )
+```
+Now let's see how perturbing the parameters in these directions changes the hitting times:
+```{r min_max_paramchange, cache=TRUE, fig.height=fig.dim}
+d.hts <- function (params) {
+    G@x <- update.G(params)
+    mean( (hitting.analytic(neighborhoods[ref.inds],G)[locs[ref.inds],] - hts[locs[ref.inds],ref.inds])^2 )
+}
+epsvals <- 0.1*seq(-1,1,length.out=11)
+min.d.hts <- sapply( epsvals, function (eps) { d.hts( params + eps * min.dirn ) } )
+max.d.hts <- sapply( epsvals, function (eps) { d.hts( params + eps * max.dirn ) } )
+layout(t(1:2))
+plot( epsvals, min.d.hts, xlab="perturbation", ylab="mean hitting time difference", main='minimal direction' )
+plot( epsvals, max.d.hts, xlab="perturbation", ylab="mean hitting time difference", main='maximal direction' )
+```
+Note the change in scale: changing in the maximal direction changes the hitting times about $10^3$ more quickly than in the minimal direction.
+
+
+
+Sensitivity of best-fit parameters to the hitting times
+=======================================================
+
+Noiseless hitting times
+-----------------------
+
+Suppose we know, without error,
+pairwise hitting times between the reference sampling locations.
+Do these uniquely determine the parameters?
+Below, we vary each parameter, with the others fixed at their true values,
+and plot the mean squared difference between the hitting times at the new parameter value
+and at the original, "true" value.
+Here is the plot for $\beta$:
+```{r parameter_basin, cache=TRUE, fig.height=fig.dim, fig.width=fig.dim}
+c.beta <- compute.plot.nearby( d.hts, params, fac=.1, do.params=1, npoints=11 )
+plot.nearby( computed=c.beta )
+```
+and the plots for $\gamma$:
+```{r gamma_basin, cache=TRUE, fig.height=2*fig.dim}
+c.gamma <- compute.plot.nearby( d.hts, params, fac=.1, do.params=1+(1:6), npoints=11 )
+layout( matrix(1:6,ncol=2) )
+plot.nearby( computed=c.gamma )
+```
+and for $\delta$:
+```{r delta_basin, cache=TRUE, fig.height=2*fig.dim}
+c.delta <- compute.plot.nearby( d.hts, params, fac=.1, do.params=7+(1:6), npoints=11 )
+layout( matrix(1:6,ncol=2) )
+plot.nearby( computed=c.delta )
+```
+
+Noisy hitting times
+-------------------
+
+This is very promising; it means that we should have good power to infer the parameters --
+under the model, the true parameters clearly give the best fit to the observed hitting times.
+Now, what if we add a little noise to the hitting times?
+Here, let's add varying amounts of noise,
+and look at the same plots for three of the parameters.
+```{r fuzz_basin, cache=TRUE, fig.height=fig.dim}
+epsvals <- c(.01,.1)
+fuzz.nearby <- lapply( epsvals, function (eps) {
+        hts <- hts * exp( rnorm(length(hts))*eps )
+        environment(d.hts) <- environment()  # what happens in lapply stays in lapply
+        compute.plot.nearby( d.hts, params, fac=.2, do.params=c(1,2,8), npoints=11 )
+    } )
+```
+First, with hitting times fuzzed by 1%, the best fit parameters hardly change:
+```{r fuzz_basin_1, cache=TRUE, fig.height=fig.dim}
+cat("fuzzed by ", epsvals[1], "\n")
+layout(t(1:3))
+plot.nearby( computed=fuzz.nearby[[1]] )
+```
+With the parameters fuzzed more dramatically, by 10%, they change somewhat more:
+```{r fuzz_basin_2, cache=TRUE, fig.height=fig.dim}
+cat("fuzzed by ", epsvals[2], "\n")
+layout(t(1:3))
+plot.nearby( computed=fuzz.nearby[[2]] )
+```
+but it is still overall quite promising.
+
+
+Far away from the true parameters
+---------------------------------
+
+That's all very nice, but what if we try to do gradient descent from a distant starting point?
+```{r tweak_init_0, cache=TRUE, fig.height=fig.dim}
+tweak.params <- c(1,2,8)
+init.params <- params 
+init.params[tweak.params] <- c(1.5,-1.2,-2)
+rand.nearby <- compute.plot.nearby( d.hts, init.params, fac=.5, do.params=tweak.params, npoints=11 )
+layout(t(1:3))
+plot.nearby( computed=rand.nearby, vlines=params[tweak.params])
+```
+Hm.  It seems that even with all but these three parameters held fixed,
+the slope for $\delta_1$ is in the wrong direction.  
+Let's try moving $\delta_1$ by hand that way to see what happens.
+```{r tweak_init_1, cache=TRUE, fig.height=fig.dim}
+init.params[tweak.params[3]] <- (-2.7)
+rand.nearby <- compute.plot.nearby( d.hts, init.params, fac=.5, do.params=tweak.params, npoints=11 )
+layout(t(1:3))
+plot.nearby( computed=rand.nearby, vlines=params[tweak.params])
+```
+Well, the minima for the other two parameters are still in the right places.  
+Let's move them there and see.
+```{r tweak_init_2, cache=TRUE, fig.height=fig.dim}
+init.params[tweak.params[1:2]] <- c(2,-1)
+rand.nearby <- compute.plot.nearby( d.hts, init.params, fac=.5, do.params=tweak.params, npoints=11 )
+layout(t(1:3))
+plot.nearby( computed=rand.nearby, vlines=params[tweak.params])
+```
+Hm, that looks fine.
+
+Let's look at some slices of parameter space.
+```{r param_slice_0, cache=TRUE, fig.width=fig.dim, fig.height=fig.dim}
+sliced.0 <- compute.slice.nearby( d.hts, params, fac=0.2, pdir1=c(1,rep(0,length(params)-1)), pdir2=c(0,1,rep(0,length(params)-2)) )
+plot.slice.nearby(computed=sliced.0)
+contour( sliced.0$eps, sliced.0$eps, z=sliced.0$res, add=TRUE )
+```
