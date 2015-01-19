@@ -37,8 +37,11 @@ system.time( ds(true.params) )
 Now let's try it out.
 ```{r run_trust}
 init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
-trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterlim=60, blather=TRUE )
-save(list=ls(),file="it-is-late.RData")
+# trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterlim=60, blather=TRUE )
+# save(list=ls(),file="it-is-late.RData")
+load("it-is-late.RData")
+trust.optim.2 <- trust( objfun=ds, parinit=trust.optim$argument, rinit=0.25, rmax=5, iterlim=60, blather=TRUE )
+save(list=ls(),file="it-is-late-2.RData")
 layout(t(1:2))
 matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
 plot( true.params, trust.optim$argument, xlab="true parameters", ylab="inferred" )
