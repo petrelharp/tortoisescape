@@ -169,11 +169,12 @@ hitting.colinearity <- function (params, locs, obs.locs, G, update.G, layers, tr
     # use hitting.sensitivity to construct the Gram matrix
     # with rows and columns indexed by parameters
     # giving the amount of colinearity between the effects of each parameter on the hitting times at the observed locations
-    obs.hs <- sapply( hs, function (x) { x[obs.locs,] } )
+    obs.hs <- hs$gradient[obs.locs,,]
+    dim(obs.hs) <- c( prod(dim(obs.hs)[1:2]), dim(obs.hs)[3] )
     return( cov(obs.hs) )
 }
 
-hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, curvature=FALSE, numcores=getcores()) {
+hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=FALSE, numcores=getcores()) {
     # return a list whose [[k]]th entry is the matrix of derivatives 
     #   of the hitting times with respect to the k-th parameter
     # and optionally the second derivatives also
@@ -184,6 +185,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
     } else {
         this.apply <- function (...) { sapply( ... ) }
     }
+    nparams <- length(params)
     gamma <- params[1+(1:ngamma)]
     delta <- params[1 + ngamma + (1:ndelta)]
     G@x <- update.G(params)
@@ -192,84 +194,113 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
     zeros <- unlist(locs) + rep((seq_along(locs)-1)*nrow(hts),sapply(locs,length))
     GH <- G.d %*% hts
     GH[zeros] <- 0
-    beta.grad <- list( .hsolve( locs, G.d, (-1)*GH ) )
-    names(beta.grad) <- names(params)[1]
-    gamma.grad <- lapply( seq(1,length.out=ngamma), function (kg) {
-            LGH <- (layers[,kg] * (1-transfn(valfn(gamma)))) * GH
-            return( .hsolve( locs, G.d, (-1)*LGH ) )
+    gradient <- numeric( nrow(G)*length(locs)*length(params) )
+    dim(gradient) <- c( nrow(G), length(locs), length(params) )
+    dimnames(gradient) <- list( NULL, names(locs), names(params) )
+    # beta.grad <- list( .hsolve( locs, G.d, (-1)*GH ) )
+    # names(beta.grad) <- names(params)[1]
+    ## gradient[,,1] <- .hsolve( locs, G.d, (-1)*GH )  # duh:
+    gradient[,,1] <- (-1)*hts
+    # gamma.grad <- lapply( seq(1,length.out=ngamma), function (kg) {
+    gfac <- (1-transfn(valfn(gamma)))  # from first deriv of logistic
+    gfac2 <- gfac * (1-2*transfn(valfn(gamma)))  # from second deriv of logistic
+    gamma.G <- lapply( seq(1,length.out=ngamma), function (kg) {
+            (layers[,kg] * gfac) * GH
         } )
-    names(gamma.grad) <- names(params)[seq(2,length.out=ngamma)]
+    for (kg in seq(1,length.out=ngamma)) {
+        gradient[,,1+kg] <- .hsolve( locs, G.d, (-1)*gamma.G[[kg]] )
+    }
+    # names(gamma.grad) <- names(params)[seq(2,length.out=ngamma)]
+    delfac <- (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
+    delfac2 <- delfac * (1-2*transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
     delta.G <- lapply( seq(1,length.out=ndelta), function (kd) {
             GL <- G
-            GL@x <- G@x * ( layers[Gjj,kd] + layers[G@i+1L,kd] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
-            dGL <- rowSums(GL)
-            return( list( GL=GL, dGL=dGL ) )
+            GL@x <- G@x * ( layers[Gjj,kd] + layers[G@i+1L,kd] ) * delfac
+            return( GL - Diagonal(nrow(GL),rowSums(GL)) )
         } )
-    delta.grad <- lapply( seq(1,length.out=ndelta), function (kd) {
-            GLH <- delta.G[[kd]]$GL %*% hts - delta.G[[kd]]$dGL*hts
-            GLH[zeros] <- 0
-            return( .hsolve( locs, G.d, (-1)*GLH ) )
+    # delta.grad <- lapply( seq(1,length.out=ndelta), function (kd) {
+    delta.GL <- lapply( seq(1,length.out=ndelta), function (kd) {
+            delta.G[[kd]] %*% hts
         } )
-    names(delta.grad) <- names(params)[seq(2+ngamma,length.out=ndelta)]
-    if (curvature) {
-        # second deriv wrt beta
-        beta.curv <- .hsolve( locs, G.d, 2 * (G.d %*% beta.grad) - GH )
-        beta.gamma.curv <- lapply( seq(1,length.out=ngamma), function (kg) {
-                .hsolve( locs, G.d, 
-                        G.d %*% gamma.grad[[kg]] 
-                        + (layers[,kg] * (1-transfn(valfn(gamma)))) * G.d %*% beta.grad
-                        - (layers[,kg] * (1-transfn(valfn(gamma)))) * GH
-                    )
-            } )
-        beta.delta.curv <- lapply( seq(1,length.out=ndelta), function (kd) {
-                .hsolve( locs, G.d, 
-                        G.d %*% delta.grad[[kd]] 
-                        + (delta.G[[kd]]$GL %*% beta.grad - delta.G[[kd]]$dGL * beta.grad )
-                        - ( delta.G[[kd]]$GL %*% hts  - delta.G[[kd]]$dGL * hts ) # remove zeros?
-                    )
-            } )
-        gamma.curv <- lapply( seq(1,length.out=ngamma), function (kg1) {
-            lapply( seq(1,length.out=ngamma), function (kg2) {
-                    .hsolve( locs, G.d,
-                            (layers[,kg1] * (1-transfn(valfn(gamma)))) * gamma.grad[[kg2]]
-                            + (layers[,kg2] * (1-transfn(valfn(gamma)))) * gamma.grad[[kg1]]
-                            - (layers[,kg1] * (1-transfn(valfn(gamma)))) * (layers[,kg2] * (1-transfn(valfn(gamma)))) * hts
-                        )
-                } )
-            } )
-        delta.curv <- lapply( seq(1,length.out=ndelta), function (kd1) {
-            lapply( seq(1,length.out=ndelta), function (kd2) {
-                    GL2 <- G
-                    GL2@x <- G@x * ( layers[Gjj,kd1] + layers[G@i+1L,kd1] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj])) * ( layers[Gjj,kd2] + layers[G@i+1L,kd2] ) * (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
-                    dG2L <- rowSums(GL2)
-                    .hsolve( locs, G.d,
-                            ( delta.G[[kd1]]$GL %*% delta.grad[[kg2]] - delta.G[[kd1]]$dGL * delta.grad[[kg2]] )
-                            + ( delta.G[[kd2]]$GL %*% delta.grad[[kg1]] - delta.G[[kd2]]$dGL * delta.grad[[kg1]] )
-                            - GL2 %*% hts + dGL2 * hts
-                        )
-                } )
-            } )
-        gamma.delta.curv <- lapply( seq(1,length.out=ngamma), function (kg) {
-                lapply( seq(1,length.out=ndelta), function (kd) {
-                        .hsolve( locs, G.d,
-                                (layers[,kg] * (1-transfn(valfn(gamma)))) * delta.grad[[kd]]
-                                + ( delta.G$GL[[kd]] %*% gamma.grad[[kg]] - delta.G$dGL[[kd]] * gamma.grad[[kg]] )
-                                - (layers[,kg] * (1-transfn(valfn(gamma)))) * ( delta.G[[kd]]$GL %*% hts - delta.G[[kd]]$dGL * hts )
-                            )
-                    } ) } )
+    for (kd in seq(1,length.out=ndelta)) {
+        gradient[,,1+ngamma+kd] <- .hsolve( locs, G.d, (-1)*delta.GL[[kd]] )
     }
-    return( c( beta.grad, gamma.grad, delta.grad ) )
+    # names(delta.grad) <- names(params)[seq(2+ngamma,length.out=ndelta)]
+    if (do.hessian) {
+        hessian <- numeric( nrow(G) * length(locs) * nparams^2 )
+        dim(hessian) <- c(nrow(G),length(locs),nparams,nparams)
+        dimnames(hessian) <- list( NULL, names(locs), names(params), names(params) )
+        # second deriv wrt beta : note that (d/d beta) hts = -hts
+        ## hessian[,,1,1] <- (-1) * .hsolve( locs, G.d, 2 * (G.d %*% gradient[,,1]) + GH ) # duh:
+        hessian[,,1,1] <- hts
+        # beta.gamma.curv <- lapply( seq(1,length.out=ngamma), function (kg) {
+        for (kg in seq(1,length.out=ngamma)) {
+            hessian[,,1,1+kg] <- hessian[,,1+kg,1] <- (-1) * gradient[,,1+kg]
+        }
+        # beta.delta.curv <- lapply( seq(1,length.out=ndelta), function (kd) {
+        for (kd in seq(1,length.out=ndelta)) {
+            hessian[,,1,1+ngamma+kd] <- hessian[,,1+ngamma+kd,1] <- (-1) * gradient[,,1+ngamma+kd]
+        }
+        # gamma.curv <- lapply( seq(1,length.out=ngamma), function (kg1) {
+        #     lapply( seq(1,length.out=ngamma), function (kg2) {
+        # Note numerous simplifications below since (d/d gamma) G = (diagonal matrix) * G
+        for (kg1 in seq(1,length.out=ngamma)) {
+            hessian[,,1+kg1,1+kg1] <- .hsolve( locs, G.d,
+                    ( 2 * layers[,kg1] * gfac) * gamma.G[[kg1]]
+                    + (layers[,kg1]^2 * gfac2) 
+                )
+            for (kg2 in seq(1,length.out=kg1-1)) {
+                hessian[,,1+kg1,1+kg2] <- hessian[,,1+kg2,1+kg1] <- .hsolve( locs, G.d,
+                        (layers[,kg1] * gfac) * gamma.G[[kg2]]
+                        + (layers[,kg2] * gfac) * gamma.G[[kg1]]
+                        + (layers[,kg1] * layers[,kg2] * gfac2) 
+                    )
+            }
+        }
+        # delta.curv <- lapply( seq(1,length.out=ndelta), function (kd1) {
+        #     lapply( seq(1,length.out=ndelta), function (kd2) {
+        for (kd1 in seq(1,length.out=ndelta)) {
+            GL2 <- G
+            GL2@x <- G@x * ( layers[Gjj,kd1] + layers[G@i+1L,kd1] )^2 * delfac2
+            dG2L <- rowSums(GL2)
+            hessian[,,1+ngamma+kd1,1+ngamma+kd1] <- (-1) * .hsolve( locs, G.d,
+                    2 * ( delta.G[[kd1]] %*% gradient[,,1+ngamma+kd1] )
+                    + GL2 %*% hts - dG2L * hts
+                )
+            for (kd2 in seq(1,length.out=kd1-1)) {
+                GL2 <- G
+                GL2@x <- G@x * ( layers[Gjj,kd1] + layers[G@i+1L,kd1] ) * ( layers[Gjj,kd2] + layers[G@i+1L,kd2] ) * delfac2
+                dG2L <- rowSums(GL2)
+                hessian[,,1+ngamma+kd1,1+ngamma+kd2] <- hessian[,,1+ngamma+kd2,1+ngamma+kd1] <- (-1) * .hsolve( locs, G.d,
+                        ( delta.G[[kd1]] %*% gradient[,,1+ngamma+kd2] )
+                        + ( delta.G[[kd2]] %*% gradient[,,1+ngamma+kd1] )
+                        + GL2 %*% hts - dG2L * hts
+                    )
+            }
+        }
+        # gamma.delta.curv <- lapply( seq(1,length.out=ngamma), function (kg) {
+        #         lapply( seq(1,length.out=ndelta), function (kd) {
+        for (kg in seq(1,length.out=ngamma)) {
+            for (kd in seq(1,length.out=ndelta)) {
+                hessian[,,1+kg,1+ngamma+kd] <- hessian[,,1+ngamma+kd,1+kg] <- (-1) * .hsolve( locs, G.d,
+                            (-1) * (layers[,kg] * gfac) * delta.GL[[kd]]
+                            + ( delta.G[[kd]] %*% gradient[,,1+kg] )
+                            + (layers[,kg] * gfac) * ( delta.G[[kd]] %*% hts )
+                        )
+            }
+        }
+    } else { hessian <- NULL }
+    return( list( gradient=gradient, hessian=hessian ) )
 }
 
-.hsolve <- function ( locs, G.d, x, numcores=1,
-    this.apply = if ( numcores>1 && "parallel" %in% .packages()) {
+.hsolve <- function ( locs, G.d, x, numcores=1 ) {
+    this.apply <- if ( numcores>1 && "parallel" %in% .packages()) {
                 function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
             } else { function (...) { sapply( ... ) } }
-    ) {
     this.apply( seq_along(locs), function (loc.ind) {
             klocs <- locs[[loc.ind]][!is.na(locs[[loc.ind]])]
             if (length(klocs)>0) {
-                z <- numeric(nrow(G))
+                z <- numeric(nrow(G.d))
                 z[-klocs] <- as.vector( solve( G.d[-klocs,-klocs], x[-klocs,loc.ind] ) )
                 return( z )
             } else {

@@ -1,4 +1,5 @@
 #!/usr/bin/Rscript
+require(numDeriv)
 
 # will compare results to those previously computed with the same seed
 set.seed(12345)
@@ -195,33 +196,51 @@ stopifnot( all( abs( ((hts.5-true.hts)/true.hts)[true.hts>0] ) < 5*eps ) )
 # check derivative of hitting times wrt parameters
 
 
-hs <- hitting.sensitivity(true.params, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=numcores)
+hs <- hitting.sensitivity(true.params, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=TRUE, numcores=numcores)
 epsval <- 1e-6
-hs.checks <- lapply( seq_along(true.params), function (k) {
+hs.grad.checks <- lapply( seq_along(true.params), function (k) {
         eps <- epsval * ifelse( seq_along(true.params)==k, 1, 0 )
         G@x <- update.G(true.params+eps)
         d.true.hts <- hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )
-        return( ( d.true.hts - true.hts ) - epsval * hs[[k]] )
+        return( ( d.true.hts - true.hts ) - epsval * hs$gradient[,,k] )
     } )
-stopifnot(all(abs(unlist(hs.checks)<1e-9)))
+stopifnot(all(abs(unlist(hs.grad.checks)<1e-9)))
+
+num.jacob <- jacobian( func=function(x) { G@x <- update.G(x); as.vector(hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )) }, x=true.params )
+stopifnot( all( abs( num.jacob - matrix(hs$gradient,ncol=length(true.params)) ) < 1e-5 ) )
+
+# check hessian of hitting times wrt parameters
+check.loc <- c( neighborhoods[[1]][1] + 20, 1 )
+f <- function (params) {
+    G@x <- update.G(params)
+    hitting.analytic( neighborhoods, G-diag(rowSums(G)), numcores=numcores )[check.loc[1],check.loc[2]]
+}
+
+num.grad <- grad( func=f, x=true.params )
+stopifnot( all( abs( num.grad - hs$gradient[check.loc[1],check.loc[2],] ) < 1e-5 ) ) 
+
+num.hess <- hessian( func=f, x=true.params )
+stopifnot( all( abs( num.hess - hs$hessian[check.loc[1],check.loc[2],,] ) < 1e-6 ) )
+
 
 # repeat a layer to create collinearity
-layers <- cbind( layers, layers[,1] )
-true.params <- c( true.params[1], true.params[1+(1:nlayers)], 0, true.params[1+nlayers+(1:nlayers)], 0 )
-ngamma <- ngamma+1
-ndelta <- ndelta+1
+coll.layers <- cbind( layers, layers[,1] )
+coll.params <- c( coll.params[1], coll.params[1+(1:nlayers)], 0, coll.params[1+nlayers+(1:nlayers)], 0 )
+ngamma <- nlayers+1
+ndelta <- nlayers+1
 # this should now be degenerate
-hc <- hitting.colinearity(params=true.params, locs=neighborhoods, obs.locs=locs, G=G, update.G=update.G, layers=layers, transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma, numcores=numcores)
+hc <- hitting.colinearity(params=coll.params, locs=neighborhoods, obs.locs=locs, G=G, update.G=update.G, layers=coll.layers, transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma, numcores=numcores)
 
-cvec.1 <- numeric(length(true.params))
+cvec.1 <- numeric(length(coll.params))
 cvec.1[2] <- 1
 cvec.1[2+nlayers] <- (-1)
 stopifnot( all.equal( as.numeric(cvec.1 %*% hc %*% cvec.1), 0 ) )
 
-cvec.2 <- numeric(length(true.params))
+cvec.2 <- numeric(length(coll.params))
 cvec.2[3+nlayers] <- 1
 cvec.2[3+2*nlayers] <- (-1)
 stopifnot( all.equal( as.numeric(cvec.2 %*% hc %*% cvec.2), 0 ) )
+
 
 ###
 # check everything agrees with previously saved versions

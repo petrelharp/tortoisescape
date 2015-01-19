@@ -2,6 +2,12 @@
 # Functions to return setup for various optimization problems.
 require(trust)
 
+direct.setup <- function ( ) {
+    # a list whose [[k]]th entry is the matrix of derivatives 
+    #   of the hitting times with respect to the k-th parameter:
+    hs <- hitting.sensitivity(params, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
+}
+
 logistic.trust.setup <- function (G,update.G,hts,zeros,sc.one,layers,transfn,valfn,ndelta,ngamma) {
     # set up for 'trust' region optimization
     # that uses first and second deriv
@@ -250,7 +256,7 @@ jacobi.interp.setup <- function ( obs.hts, obs.locs, zeros, alpha=0.2 ) {
 gcheck <- function (f,df,params,eps=1e-8) {
     # check gradient: want f1-f0 == df0 if eps is small enough that df0 == df1
     gcheck.fn <- function (k) {
-        dirn <- ifelse(seq_along(init.params)==k,1,0)
+        dirn <- ifelse(seq_along(params)==k,1,0)
         dp <- eps*dirn
         f0 <- f(params)
         df0 <- df(params)
@@ -268,15 +274,15 @@ gcheck <- function (f,df,params,eps=1e-8) {
     return(results)
 }
 
-hcheck <- function (f,params,eps=1e-8) {
+hcheck <- function (f,params,eps=1e-8,...) {
     # check gradient and hessian: 
     # want f(p+dp)-f(p) = dp * f'(p) [ + (1/2) dp * f''(p) * dp ]
     # and f'(p+dp)-f'(p) = dp * f''(p)
     hcheck.fn <- function (k) {
-        dirn <- ifelse(seq_along(init.params)==k,1,0)
+        dirn <- ifelse(seq_along(params)==k,1,0)
         dp <- eps*dirn
-        f0 <- f(params)
-        f1 <- f(params+dp)
+        f0 <- f(params,...)
+        f1 <- f(params+dp,...)
         v0 <- f0$value
         v1 <- f1$value
         g0 <- f0$gradient

@@ -1,0 +1,26 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+config <- read.json.config("report-config.json")
+layer.names <- config$layer_names
+for (x in config$setup_files) {
+    show(load( x ) )
+}
+ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
+layer <- with( environment(ph), layer )
+sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
+ref.inds <- which.nonoverlapping(neighborhoods)
+true.params <- paramvec(config)
+true.G <- G
+true.G@x <- update.G(params)
+true.hts <- hitting.analytic(neighborhoods,G)
+true.obs.hts <- true.hts[locs[ref.inds],]
+true.interp.hts <- interp.hitting( neighborhoods[ref.inds], true.G, true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
+```
+
+

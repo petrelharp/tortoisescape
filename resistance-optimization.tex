@@ -373,7 +373,7 @@ find parameters to minimize
 Now, recall that
 \begin{align}
   H_{x,A_j} = \begin{cases}
-    (G^{-A_j})^{-1} \bone \quad & \text{if } x \notin A_j \\
+    (G^{-A_j})^{-1} (-\bone) \quad & \text{if } x \notin A_j \\
     0 \quad & \text{otherwise.}
   \end{cases}
 \end{align}
@@ -393,10 +393,10 @@ and
     + (\partial_\phi \bar G) \bar G^{-1} (\partial_\theta \bar G)
     - (\partial_\phi \partial_\theta \bar G)
     \right) \bar G^{-1} (-\bone) \\
-    &= \delta_x \bar G^{-1} \left\{
+    &= - \delta_x \bar G^{-1} \left\{
     (\partial_\theta \bar G) ( \partial_\phi \bar H ) 
     + (\partial_\phi \bar G) ( \partial_\theta \bar H )
-    - (\partial_\phi \partial_\theta \bar G) \bar H
+    + (\partial_\phi \partial_\theta \bar G) \bar H
     \right\}
 \end{align}
 
