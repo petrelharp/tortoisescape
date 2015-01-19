@@ -18,8 +18,8 @@ sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
 ref.inds <- which.nonoverlapping(neighborhoods)
 true.params <- paramvec(config)
 true.G <- G
-true.G@x <- update.G(params)
-true.hts <- hitting.analytic(neighborhoods,G)
+true.G@x <- update.G(true.params)
+true.hts <- hitting.analytic(neighborhoods[ref.inds],G)
 true.obs.hts <- true.hts[locs[ref.inds],]
 true.interp.hts <- interp.hitting( neighborhoods[ref.inds], true.G, true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
 ```
@@ -37,7 +37,8 @@ system.time( ds(true.params) )
 Now let's try it out.
 ```{r run_trust}
 init.params <- c( 1.9, -1.4, -1.0, 1.6, 0.4, -2.1, 2.8, -2.0, -0.2, 0.5, -0.5, -2.1, -0.9 )
-trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterlim=5, blather=TRUE )
+trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterlim=60, blather=TRUE )
+save(list=ls(),file="it-is-late.RData")
 layout(t(1:2))
 matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
 plot( true.params, trust.optim$argument, xlab="true parameters", ylab="inferred" )

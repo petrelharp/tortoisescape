@@ -251,13 +251,13 @@ ds.p <- ds(params)
 # numerical
 d.hts <- function (params) {
     G@x <- update.G(params)
-    sum( (hitting.analytic(neighborhoods,G)[obs.locs,] - hts[obs.locs,])^2 )
+    sum( (hitting.analytic(neighborhoods,G,numcores=numcores)[obs.locs,] - hts[obs.locs,])^2 )
 }
 d.hts.deriv <- grad( d.hts, params )
 d.hts.hess <- hessian( d.hts, params )
 
 stopifnot( all( abs( (d.hts.deriv - ds.p$gradient)/d.hts.deriv ) < 1e-5 ) )
-stopifnot( all( abs( (d.hts.hess - ds.p$hessian)/d.hts.hess ) < 1e-5 ) )
+stopifnot( all( abs( (d.hts.hess - ds.p$hessian)/d.hts.hess ) < 2e-5 ) )
 
 ###
 # check everything agrees with previously saved versions
