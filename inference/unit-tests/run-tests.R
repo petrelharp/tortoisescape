@@ -4,7 +4,7 @@ require(numDeriv)
 # will compare results to those previously computed with the same seed
 set.seed(12345)
 check.file <- "run-tests-saved-1234.RData"
-check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","sub.true.hts","gcheck.1","gcheck.2","hcheck.1","hcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.checks", "hc")
+check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","sub.true.hts","gcheck.1","gcheck.2","hcheck.1","hcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.grad.checks", "hc", "ds.p")
 # do this at the end
 check.it <- function () { 
     if (do.check) {
@@ -225,11 +225,11 @@ stopifnot( all( abs( num.hess - hs$hessian[check.loc[1],check.loc[2],,] ) < 1e-6
 
 # repeat a layer to create collinearity
 coll.layers <- cbind( layers, layers[,1] )
-coll.params <- c( coll.params[1], coll.params[1+(1:nlayers)], 0, coll.params[1+nlayers+(1:nlayers)], 0 )
-ngamma <- nlayers+1
-ndelta <- nlayers+1
+coll.params <- c( true.params[1], true.params[1+(1:nlayers)], 0, true.params[1+nlayers+(1:nlayers)], 0 )
+coll.ngamma <- nlayers+1
+coll.ndelta <- nlayers+1
 # this should now be degenerate
-hc <- hitting.colinearity(params=coll.params, locs=neighborhoods, obs.locs=locs, G=G, update.G=update.G, layers=coll.layers, transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma, numcores=numcores)
+hc <- hitting.colinearity(params=coll.params, locs=neighborhoods, obs.locs=locs, G=G, update.G=update.G, layers=coll.layers, transfn=transfn, valfn=valfn, ndelta=coll.ndelta, ngamma=coll.ngamma, numcores=numcores)
 
 cvec.1 <- numeric(length(coll.params))
 cvec.1[2] <- 1
@@ -241,6 +241,23 @@ cvec.2[3+nlayers] <- 1
 cvec.2[3+2*nlayers] <- (-1)
 stopifnot( all.equal( as.numeric(cvec.2 %*% hc %*% cvec.2), 0 ) )
 
+
+# and check gradient and hessian of sum( ( hts - obs.hts )^2 )
+obs.locs <- locs
+ds <- direct.setup(obs.locs, obs.ht, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
+params <- true.params + 0.1
+ds.p <- ds(params)
+
+# numerical
+d.hts <- function (params) {
+    G@x <- update.G(params)
+    sum( (hitting.analytic(neighborhoods,G)[obs.locs,] - hts[obs.locs,])^2 )
+}
+d.hts.deriv <- grad( d.hts, params )
+d.hts.hess <- hessian( d.hts, params )
+
+stopifnot( all( abs( (d.hts.deriv - ds.p$gradient)/d.hts.deriv ) < 1e-5 ) )
+stopifnot( all( abs( (d.hts.hess - ds.p$hessian)/d.hts.hess ) < 1e-5 ) )
 
 ###
 # check everything agrees with previously saved versions
