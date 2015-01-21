@@ -11,9 +11,7 @@ source(file.path(.PATH,"input-output-fns.R"))
 # number of cores for parallel
 getcores <- function (subdir) {
     if ( "parallel" %in% .packages()) {
-        cpupipe <- pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")
-	numcores <- 1+as.numeric(scan(cpupipe))
-        close(cpupipe)
+        numcores <- getCores()
     } else {
         numcores <- 1
     }

@@ -8,14 +8,21 @@ require(Matrix)
 source("../resistance-fns.R")
 require(parallel); numcores <- getcores()
 
-biglayer <- raster(nrows=2^10,ncols=2^10,xmn=0,ymn=0,xmx=100,ymx=100)
-values(biglayer) <- rnorm(length(biglayer))
+# biglayer <- raster(nrows=2^10,ncols=2^10,xmn=0,ymn=0,xmx=100,ymx=100)
+# values(biglayer) <- rnorm(length(biglayer))
+# nlayers <- 2
+# fact <- 2^5
+# layer.list <- lapply( 1:nlayers, function (k) {
+#         values(biglayer) <- rnorm(length(biglayer))
+#         aggregate( biglayer, fact=2^5, fun=mean, na.rm=FALSE )
+#     } )
+
 nlayers <- 2
-fact <- 2^5
-layer.list <- lapply( 1:nlayers, function (k) {
-        values(biglayer) <- rnorm(length(biglayer))
-        aggregate( biglayer, fact=2^5, fun=mean, na.rm=FALSE )
-    } )
+data(volcano)
+v <- raster( (volcano-mean(volcano))/sd(volcano), xmn=2667400, xmx=2668010, ymn=6478700, ymx=6479570, crs="+init=epsg:27200")
+v2 <- raster( (volcano^2-mean(volcano^2))/sd(volcano^2), xmn=2667400, xmx=2668010, ymn=6478700, ymx=6479570, crs="+init=epsg:27200")
+layer.list <- list( v, v2 )
+
 # include some missing values
 navals <- sample(length(values(layer.list[[1]])),10)
 for (k in 1:nlayers) { values(layer.list[[k]])[navals] <- NA }
