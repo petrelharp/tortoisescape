@@ -52,11 +52,7 @@ rasterOptions(tmpdir=".")
 
     ###
     # generator matrix
-    ij <- adjacent(nalayer,cells=nonmissing,target=nonmissing,directions=4,pairs=TRUE,sorted=TRUE) # to and from cells both loc
-    ij <- ij[,2:1]
-    stopifnot( all(ij[,1] != ij[,2]) ) ## NO DIAGONAL
-
-    G <- sparseMatrix( i=match(ij[,1],nonmissing), j=match(ij[,2],nonmissing), x=1.0 )
+    G <- make.G( layer=nalayer, nonmissing=nonmissing )
     Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
 
     layers <- sapply( layer.names, function (ln) {
