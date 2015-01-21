@@ -51,3 +51,5 @@ matplot( sweep(trust.optim.2$argpath,2,true.params,"-"), type='l', xlab="step nu
 plot( true.params, trust.optim.2$argument, xlab="true parameters", ylab="inferred" )
 abline(0,1)
 ```
+
+That took 2 hours on a 16-core computer, but it worked!
