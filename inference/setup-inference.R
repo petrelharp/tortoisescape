@@ -58,11 +58,7 @@ load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighb
 neighborhoods <- lapply(neighborhoods[-na.indiv],function (x) { x[!is.na(x)] })
 
 # pairwise divergence values
-pimat.vals <- scan(pimat.file) # has UPPER with diagonal
-pimat <- numeric(nind^2)
-dim(pimat) <- c(nind,nind)
-pimat[upper.tri(pimat,diag=TRUE)] <- pimat.vals
-pimat[lower.tri(pimat,diag=FALSE)] <- t(pimat)[lower.tri(pimat,diag=FALSE)]
+pimat.vals <- read.pairwise.hts( pimat.file, n=nind, upper=TRUE, diag=TRUE )
 pimat <- pimat[-na.indiv,-na.indiv]
 
 # scale to actual pairwise divergence, and then by 1/mutation rate

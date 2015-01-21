@@ -63,6 +63,20 @@ paramvec <- function (config) {
 ####
 # read/write hitting times etc in standardized way
 
+read.pariwise.hts <- function ( file, inds=1:n, n=length(inds), upper=TRUE, diag=TRUE ) {
+    # read in unstructured hitting times
+    # as e.g. output by pwp scripts
+    vals <- scan(file) # has UPPER with diagonal
+    pimat <- numeric(n^2)
+    dim(pimat) <- c(n,n)
+    dimnames(pimat) <- list( inds, inds )
+    which.tri <- if (upper) { upper.tri } else { lower.tri }
+    other.tri <- if (upper) { lower.tri } else { upper.tri }
+    pimat[which.tri(pimat,diag=diag)] <- pimat.vals
+    pimat[other.tri(pimat,diag=FALSE)] <- t(pimat)[other.tri(pimat,diag=FALSE)]
+    return(pimat)
+}
+
 write.full.hts <- function ( hts, locs, file ) {
     # write out hitting times as a matrix
     colnames( hts ) <- locs

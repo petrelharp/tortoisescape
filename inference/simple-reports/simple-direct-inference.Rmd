@@ -1,0 +1,74 @@
+```{r setup, include=FALSE}
+source("../resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+require(trust)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+config <- read.json.config("simple-config.json")
+layer.names <- config$layer_names
+for (x in config$setup_files) {
+    show(load( x ) )
+}
+ph <- plot.ht.fn("rasters/",nonmissing,layer.name="layer_a",homedir="rasters",default.par.args=list(mar=c(3,3,3,3)+.1))
+layer <- with( environment(ph), layer )
+sample.coords <- with(environment(ph),coordinates(tort.coords.rasterGCS))
+ref.inds <- which.nonoverlapping(neighborhoods)
+true.params <- paramvec(config)
+true.G <- G
+true.G@x <- update.G(true.params)
+true.hts <- hitting.analytic(neighborhoods[ref.inds],true.G)
+true.obs.hts <- true.hts[locs[ref.inds],]
+true.interp.hts <- interp.hitting( neighborhoods[ref.inds], true.G, true.obs.hts, obs.locs=locs[ref.inds], alpha=1 )
+```
+
+Fake layers
+===========
+
+Here's some layers, produced by [make-simple-layers.R],
+from elevation of Maunga Whau (see `data(volcano)`).
+
+```{r layers_plot, fig.width=2*fig.dim}
+layout(t(1:2))
+for (k in 1:2) {
+    ph( layers[,k], main=paste("layer",k) )
+}
+```
+
+Direct setup
+============
+
+We will try to do gradient ascent on the mean squared difference in hitting times, directly.
+Here's the set-up:
+```{r direct_setup}
+ds <- direct.setup(locs[ref.inds], true.obs.hts, neighborhoods[ref.inds], G, update.G, layers, transfn, valfn, ndelta, ngamma)
+system.time( baseval <- ds(true.params) )
+baseval$value  # should be quite small
+```
+
+Now let's try it out.
+```{r run_trust, fig.width=2*fig.dim}
+init.params <- true.params + 3*rnorm(length(true.params))
+trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterlim=100, blather=TRUE )
+
+layout(t(1:3))
+plot( trust.optim$valpath, col=2-trust.optim$accept, xlab='step', ylab='value', log='y' )
+matplot( sweep(trust.optim$argpath,2,true.params,"-"), type='l', xlab="step number", ylab="parameter difference to the truth" )
+plot( true.params, trust.optim$argument, xlab="true parameters", ylab="inferred" )
+abline(0,1)
+```
+
+Here are the hitting times under true, initial, and inferred parameters.
+```{r compare_hts, fig.width=3*fig.dim}
+init.G <- G; init.G@x <- update.G(init.params)
+init.hts <- hitting.analytic(neighborhoods[ref.inds],init.G)
+infer.G <- G; infer.G@x <- update.G(trust.optim$argument)
+infer.hts <- hitting.analytic(neighborhoods[ref.inds],infer.G)
+layout(t(1:3))
+ph( true.hts[,1] )
+ph( init.hts[,1] )
+ph( infer.hts[,1] )
+
+```

@@ -11,9 +11,7 @@ source(file.path(.PATH,"input-output-fns.R"))
 # number of cores for parallel
 getcores <- function (subdir) {
     if ( "parallel" %in% .packages()) {
-        cpupipe <- pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")
-	numcores <- 1+as.numeric(scan(cpupipe))
-        close(cpupipe)
+        numcores <- getCores()
     } else {
         numcores <- 1
     }
@@ -110,7 +108,7 @@ hitting.colinearity <- function (params, locs, obs.locs, G, update.G, layers, tr
     return( cov(obs.hs) )
 }
 
-hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=FALSE, numcores=getcores()) {
+hitting.sensitivity <- function (params, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=FALSE, numcores=getcores()) {
     # return a list whose [[k]]th entry is the matrix of derivatives 
     #   of the hitting times with respect to the k-th parameter
     # and optionally the second derivatives also
@@ -126,16 +124,16 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
     delta <- params[1 + ngamma + (1:ndelta)]
     G@x <- update.G(params)
     G.d <- G - Diagonal(nrow(G),rowSums(G))
-    hts <- hitting.analytic(locs,G.d,numcores)
-    zeros <- unlist(locs) + rep((seq_along(locs)-1)*nrow(hts),sapply(locs,length))
+    hts <- hitting.analytic(neighborhoods,G.d,numcores)
+    zeros <- unlist(neighborhoods) + rep((seq_along(neighborhoods)-1)*nrow(hts),sapply(neighborhoods,length))
     GH <- G.d %*% hts
     GH[zeros] <- 0
-    gradient <- numeric( nrow(G)*length(locs)*length(params) )
-    dim(gradient) <- c( nrow(G), length(locs), length(params) )
-    dimnames(gradient) <- list( NULL, names(locs), names(params) )
-    # beta.grad <- list( .hsolve( locs, G.d, (-1)*GH ) )
+    gradient <- numeric( nrow(G)*length(neighborhoods)*length(params) )
+    dim(gradient) <- c( nrow(G), length(neighborhoods), length(params) )
+    dimnames(gradient) <- list( NULL, names(neighborhoods), names(params) )
+    # beta.grad <- list( .hsolve( neighborhoods, G.d, (-1)*GH ) )
     # names(beta.grad) <- names(params)[1]
-    ## gradient[,,1] <- .hsolve( locs, G.d, (-1)*GH )  # duh:
+    ## gradient[,,1] <- .hsolve( neighborhoods, G.d, (-1)*GH )  # duh:
     gradient[,,1] <- (-1)*hts
     # gamma.grad <- lapply( seq(1,length.out=ngamma), function (kg) {
     gfac <- (1-transfn(valfn(gamma)))  # from first deriv of logistic
@@ -144,7 +142,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
             (layers[,kg] * gfac) * GH
         } )
     for (kg in seq(1,length.out=ngamma)) {
-        gradient[,,1+kg] <- .hsolve( locs, G.d, (-1)*gamma.G[[kg]], numcores=numcores )
+        gradient[,,1+kg] <- .hsolve( neighborhoods, G.d, (-1)*gamma.G[[kg]], numcores=numcores )
     }
     # names(gamma.grad) <- names(params)[seq(2,length.out=ngamma)]
     delfac <- (1-transfn(valfn(delta)[G@i+1L]+valfn(delta)[Gjj]))
@@ -159,15 +157,15 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
             delta.G[[kd]] %*% hts
         } )
     for (kd in seq(1,length.out=ndelta)) {
-        gradient[,,1+ngamma+kd] <- .hsolve( locs, G.d, (-1)*delta.GL[[kd]], numcores=numcores )
+        gradient[,,1+ngamma+kd] <- .hsolve( neighborhoods, G.d, (-1)*delta.GL[[kd]], numcores=numcores )
     }
     # names(delta.grad) <- names(params)[seq(2+ngamma,length.out=ndelta)]
     if (do.hessian) {
-        hessian <- numeric( nrow(G) * length(locs) * nparams^2 )
-        dim(hessian) <- c(nrow(G),length(locs),nparams,nparams)
-        dimnames(hessian) <- list( NULL, names(locs), names(params), names(params) )
+        hessian <- numeric( nrow(G) * length(neighborhoods) * nparams^2 )
+        dim(hessian) <- c(nrow(G),length(neighborhoods),nparams,nparams)
+        dimnames(hessian) <- list( NULL, names(neighborhoods), names(params), names(params) )
         # second deriv wrt beta : note that (d/d beta) hts = -hts
-        ## hessian[,,1,1] <- (-1) * .hsolve( locs, G.d, 2 * (G.d %*% gradient[,,1]) + GH ) # duh:
+        ## hessian[,,1,1] <- (-1) * .hsolve( neighborhoods, G.d, 2 * (G.d %*% gradient[,,1]) + GH ) # duh:
         hessian[,,1,1] <- hts
         # beta.gamma.curv <- lapply( seq(1,length.out=ngamma), function (kg) {
         for (kg in seq(1,length.out=ngamma)) {
@@ -181,12 +179,12 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
         #     lapply( seq(1,length.out=ngamma), function (kg2) {
         # Note numerous simplifications below since (d/d gamma) G = (diagonal matrix) * G
         for (kg1 in seq(1,length.out=ngamma)) {
-            hessian[,,1+kg1,1+kg1] <- .hsolve( locs, G.d,
+            hessian[,,1+kg1,1+kg1] <- .hsolve( neighborhoods, G.d,
                     ( 2 * layers[,kg1] * gfac) * gamma.G[[kg1]]
                     + (layers[,kg1]^2 * gfac2) 
                 , numcores=numcores)
             for (kg2 in seq(1,length.out=kg1-1)) {
-                hessian[,,1+kg1,1+kg2] <- hessian[,,1+kg2,1+kg1] <- .hsolve( locs, G.d,
+                hessian[,,1+kg1,1+kg2] <- hessian[,,1+kg2,1+kg1] <- .hsolve( neighborhoods, G.d,
                         (layers[,kg1] * gfac) * gamma.G[[kg2]]
                         + (layers[,kg2] * gfac) * gamma.G[[kg1]]
                         + (layers[,kg1] * layers[,kg2] * gfac2) 
@@ -199,7 +197,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
             GL2 <- G
             GL2@x <- G@x * ( layers[Gjj,kd1] + layers[G@i+1L,kd1] )^2 * delfac2
             dG2L <- rowSums(GL2)
-            hessian[,,1+ngamma+kd1,1+ngamma+kd1] <- (-1) * .hsolve( locs, G.d,
+            hessian[,,1+ngamma+kd1,1+ngamma+kd1] <- (-1) * .hsolve( neighborhoods, G.d,
                     2 * ( delta.G[[kd1]] %*% gradient[,,1+ngamma+kd1] )
                     + GL2 %*% hts - dG2L * hts
                 , numcores=numcores)
@@ -207,7 +205,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
                 GL2 <- G
                 GL2@x <- G@x * ( layers[Gjj,kd1] + layers[G@i+1L,kd1] ) * ( layers[Gjj,kd2] + layers[G@i+1L,kd2] ) * delfac2
                 dG2L <- rowSums(GL2)
-                hessian[,,1+ngamma+kd1,1+ngamma+kd2] <- hessian[,,1+ngamma+kd2,1+ngamma+kd1] <- (-1) * .hsolve( locs, G.d,
+                hessian[,,1+ngamma+kd1,1+ngamma+kd2] <- hessian[,,1+ngamma+kd2,1+ngamma+kd1] <- (-1) * .hsolve( neighborhoods, G.d,
                         ( delta.G[[kd1]] %*% gradient[,,1+ngamma+kd2] )
                         + ( delta.G[[kd2]] %*% gradient[,,1+ngamma+kd1] )
                         + GL2 %*% hts - dG2L * hts
@@ -218,7 +216,7 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
         #         lapply( seq(1,length.out=ndelta), function (kd) {
         for (kg in seq(1,length.out=ngamma)) {
             for (kd in seq(1,length.out=ndelta)) {
-                hessian[,,1+kg,1+ngamma+kd] <- hessian[,,1+ngamma+kd,1+kg] <- (-1) * .hsolve( locs, G.d,
+                hessian[,,1+kg,1+ngamma+kd] <- hessian[,,1+ngamma+kd,1+kg] <- (-1) * .hsolve( neighborhoods, G.d,
                             (-1) * (layers[,kg] * gfac) * delta.GL[[kd]]
                             + ( delta.G[[kd]] %*% gradient[,,1+kg] )
                             + (layers[,kg] * gfac) * ( delta.G[[kd]] %*% hts )
@@ -229,12 +227,12 @@ hitting.sensitivity <- function (params, locs, G, update.G, layers, transfn, val
     return( list( gradient=gradient, hessian=hessian ) )
 }
 
-.hsolve <- function ( locs, G.d, x, numcores=1 ) {
+.hsolve <- function ( neighborhoods, G.d, x, numcores=1 ) {
     this.apply <- if ( numcores>1 && "parallel" %in% .packages()) {
                 function (...) { do.call( cbind, mclapply( ..., mc.cores=numcores ) ) }
             } else { function (...) { sapply( ... ) } }
-    this.apply( seq_along(locs), function (loc.ind) {
-            klocs <- locs[[loc.ind]][!is.na(locs[[loc.ind]])]
+    this.apply( seq_along(neighborhoods), function (loc.ind) {
+            klocs <- neighborhoods[[loc.ind]][!is.na(neighborhoods[[loc.ind]])]
             if (length(klocs)>0) {
                 z <- numeric(nrow(G.d))
                 z[-klocs] <- as.vector( solve( G.d[-klocs,-klocs], x[-klocs,loc.ind] ) )
