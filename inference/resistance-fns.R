@@ -11,7 +11,7 @@ source(file.path(.PATH,"input-output-fns.R"))
 # number of cores for parallel
 getcores <- function (subdir) {
     if ( "parallel" %in% .packages()) {
-        numcores <- getCores()
+        numcores <- detectCores()
     } else {
         numcores <- 1
     }
