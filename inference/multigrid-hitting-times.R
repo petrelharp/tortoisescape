@@ -53,6 +53,14 @@ res.envs <- lapply( dirnames, function (subdir) {
         assign("neighborhoods", lapply(get("neighborhoods",env)[-na.indiv],function (x) { x[!is.na(x)] }), env)
         assign("dG", rowSums(get("G",env)), env) 
         assign("layer", raster(paste(file.path(layer.dir,subdir,layer.prefix),"annual_precip",sep='')), env)
+        # pre-saved functions have messed up environments
+        # evalq( { for (x in ls()) { if (mode(get(x))=="function") { f <- get(x); environment(f) <- environment() } } }, env )
+        mode.list <- with( res.envs[[subdir]], sapply(ls(),function(x)mode(get(x))) )
+        for (fn in names(mode.list)[mode.list=="function"]) {
+            f <- get(fn,env)
+            environment(f) <- env
+            assign( fn, f, env )
+        }
         # provides nonmissing
         load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep=''), envir=env ) 
         return(env)
@@ -68,7 +76,8 @@ init.param.table <- read.table( param.file, header=TRUE )
 for (k in 1:nrow(init.param.table)) {
     subdir <- init.param.table[k,1]
     if (subdir %in% names(res.envs)) {
-        assign("G@x", update.G(init.param.table[k,-1]),res.envs[[subdir]])
+        if (exists("k",res.envs[[subdir]],inherits=FALSE)) { stop("Uh-oh.") }
+        evalq( G@x <- update.G(as.numeric(init.param.table[k,-1])), res.envs[[subdir]] )
     }
 }
 
