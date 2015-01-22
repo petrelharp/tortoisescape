@@ -41,7 +41,7 @@ write.json.config <- function (config,file) {
 
 paramvec <- function (config,vname="params") {
     # access the parameters in a config list as a single vector with nice names
-    params <- config[[vname]][c("T","beta","gamma","delta")]
+    params <- config[[vname]][c("T","beta","constant_gamma","gamma","constant_delta","delta")]
     names(params$gamma) <- names(params$delta) <- config$layer_names
     return(unlist(params))
 }
@@ -50,7 +50,7 @@ paramvec <- function (config,vname="params") {
     # the assignment function corresponding to paramvec()
     value <- as.numeric(value)
     k <- 1
-    for (x in c("beta","gamma","delta")) {
+    for (x in c("T","beta","constant_gamma","gamma","constant_delta","delta")) {
         nparams <- length(config$params[[x]]) 
         config$params[[x]][] <- value[ seq(k,length.out=nparams) ]
         k <-  k + nparams

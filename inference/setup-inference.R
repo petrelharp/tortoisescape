@@ -41,11 +41,11 @@ load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissi
 
 ###
 # layer whatnot
-
-layers <- do.call( cbind, lapply( layer.names, function (layer.name) {
-        scale( values( raster(paste(layer.prefix,layer.name,sep='')) )[nonmissing] ) 
-    } ) )
-stopifnot(nrow(layers)==nrow(G))
+#   DONE IN setup-real-G.R and loaded in above!
+# layers <- do.call( cbind, lapply( layer.names, function (layer.name) {
+#         scale( values( raster(paste(layer.prefix,layer.name,sep='')) )[nonmissing] ) 
+#     } ) )
+# stopifnot(nrow(layers)==nrow(G))
 
 # tortoise locations
 load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep=''))

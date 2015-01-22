@@ -59,6 +59,10 @@ rasterOptions(tmpdir=".")
                 scale( values( raster( paste(layer.prefix,ln,sep='') ) )[nonmissing] )
             } )
     stopifnot(nrow(layers)==nrow(G))
+    
+    # ADD the constant layer
+    layers <- cbind( 1, layers )
+    layer.names <- c( "constant", layer.names )
 
     # transfn <- exp
     transfn <- function (x) { 1/(1+exp(-x)) }
