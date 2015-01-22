@@ -1,4 +1,4 @@
-```{r setup}
+```{r setup, include=FALSE}
 if (!exists("infile")) { stop("Need to specify an input file.") }
 source("resistance-fns.R")
 require(parallel)
@@ -32,9 +32,10 @@ plot( trust.optim$rho, xlab='step number', ylab='rho', main='ratio of predicted 
 
 And here is how the parameters went:
 ```{r params}
-nlayers <- (length(trust.optim$argument)-1)/2
-matplot( trust.optim$argpath[,1,drop=FALSE], type='l', ylab='shift parameter', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)) )
-matplot( trust.optim$argpath[,-1], type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)) )
+nlayers <- (length(trust.optim$argument)-2)/2
+matplot( trust.optim$argpath[,1,drop=FALSE], type='l', ylab='shift parameter', xlab='step number' )
+matplot( trust.optim$argpath[,-1], type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)), col=c(1,2:(1+nlayers),2:(1+nlayers)) )
+legend("topleft", col=1:(1+nlayers), legend=c('beta',layer.names))
 ```
 
 Now, let's look at the actual model.
@@ -60,8 +61,12 @@ for (k in plot.inds) {
 }
 ```
 
-And, fitted hitting times against the values we're trying to fit:
-```{r fit_hitting_times, echo=FALSE, fig.width=fig.dim}
-plot( pimat, params[1]+hts[locs,], col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.5), pch=20, cex=0.5, xlab="observed times", ylab="fitted times" )
+Here are the fitted hitting times against the values we're trying to fit,
+and how the fit compares to distance:
+```{r fit_hitting_times, echo=FALSE}
+layout(t(1:2))
+plot( as.vector(params[1]+hts[locs,]), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
 abline(0,1)
+plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
 ```
+
