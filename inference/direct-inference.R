@@ -3,7 +3,7 @@
 usage <- "
 Infer parameters, using the (slow) direct method on a single resolution.
 Usage:
-    Rscript direct-inference.R (config file) (output file) (max steps)
+    Rscript direct-inference.R (config file) (output file) (max steps) [result from previous run]
 e.g.
     Rscript sim-hitting-times.R real-data/six-layer-256x.json real-data/six-layer-256x-trust_1.RData 100
 
@@ -15,6 +15,7 @@ if (length(argvec)<3) { stop(usage) }
 config.file <- argvec[1]
 output.file <- argvec[2]
 maxit <- as.numeric( argvec[3] )
+prev.file <- if (length(argvec)>3) { argvec[4] } else { NULL }
 
 source("resistance-fns.R")
 require(parallel)
@@ -28,7 +29,14 @@ for (x in file.path(dirname(config.file),config$setup_files)) {
 
 # do relative to reference individuals
 ref.inds <- which.nonoverlapping(neighborhoods)
-init.params <- paramvec(config)
+
+if (is.null(prev.file)) {
+    init.params <- paramvec(config)
+} else {
+    load(prev.file)
+    init.params <- trust.optim$argument
+}
+
 G@x <- update.G(init.params)
 
 # the setup

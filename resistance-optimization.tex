@@ -367,7 +367,7 @@ and
 Let us return to the situation we started with initially:
 find parameters to minimize
 \begin{align}
-  L = \sum_{ij} \left( \hat H_{x_i,A_j} - T_{ij} \right)^2 .
+  L = \sum_{ij} \left( H_{x_i,A_j} - T_{ij} \right)^2 .
 \end{align}
 
 Now, recall that
@@ -416,6 +416,24 @@ we can use the expressions for the derivatives of $G$ above to find the derivati
 Note that if the optimum is achievable, i.e.\ $H_{x_i,A_j} = T_{ij}$ for all $i$ and $j$, 
 then the second derivative is the inner product of the first derivatives of $H_{x_i,A_j}$,
 and so it is the Gram matrix of these first derivatives that determine the degeneracy of $L$.
+
+
+\subsection{Adding a vertical shift}
+
+Suppose we add one additional parameter, $T_0$, to minimize
+\begin{align}
+  L = \sum_{ij} \left( H_{x_i,A_j} - T_{ij} + T_0 \right)^2 .
+\end{align}
+
+Then
+\begin{align}
+    \partial_{T_0} \left(H_{x_i,A_j} - T_{ij} + T_0 \right)^2 = 2 \left(H_{x_i,A_j} - T_{ij} + T_0 \right)
+\end{align}
+and so for a parameter $\theta$ that enters through $H$,
+\begin{align}
+    \partial_\theta \partial_{T_0} \left(H_{x_i,A_j} - T_{ij} + T_0 \right)^2 = 2 \partial_\theta H_{x_i,A_j}  .
+\end{align}
+
 
 \end{document}
 
