@@ -14,7 +14,7 @@
     "param_scale" : {
             "T"              : [ 3.5e5 ],
             "beta"           : [ 1.0 ],
-            "constant_beta"  : [ 1.0 ],
+            "constant_gamma"  : [ 1.0 ],
             "gamma"          : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ],
             "constant_delta" : [ 1.0 ],
             "delta"          : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
