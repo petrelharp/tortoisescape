@@ -33,7 +33,8 @@ plot( trust.optim$rho, xlab='step number', ylab='rho', main='ratio of predicted 
 And here is how the parameters went:
 ```{r params}
 nlayers <- (length(trust.optim$argument)-1)/2
-matplot( trust.optim$argpath, type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)) )
+matplot( trust.optim$argpath[,1,drop=FALSE], type='l', ylab='shift parameter', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)) )
+matplot( trust.optim$argpath[,-1], type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)) )
 ```
 
 Now, let's look at the actual model.

@@ -36,6 +36,7 @@ if (is.null(prev.file)) {
     load(prev.file)
     init.params <- trust.optim$argument
 }
+param.scale <- paramvec(config,"param_scale")
 
 G@x <- update.G(init.params[-1])
 
@@ -53,8 +54,10 @@ ds <- direct.setup( obs.locs=locs, obs.hts=na.pimat[,ref.inds],
 system.time( init.value <- ds(init.params) )
 init.value$value  
 
-trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterlim=maxit, blather=TRUE )
+trust.optim <- trust( objfun=ds, parinit=init.params, parscale=param.scale,
+        rinit=0.25, rmax=5, iterlim=maxit, blather=TRUE )
 
+trust.optim$param.scale <- param.scale
 trust.optim$ref.inds <- ref.inds
 trust.optim$config.file <- config.file
 trust.optim$invocation <- paste(commandArgs())
