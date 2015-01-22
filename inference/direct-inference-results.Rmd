@@ -10,14 +10,17 @@ opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
 config <- read.json.config(trust.optim$config.file)
 layer.names <- c("constant",config$layer_names)
+prev.file <- if (is.null(trust.optim$prev.file)) { "None" } else { trust.optim$prev.file}
+prev.html <- gsub(".RData",".html",prev.file)
+nlayers <- (length(trust.optim$argument)-2)/2
 ```
 
 The inference procedure produced by
 ```
-`r trust.optim$invocation`
+`r paste(trust.optim$invocation,collapse=' ')`
 ```
 produced
-- continuing from [`r gsub(".RData",".html",trust.optim$prev.file)`](`r gsub(".RData",".html",trust.optim$prev.file)`)
+- continuing from [`r prev.file`](`r prev.html`)
 - iterations: `r trust.optim$iterations`
 - converged: `r trust.optim$converged`
 - acceptance rate: `r mean(trust.optim$accept)`
@@ -34,7 +37,6 @@ plot( trust.optim$rho, xlab='step number', ylab='rho', main='ratio of predicted 
 
 And here is how the parameters went:
 ```{r params}
-nlayers <- (length(trust.optim$argument)-2)/2
 matplot( trust.optim$argpath[,1,drop=FALSE], type='l', ylab='shift parameter', xlab='step number' )
 matplot( trust.optim$argpath[,-1], type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)), col=c(1,2:(1+nlayers),2:(1+nlayers)) )
 legend("topleft", lty=1, col=1:(1+nlayers), legend=c('beta',layer.names))
@@ -64,8 +66,10 @@ for (k in plot.inds) {
 Here are the fitted hitting times against the values we're trying to fit,
 and how the fit compares to distance:
 ```{r fit_hitting_times, echo=FALSE}
+load("torts-info.RData")
 layout(t(1:2))
 plot( as.vector(params[1]+hts[locs,]), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
+legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
 abline(0,1)
 plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
 ```
