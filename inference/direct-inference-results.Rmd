@@ -8,6 +8,8 @@ load(infile)
 fig.dim <- 5
 opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+config <- read.json.config(trust.optim$config.file)
+layer.names <- c("constant",config$layer_names)
 ```
 
 The inference procedure produced by
@@ -35,13 +37,11 @@ And here is how the parameters went:
 nlayers <- (length(trust.optim$argument)-2)/2
 matplot( trust.optim$argpath[,1,drop=FALSE], type='l', ylab='shift parameter', xlab='step number' )
 matplot( trust.optim$argpath[,-1], type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)), col=c(1,2:(1+nlayers),2:(1+nlayers)) )
-legend("topleft", col=1:(1+nlayers), legend=c('beta',layer.names))
+legend("topleft", lty=1, col=1:(1+nlayers), legend=c('beta',layer.names))
 ```
 
 Now, let's look at the actual model.
 ```{r model_setup, echo=FALSE}
-config <- read.json.config(trust.optim$config.file)
-layer.names <- config$layer_names
 for (x in config$setup_files) { load(file.path(dirname(trust.optim$config.file),x)) }
 ph <- plot.ht.fn("../geolayers/multigrid/256x/crm_",nonmissing,homedir="..",default.par.args=list(mar=c(3,3,3,3)+.1))
 params <- trust.optim$argument

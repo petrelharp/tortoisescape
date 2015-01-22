@@ -61,6 +61,18 @@ paramvec <- function (config,vname="params") {
     return( config )
 }
 
+plot.model <- function(params,layer.names,layers,G,update.G,ph) {
+    # plot the stationary distribution and jump rates for a model
+    gamma <- params[2+(1:length(layer.names))]
+    stationary.base <- rowSums( layers * gamma[col(layers)] )
+    stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
+    ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
+    delta <- params[2+length(layer.names)+(1:length(layer.names))]
+    jump.base <- rowSums( layers * delta[col(layers)] )
+    G@x <- update.G(params)
+    ph( rowSums(G), main="total jump rate", do.lims=FALSE )
+}
+
 
 ####
 # read/write hitting times etc in standardized way
@@ -215,16 +227,4 @@ colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), ze
     } else {
         return( colfn(nlevels(x))[as.numeric(x)] )
     }
-}
-
-plot.model <- function(params,layer.names,layers,G,update.G,ph) {
-    # plot the stationary distribution and jump rates for a model
-    gamma <- params[2:(1+length(layer.names))]
-    stationary.base <- rowSums( layers * gamma[col(layers)] )
-    stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
-    ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
-    delta <- params[1+length(layer.names)+(1:length(layer.names))]
-    jump.base <- rowSums( layers * delta[col(layers)] )
-    G@x <- update.G(params)
-    ph( rowSums(G), main="total jump rate", do.lims=FALSE )
 }
