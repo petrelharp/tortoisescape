@@ -245,19 +245,20 @@ stopifnot( all.equal( as.numeric(cvec.2 %*% hc %*% cvec.2), 0 ) )
 # and check gradient and hessian of sum( ( hts - obs.hts )^2 )
 obs.locs <- locs
 ds <- direct.setup(obs.locs, obs.ht, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
-params <- true.params + 0.1
-ds.p <- ds(params)
+true.shift <- mean(hts[obs.locs,])
+ds.params <- c(true.shift,true.params) + 0.1
+ds.p <- ds(ds.params)
 
-# numerical
+# numerical derivatives
 d.hts <- function (params) {
-    G@x <- update.G(params)
-    sum( (hitting.analytic(neighborhoods,G,numcores=numcores)[obs.locs,] - hts[obs.locs,])^2 )
+    G@x <- update.G(params[-1])
+    sum( ( hitting.analytic(neighborhoods,G,numcores=numcores)[obs.locs,] - hts[obs.locs,] + params[1] )^2 )
 }
-d.hts.deriv <- grad( d.hts, params )
-d.hts.hess <- hessian( d.hts, params )
+d.hts.deriv <- grad( d.hts, ds.params )
+d.hts.hess <- hessian( d.hts, ds.params )
 
 stopifnot( all( abs( (d.hts.deriv - ds.p$gradient)/d.hts.deriv ) < 1e-5 ) )
-stopifnot( all( abs( (d.hts.hess - ds.p$hessian)/d.hts.hess ) < 2e-5 ) )
+stopifnot( all( abs( (d.hts.hess - ds.p$hessian)/d.hts.hess ) < 3e-5 ) )
 
 ###
 # check everything agrees with previously saved versions
