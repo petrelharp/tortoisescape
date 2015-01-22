@@ -37,7 +37,7 @@ if (is.null(prev.file)) {
     init.params <- trust.optim$argument
 }
 
-G@x <- update.G(init.params)
+G@x <- update.G(init.params[-1])
 
 # the setup
 ds <- direct.setup( obs.locs=locs, obs.hts=pimat[,ref.inds], 
