@@ -6,8 +6,12 @@ then
     exit
 fi
 
-OUTFILE=$(echo $1|sed -e 's/.[Rr][Dd]ata/.html/')
+RMD=$(realpath direct-inference-results.Rmd)
+DIRNAME=$(dirname $1)
+INFILE=$(basename $1)
+OUTFILE=$(echo $INFILE|sed -e 's/.[Rr][Dd]ata/.html/')
 
-R -e "library(knitr);infile=\""$1"\";knit2html('direct-inference-results.Rmd',output=\""${OUTFILE}"\");"
+# note that despite the setwd() below, the .Rmd does *not* behave as if in $DIRNAME.
+R -e "setwd(\"${DIRNAME}\");library(knitr);infile=\"$1\";knit2html(\"${RMD}\",output=\"${OUTFILE}\");"
 
 exit

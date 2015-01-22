@@ -55,5 +55,6 @@ trust.optim <- trust( objfun=ds, parinit=init.params, rinit=0.25, rmax=5, iterli
 trust.optim$ref.inds <- ref.inds
 trust.optim$config.file <- config.file
 trust.optim$invocation <- paste(commandArgs())
+trust.optim$prev.file <- prev.file
 
 save( trust.optim, file=output.file )

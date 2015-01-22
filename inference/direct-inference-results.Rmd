@@ -1,13 +1,13 @@
-```{r setup, include=FALSE}
+```{r setup}
 if (!exists("infile")) { stop("Need to specify an input file.") }
 source("resistance-fns.R")
 require(parallel)
 require(colorspace)
 require(raster)
+load(infile)
 fig.dim <- 5
 opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
-load(infile)
 ```
 
 The inference procedure produced by
@@ -15,22 +15,51 @@ The inference procedure produced by
 `r trust.optim$invocation`
 ```
 produced
+- continuing from [`r gsub(".RData",".html",trust.optim$prev.file)`](`r gsub(".RData",".html",trust.optim$prev.file)`)
 - iterations: `r trust.optim$iterations`
 - converged: `r trust.optim$converged`
 - acceptance rate: `r mean(trust.optim$accept)`
 - mean step size: `r mean(trust.optim$stepnorm)`  
 
 
-Here is how the optimization went:
-```{r descent, fig.height=.75*fig.dim}
+The fitting procedure:
+```{r descent, fig.height=.75*fig.dim, echo=FALSE}
 plot( trust.optim$valpath, col=2-trust.optim$accept, ylab="value", main="value", xlab="step number", type='b', log='y' )
 plot( trust.optim$stepnorm, ylab="step size", main="step size", xlab="step number", type='b' )
 plot( trust.optim$r, type='b', xlab='step number', ylab='radius', main='radius' )
-plot( trust.optim$rho, xlab='step number', ylab='rho', main='ratio of predicted to observed improvement', type='b', ylim=c(-2,max(trust.optim$rho)) )
+plot( trust.optim$rho, xlab='step number', ylab='rho', main='ratio of predicted to observed improvement', type='b', ylim=c(-2,2) )
 ```
 
 And here is how the parameters went:
 ```{r params}
 nlayers <- (length(trust.optim$argument)-1)/2
 matplot( trust.optim$argpath, type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)) )
+```
+
+Now, let's look at the actual model.
+```{r model_setup, echo=FALSE}
+config <- read.json.config(trust.optim$config.file)
+layer.names <- config$layer_names
+for (x in config$setup_files) { load(file.path(dirname(trust.optim$config.file),x)) }
+ph <- plot.ht.fn("../geolayers/multigrid/256x/crm_",nonmissing,homedir="..",default.par.args=list(mar=c(3,3,3,3)+.1))
+params <- trust.optim$argument
+layout(t(1:2))
+plot.model(params,layer.names,layers,G,update.G,ph)
+```
+
+Now, hitting times:
+```{r hitting_times, fig.width=3*fig.dim, fig.height=3*fig.dim, echo=FALSE}
+hts <- hitting.analytic(neighborhoods,G)
+plot.inds <- c(1,2,16,23,27,54,77,98,107)
+layout(matrix(1:9,nrow=3))
+par(mar=c(0,0,2,0)+.1)
+for (k in plot.inds) {
+    ph( hts[,k], main=k, xaxt='n', yaxt='n', xlab='', ylab='' )
+}
+```
+
+And, fitted hitting times against the values we're trying to fit:
+```{r fit_hitting_times, echo=FALSE, fig.width=fig.dim}
+plot( pimat, hts[locs,], col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.5), pch=20, cex=0.5,  )
+abline(0,1)
 ```
