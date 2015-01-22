@@ -39,9 +39,9 @@ write.json.config <- function (config,file) {
     close(con)
 }
 
-paramvec <- function (config) {
+paramvec <- function (config,vname="params") {
     # access the parameters in a config list as a single vector with nice names
-    params <- config$params[c("T","beta","gamma","delta")]
+    params <- config[[vname]][c("T","beta","gamma","delta")]
     names(params$gamma) <- names(params$delta) <- config$layer_names
     return(unlist(params))
 }
