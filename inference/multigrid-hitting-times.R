@@ -135,14 +135,14 @@ step <- function (init.hts,oldpos,newpos,maxit) {
     parscale <- (mean(ihts)+ihts)/2
 
     # optim.ht.list <- mclapply( seq_along(neighborhoods), function (loc.ind) {
-            optim( par=ihts, fn=H, gr=dH, loc=loc.ind, 
+            optim( par=ihts, fn=H, gr=dH, loc.ind=loc.ind, 
                 method="L-BFGS-B", control=list( parscale=parscale, maxit=maxit ), lower=0, upper=Inf ) 
     #   }, mc.cores=numcores )
     # return(sapply( optim.ht.list, "[[", "par" ))
 }
 
 # for plotting
-phs <- lapply( res.envs, function (env) { with(env, plot.ht.fn(file.path(layer.dir,subdir,layer.prefix),nonmissing,"annual_precip")) } )
+phs <- lapply( res.envs, function (env) { with(env, plot.ht.fn(file.path(layer.dir,subdir,layer.prefix),nonmissing,"dem_30")) } )
 
 stepres <- rep(c(1,2),20)
 maxits <- c(10,100)[stepres[-1]]

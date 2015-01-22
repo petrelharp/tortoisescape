@@ -1,0 +1,36 @@
+```{r setup, include=FALSE}
+if (!exists("infile")) { stop("Need to specify an input file.") }
+source("resistance-fns.R")
+require(parallel)
+require(colorspace)
+require(raster)
+fig.dim <- 5
+opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fac) * (xr-mean(xr)) }
+load(infile)
+```
+
+The inference procedure produced by
+```
+`r trust.optim$invocation`
+```
+produced
+- iterations: `r trust.optim$iterations`
+- converged: `r trust.optim$converged`
+- acceptance rate: `r mean(trust.optim$accept)`
+- mean step size: `r mean(trust.optim$stepnorm)`  
+
+
+Here is how the optimization went:
+```{r descent, fig.height=.75*fig.dim}
+plot( trust.optim$valpath, col=2-trust.optim$accept, ylab="value", main="value", xlab="step number", type='b', log='y' )
+plot( trust.optim$stepnorm, ylab="step size", main="step size", xlab="step number", type='b' )
+plot( trust.optim$r, type='b', xlab='step number', ylab='radius', main='radius' )
+plot( trust.optim$rho, xlab='step number', ylab='rho', main='ratio of predicted to observed improvement', type='b', ylim=c(-2,max(trust.optim$rho)) )
+```
+
+And here is how the parameters went:
+```{r params}
+nlayers <- (length(trust.optim$argument)-1)/2
+matplot( trust.optim$argpath, type='l', ylab='parameter values', xlab='step number', lty=c(1,rep(1,nlayers),rep(2,nlayers)) )
+```
