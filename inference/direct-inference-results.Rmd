@@ -44,11 +44,12 @@ for (x in config$setup_files) { load(file.path(dirname(trust.optim$config.file),
 ph <- plot.ht.fn("../geolayers/multigrid/256x/crm_",nonmissing,homedir="..",default.par.args=list(mar=c(3,3,3,3)+.1))
 params <- trust.optim$argument
 layout(t(1:2))
-plot.model(params,layer.names,layers,G,update.G,ph)
+plot.model(params[-1],layer.names,layers,G,update.G,ph)
 ```
 
 Now, hitting times:
 ```{r hitting_times, fig.width=3*fig.dim, fig.height=3*fig.dim, echo=FALSE}
+G@x <- update.G(params[-1])
 hts <- hitting.analytic(neighborhoods,G)
 plot.inds <- c(1,2,16,23,27,54,77,98,107)
 layout(matrix(1:9,nrow=3))
@@ -60,6 +61,6 @@ for (k in plot.inds) {
 
 And, fitted hitting times against the values we're trying to fit:
 ```{r fit_hitting_times, echo=FALSE, fig.width=fig.dim}
-plot( pimat, hts[locs,], col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.5), pch=20, cex=0.5,  )
+plot( pimat, params[1]+hts[locs,], col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.5), pch=20, cex=0.5, xlab="observed times", ylab="fitted times" )
 abline(0,1)
 ```

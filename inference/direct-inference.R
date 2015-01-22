@@ -40,7 +40,10 @@ if (is.null(prev.file)) {
 G@x <- update.G(init.params[-1])
 
 # the setup
-ds <- direct.setup( obs.locs=locs, obs.hts=pimat[,ref.inds], 
+# omit self comparisons from the fitting procedure
+na.pimat <- pimat
+diag(na.pimat) <- NA
+ds <- direct.setup( obs.locs=locs, obs.hts=na.pimat[,ref.inds], 
         neighborhoods=neighborhoods[ref.inds], 
         G=G, update.G=update.G, layers=layers, 
         transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma
