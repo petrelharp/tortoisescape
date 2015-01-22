@@ -3,18 +3,29 @@
 require(trust)
 
 direct.setup <- function (obs.locs, obs.hts, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
+    # here, parameters are:
+    #     (T, beta, gamma, delta)
+    #   where T is an overall shift
+    # this omits any comparisons where obs.hts is NA.
+    obs.notna <- which( !is.na(obs.hts) )
     return( function (params) {
-            hs <- hitting.sensitivity(params, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=TRUE, numcores=numcores )
+            T.shift <- params[1]
+            hs <- hitting.sensitivity(params[-1], neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=TRUE, numcores=numcores )
             hs.grad <- hs$gradient[obs.locs,,]
             new.hts <- (-1)*hs$gradient[obs.locs,,1]  # this works because beta enters as exponential
-            resids <- as.vector( new.hts - obs.hts )
+            resids <- as.vector( new.hts - obs.hts + T.shift )[ obs.notna ]
             dim(hs.grad) <- c( prod(dim(hs.grad)[1:2]), dim(hs.grad)[3] )
+            hs.grad <- hs.grad[obs.notna,]
             hs.hess <- hs$hessian[obs.locs,,,]
             dim(hs.hess) <- c( prod(dim(hs.hess)[1:2]), prod(dim(hs.hess)[3:4]) )
+            hs.hess <- hs.hess[obs.notna,]
             ht.hessian <- crossprod( hs.hess, resids )
-            dim(ht.hessian) <- c( length(params), length(params) )
-            gradient <- 2 * crossprod( hs.grad, resids )
-            hessian <- 2 * ( ht.hessian + crossprod(hs.grad) )
+            dim(ht.hessian) <- c( length(params)-1, length(params)-1 )
+            gradient <- 2 * c( sum(resids), crossprod( hs.grad, resids ) )
+            hessian <- matrix( 0, nrow=length(params), ncol=length(params) )
+            hessian[1,1] <- 2 * length(resids) 
+            hessian[-1,1] <- hessian[1,-1] <- 2 * colSums(hs.grad) 
+            hessian[-1,-1] <- 2 * ( ht.hessian + crossprod(hs.grad) )
             return( list( value=sum(resids^2), gradient=gradient, hessian=hessian ) )
         } )
 }
