@@ -41,8 +41,10 @@ write.json.config <- function (config,file) {
 
 paramvec <- function (config,vname="params") {
     # access the parameters in a config list as a single vector with nice names
-    params <- config[[vname]][c("T","beta","constant_gamma","gamma","constant_delta","delta")]
-    names(params$gamma) <- names(params$delta) <- config$layer_names
+    params <- config[[vname]][c("T","beta","gamma","delta")]
+    params$gamma <- c(config[[vname]]$constant_gamma,params$gamma)
+    params$delta <- c(config[[vname]]$constant_delta,params$delta)
+    names(params$gamma) <- names(params$delta) <- c("constant",config$layer_names)
     return(unlist(params))
 }
 
@@ -63,7 +65,7 @@ paramvec <- function (config,vname="params") {
 ####
 # read/write hitting times etc in standardized way
 
-read.pariwise.hts <- function ( file, inds=1:n, n=length(inds), upper=TRUE, diag=TRUE ) {
+read.pairwise.hts <- function ( file, inds=1:n, n=length(inds), upper=TRUE, diag=TRUE ) {
     # read in unstructured hitting times
     # as e.g. output by pwp scripts
     vals <- scan(file) # has UPPER with diagonal
@@ -72,7 +74,7 @@ read.pariwise.hts <- function ( file, inds=1:n, n=length(inds), upper=TRUE, diag
     dimnames(pimat) <- list( inds, inds )
     which.tri <- if (upper) { upper.tri } else { lower.tri }
     other.tri <- if (upper) { lower.tri } else { upper.tri }
-    pimat[which.tri(pimat,diag=diag)] <- pimat.vals
+    pimat[which.tri(pimat,diag=diag)] <- vals
     pimat[other.tri(pimat,diag=FALSE)] <- t(pimat)[other.tri(pimat,diag=FALSE)]
     return(pimat)
 }
