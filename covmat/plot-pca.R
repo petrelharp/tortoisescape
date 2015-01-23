@@ -6,8 +6,8 @@ require(maps)
 require(maptools)
 require(raster)
 
-torts <- read.csv("../1st_180_torts.csv",header=TRUE)
-tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE,stringsAsFactors=FALSE)
+torts <- read.csv("../tort_180_info/1st_180_torts.csv",header=TRUE)
+tort.dist.table <- read.table("../tort_180_info/1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE,stringsAsFactors=FALSE)
 tort.dist.table$etort1 <- factor( tort.dist.table$etort1, levels=levels(torts$EM_Tort_ID) )
 tort.dist.table$etort2 <- factor( tort.dist.table$etort2, levels=levels(torts$EM_Tort_ID) )
 tort.dists <- matrix( NA, nrow=nrow(torts), ncol=nrow(torts) )
@@ -50,7 +50,7 @@ write.csv( torts[paste("PC",1:8,sep='')], file="tort-PCs.csv", row.names=torts$E
 elev.file <- "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri"
 elev <- raster(elev.file)
 # and tortoise locs
-load("../tort.coords.rasterGCS.Robj")
+load("../tort_180_info/tort.coords.rasterGCS.Robj")
 stopifnot( all( row.names(tort.coords.rasterGCS) == torts$EM_Tort_ID ) )
 # and county lines
 load("../county_lines.Robj")  # @gbradburd: how was this produced?

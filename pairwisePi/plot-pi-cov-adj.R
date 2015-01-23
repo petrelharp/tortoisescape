@@ -18,10 +18,10 @@ robust.pimat[lower.tri(robust.pimat,diag=FALSE)] <- t(robust.pimat)[lower.tri(ro
 mean(angsd.pimat)
 mean(robust.pimat)
 
-torts <- read.csv("../1st_180_torts.csv",header=TRUE)
+torts <- read.csv("../tort_180_info/1st_180_torts.csv",header=TRUE)
 
 # pairwise distances
-tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
+tort.dist.table <- read.table("../tort_180_info/1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
 tort.dists[ cbind( match(tort.dist.table$etort1,torts$EM_Tort_ID), match(tort.dist.table$etort2,torts$EM_Tort_ID) ) ] <- tort.dist.table$DISTANCE
 tort.dists <- tort.dists + t(tort.dists)
@@ -34,7 +34,7 @@ torts$coverage <- coverages$sequence_yield_megabases
 #elev.file <- "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri"
 #elev <- raster(elev.file)
 # and tortoise locs on it
-#load("../tort.coords.rasterGCS.Robj")
+#load("../tort_180_info/tort.coords.rasterGCS.Robj")
 #load("../county_lines.Robj")  # @gbradburd: how was this produced?
 
 

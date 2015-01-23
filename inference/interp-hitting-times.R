@@ -112,7 +112,7 @@ if (FALSE) {
 
 
     load(paste(subdir,"/",basename(layer.file),"-",basename(layer.prefix),"setup.RData",sep=''))
-    load("../tort.coords.rasterGCS.Robj")
+    load("../tort_180_info/tort.coords.rasterGCS.Robj")
     load(paste(subdir,"/",basename(layer.prefix),"alllocs.RData",sep='')) # all.locs.dists
     load("torts-info.RData")
     ph <- plot.ht.fn(layer.prefix,nonmissing,"dem_30")

@@ -45,15 +45,12 @@ rasterOptions(tmpdir=".")
 
     # get info out of na layer
     nalayer <- raster(paste(dirname(layer.prefix),"/",na.layer.name,sep=''))
-    n <- dim(nalayer)[2]; m <- dim(nalayer)[1]
-    nmap <- matrix(1:n*m,nrow=n)
-    all.locs <- cbind( i=as.vector(row(nmap)), j=as.vector(col(nmap)) )
     nonmissing <- which(values(nalayer)==0)
 
     ###
     # generator matrix
     G <- make.G( layer=nalayer, nonmissing=nonmissing )
-    Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
+    Gjj <- p.to.j(G@p)
 
     layers <- sapply( layer.names, function (ln) {
                 scale( values( raster( paste(layer.prefix,ln,sep='') ) )[nonmissing] )

@@ -1,8 +1,8 @@
 {
     "description" : "Configuration for direct inference on 256x grid.",
     "layer_names" : [ "imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st" ],
-    "layer_prefix" : "../../geolayers/multigrid/256x/crm_",
-    "setup_files" : [ "../256x/crm_six-raster-list-setup.RData" ],
+    "layer_prefix" : "../../../geolayers/multigrid/256x/crm_",
+    "setup_files" : [ "../../256x/crm_six-raster-list-setup.RData" ],
     "params" : {
             "T"              : [ 3.5e5 ],
             "beta"           : [ 2.0 ],

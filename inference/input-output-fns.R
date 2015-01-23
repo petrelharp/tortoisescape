@@ -61,9 +61,35 @@ paramvec <- function (config,vname="params") {
     return( config )
 }
 
+plot.model <- function(params,layer.names,layers,G,update.G,ph) {
+    # plot the stationary distribution and jump rates for a model
+    gamma <- params[2+(1:length(layer.names))]
+    stationary.base <- rowSums( layers * gamma[col(layers)] )
+    stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
+    ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
+    delta <- params[2+length(layer.names)+(1:length(layer.names))]
+    jump.base <- rowSums( layers * delta[col(layers)] )
+    G@x <- update.G(params)
+    ph( rowSums(G), main="total jump rate", do.lims=FALSE )
+}
+
 
 ####
 # read/write hitting times etc in standardized way
+
+df.to.sym <- function (x,inds) {
+    # takes a three-column data frame x, where the first two have labels in 'inds',
+    # and converts it to a matrix with rows and columns in the order of 'inds'
+    # and values given by the third column of x,
+    # assumed to be symmetric
+    ind1 <- match(x[,1],inds)
+    ind2 <- match(x[,2],inds)
+    mat <- matrix(NA,nrow=length(inds),ncol=length(inds))
+    rownames(mat) <- colnames(mat) <- inds
+    mat[ cbind(ind1,ind2) ] <- x[,3]
+    mat[is.na(mat)] <- t(mat)[is.na(mat)]
+    return(mat)
+}
 
 read.pairwise.hts <- function ( file, inds=1:n, n=length(inds), upper=TRUE, diag=TRUE ) {
     # read in unstructured hitting times
@@ -173,7 +199,7 @@ plot.ht.fn <- function (layer.prefix,nonmissing,layer.name="dem_30",
     # use this to make a quick plotting function
     require(raster)
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
-    load(file.path(homedir,"tort.coords.rasterGCS.Robj"))
+    load(file.path(homedir,"tort_180_info/tort.coords.rasterGCS.Robj"))
     orig.locs <- cellFromXY( layer, tort.coords.rasterGCS )
     locs <- match(orig.locs,nonmissing)
     ph <- function (x,...,do.lims=TRUE,par.args=default.par.args,zlim.fac=default.zlim.fac) { 
@@ -215,16 +241,4 @@ colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), ze
     } else {
         return( colfn(nlevels(x))[as.numeric(x)] )
     }
-}
-
-plot.model <- function(params,layer.names,layers,G,update.G,ph) {
-    # plot the stationary distribution and jump rates for a model
-    gamma <- params[2:(1+length(layer.names))]
-    stationary.base <- rowSums( layers * gamma[col(layers)] )
-    stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
-    ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
-    delta <- params[1+length(layer.names)+(1:length(layer.names))]
-    jump.base <- rowSums( layers * delta[col(layers)] )
-    G@x <- update.G(params)
-    ph( rowSums(G), main="total jump rate", do.lims=FALSE )
 }

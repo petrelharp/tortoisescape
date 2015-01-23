@@ -6,7 +6,7 @@ require(rgdal)
 
 #	For the 270 tortoise dataset
 #	first, get the lat/long data down
-load("tort272.coords.raster.GCS.Robj")
+load("tort_272_info/geog_coords.RData")
 
 tort.coords.GCS.spobj <- spTransform(tort.coords.272.rasterGCS,CRS("+proj=longlat"))
 tort.coords <- tort.coords.GCS.spobj@coords
@@ -18,7 +18,7 @@ tort.coords <- tort.coords[-c(271:272),]
 #	drop the last 6 rows/columns, as they are from dupe torts
 #		(the last 4 prepped w/ a different PCR protocol)
 
-sample.covariance <- as.matrix(read.table("276torts.covar"))[-c(271:276),-c(271:276)]
+sample.covariance <- as.matrix(read.table("tort_276_info/276torts.covar"))[-c(271:276),-c(271:276)]
 
 #	name the rows and columns
 row.names(sample.covariance) <- row.names(tort.coords)
@@ -39,7 +39,7 @@ save(tort270_spacemix_dataset,file="tort_spacemix/tort270_spacemix_dataset.Robj"
 
 #For the 180 tortoise dataset
 #first, get the lat/long data down
-load("tort.coords.rasterGCS.Robj")
+load("tort_180_info/tort.coords.rasterGCS.Robj")
 
 tort.coords.GCS.spobj <- spTransform(tort.coords.rasterGCS,CRS("+proj=longlat"))
 tort.coords <- tort.coords.GCS.spobj@coords

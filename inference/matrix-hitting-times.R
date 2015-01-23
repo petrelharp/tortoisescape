@@ -30,7 +30,7 @@ locs <- orig.locs[-na.indiv]
 tort.nums <- seq_along(orig.locs)[-na.indiv]
 
 require(raster)
-load("../tort.coords.rasterGCS.Robj")
+load("../tort_180_info/tort.coords.rasterGCS.Robj")
 all.tort.ids <- rownames(tort.coords.rasterGCS@coords)
 use.tort.ids <- all.tort.ids[-na.indiv]
 

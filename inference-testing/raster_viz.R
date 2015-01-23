@@ -18,7 +18,7 @@ if(!file.exists("masked_raster_pngs")){
 }
 #	load the tortoise location data
 #		made using "format_tortoise_location_data.R" in the git
-load("tort.coords.rasterGCS.Robj")
+load("tort_180_info/tort.coords.rasterGCS.Robj")
 
 county.outlines <- map("county",c("california","nevada","arizona"),xlim=c(-120,-113),ylim=c(31,37),plot=FALSE)
 county.outlines <- map2SpatialLines(county.outlines,proj4string=CRS("+proj=longlat"))

@@ -41,13 +41,18 @@ param.scale <- paramvec(config,"param_scale")
 G@x <- update.G(init.params[-1])
 
 # the setup
-# omit self comparisons from the fitting procedure
-na.pimat <- pimat
-diag(na.pimat) <- NA
-ds <- direct.setup( obs.locs=locs, obs.hts=na.pimat[,ref.inds], 
+#   omit self comparisons from the fitting procedure
+fit.pimat <- pimat[ref.inds,ref.inds]  
+# note:  changing to symmetric=FALSE can:
+#   remove subsetting to rows if also set symmetric=FALSE below
+#   and change obs.locs to locs
+obs.locs <- locs[ref.inds]
+diag(fit.pimat) <- NA
+ds <- direct.setup( obs.locs=obs.locs, obs.hts=fit.pimat,
         neighborhoods=neighborhoods[ref.inds], 
         G=G, update.G=update.G, layers=layers, 
-        transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma
+        transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma,
+        symmetric=TRUE
     )
 
 # check this runs
@@ -63,5 +68,7 @@ trust.optim$ref.inds <- ref.inds
 trust.optim$config.file <- config.file
 trust.optim$invocation <- paste(commandArgs())
 trust.optim$prev.file <- prev.file
+trust.optim$symmetric <- symmetric
+trust.optim$pimat <- fit.pimat
 
 save( trust.optim, file=output.file )

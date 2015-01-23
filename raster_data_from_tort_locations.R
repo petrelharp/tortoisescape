@@ -25,7 +25,7 @@ get.raster.data.from.locations <- function(raster,locations){
 #	so, now we go through all the masked rasters
 #		and apply this function to them.
 
-load("tort.coords.rasterGCS.Robj")
+load("tort_272_info/tort.coords.rasterGCS.Robj")
 raster.files <- list.files(tiffdir,pattern=".gri",full.names=TRUE)
 raster.names <- gsub(".*crop_(resampled_)*masked_","",raster.files)
 raster.names <- gsub(".gri","",raster.names)

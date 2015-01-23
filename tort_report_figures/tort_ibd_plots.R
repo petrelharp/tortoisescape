@@ -17,11 +17,11 @@ if(file.exists("~/Desktop/Dropbox/tortoisescape")){
 pi.factor <- 5319387/285214272
 
 # get the metadata
-torts <- read.csv("1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
+torts <- read.csv("tort_180_info/1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
 nind <- nrow(torts)
 
 # and the pairwise geographic distance matrix
-tort.dist.table <- read.table("1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
+tort.dist.table <- read.table("tort_180_info/1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
 tort.dists[ cbind( match(tort.dist.table$etort1,torts$EM_Tort_ID), 
 					match(tort.dist.table$etort2,torts$EM_Tort_ID) ) ] <- tort.dist.table$DISTANCE
@@ -258,9 +258,9 @@ require(maps)
 require(rgdal)
 require(maptools)
 
-load("tort.coords.rasterGCS.Robj")
+load("tort_180_info/tort.coords.rasterGCS.Robj")
 load("county_lines.Robj")
-load("raster_GCS_CRS_proj4.Robj")
+raster_GCS_CRS_proj4 <- CRS(scan("raster_GCS_CRS_proj4.txt",what="char",sep="\n"))
 
 # and get state lines in bold
 state.lines <- map(database="state",regions=c("California","Arizona","Nevada"),plot=FALSE)
