@@ -11,7 +11,7 @@ inflate <- function (...,fac=.2) { xr <- range(...,na.rm=TRUE); mean(xr) + (1+fa
 config <- read.json.config(trust.optim$config.file)
 layer.names <- c("constant",config$layer_names)
 prev.file <- if (is.null(trust.optim$prev.file)) { "None" } else { trust.optim$prev.file}
-prev.html <- gsub(".RData",".html",prev.file)
+prev.html <- gsub(".RData",".html",basename(prev.file))
 nlayers <- (length(trust.optim$argument)-2)/2
 ```
 
@@ -66,9 +66,11 @@ for (k in plot.inds) {
 Here are the fitted hitting times against the values we're trying to fit,
 and how the fit compares to distance:
 ```{r fit_hitting_times, echo=FALSE}
+sym.hts <- params[1]+hts[locs,]
+sym.hts <- (sym.hts+t(sym.hts))/2
 load("torts-info.RData")
 layout(t(1:2))
-plot( as.vector(params[1]+hts[locs,]), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
+plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
 legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
 abline(0,1)
 plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )

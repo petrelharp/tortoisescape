@@ -64,5 +64,7 @@ trust.optim$ref.inds <- ref.inds
 trust.optim$config.file <- config.file
 trust.optim$invocation <- paste(commandArgs())
 trust.optim$prev.file <- prev.file
+trust.optim$symmetric <- symmetric
+trust.optim$pimat <- na.pimat[,ref.inds]
 
 save( trust.optim, file=output.file )

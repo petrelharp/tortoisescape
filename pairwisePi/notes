@@ -1,0 +1,8 @@
+Evan sez, 1/22/15:
+
+allllllSites.pwp is the pwp calculation for the 1,873,008,459 sites that had reads mapped from at least one individual and had depth > 10 for any tortoise.
+
+allSNPs.pwp is the pwp calculation for the 52,740,529 total ANGSD-determined polymorphic sites.
+
+Both are for the 272 tort datasets. The 271st and 272nd tortoises in the matrix are biological duplicates. This does not include the 4 samples that were prepped using a PCR protocol.
+
