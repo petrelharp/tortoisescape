@@ -91,6 +91,15 @@ df.to.sym <- function (x,inds) {
     return(mat)
 }
 
+sym.to.df <- function ( mat ) {
+    # inverse to df.to.sym
+    data.frame(
+            etort1=rownames(mat)[row(mat)][upper.tri(mat,diag=TRUE)],
+            etort2=colnames(mat)[col(mat)][upper.tri(mat,diag=TRUE)],
+            dist=mat[upper.tri(mat,diag=TRUE)]
+        )
+}
+
 read.pairwise.hts <- function ( file, inds=1:n, n=length(inds), upper=TRUE, diag=TRUE ) {
     # read in unstructured hitting times
     # as e.g. output by pwp scripts
