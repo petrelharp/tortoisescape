@@ -4,7 +4,12 @@ require(numDeriv)
 # will compare results to those previously computed with the same seed
 set.seed(12345)
 check.file <- "run-tests-saved-1234.RData"
-check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping","G","Gjj","true.hts","sub.true.hts","gcheck.1","gcheck.2","hcheck.1","hcheck.2","hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.grad.checks", "hc", "ds.p", "d.hts.deriv", "d.hts.hess", "na.ds.p", "na.d.hts.deriv", "na.d.hts.hess" )
+check.objects <- c("biglayer","layer.list","SP.locs","locs","nonmissing","neighborhoods","boundaries","nonoverlapping",
+        "G","Gjj","true.hts","sub.true.hts","gcheck.1","gcheck.2","hcheck.1","hcheck.2",
+        "hts.0","hts.1","hts.2","hts.3","hts.4","hts.5", "hs", "hs.grad.checks", "hc", 
+        "ds.p", "d.hts.deriv", "d.hts.hess", 
+        "na.ds.p", "na.d.hts.deriv", "na.d.hts.hess",
+        "sym.ds.p", "sym.d.hts.deriv", "sym.d.hts.hess" )
 # do this at the end
 check.it <- function () { 
     if (do.check) {
@@ -241,10 +246,10 @@ cvec.2[3+nlayers] <- 1
 cvec.2[3+2*nlayers] <- (-1)
 stopifnot( all.equal( as.numeric(cvec.2 %*% hc %*% cvec.2), 0 ) )
 
-
+########
 # and check gradient and hessian of sum( ( hts - obs.hts )^2 )
 obs.locs <- locs
-ds <- direct.setup(obs.locs, obs.ht, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
+ds <- direct.asymmetric.setup(obs.locs, obs.ht, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
 true.shift <- mean(hts[obs.locs,])
 ds.params <- c(true.shift,true.params) + 0.1
 ds.p <- ds(ds.params)
@@ -264,7 +269,7 @@ stopifnot( all( abs( (d.hts.hess - ds.p$hessian)/d.hts.hess ) < 3e-5 ) )
 na.obs.ht <- obs.ht
 diag(na.obs.ht) <- NA
 obs.locs <- locs
-ds <- direct.setup(obs.locs, na.obs.ht, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
+ds <- direct.asymmetric.setup(obs.locs, na.obs.ht, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
 true.shift <- mean(hts[obs.locs,])
 ds.params <- c(true.shift,true.params) + 0.1
 na.ds.p <- ds(ds.params)
@@ -280,6 +285,29 @@ na.d.hts.hess <- hessian( d.hts, ds.params )
 
 stopifnot( all( abs( (na.d.hts.deriv - na.ds.p$gradient)/na.d.hts.deriv ) < 1e-5 ) )
 stopifnot( all( abs( (na.d.hts.hess - na.ds.p$hessian)/na.d.hts.hess ) < 3e-5 ) )
+
+########
+# and check gradient and hessian of sum( ( (hts+t(hts))/2 - obs.hts )^2 )
+#   (i.e. for commute times)
+obs.locs <- locs
+sym.obs.ht <- true.hts[obs.locs,]
+sym.ds <- direct.symmetric.setup(obs.locs, sym.obs.ht, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma)
+true.shift <- mean(hts[obs.locs,])
+sym.ds.params <- c(true.shift,true.params) + 0.1
+sym.ds.p <- ds(ds.params)
+
+# numerical derivatives
+sym.d.hts <- function (params) {
+    G@x <- update.G(params[-1])
+    ha <- hitting.analytic(neighborhoods,G,numcores=numcores)[obs.locs,]
+    sum( ( (ha+t(ha))/2 - sym.obs.ht + params[1] )^2 )
+}
+sym.d.hts.deriv <- grad( sym.d.hts, sym.ds.params )
+sym.d.hts.hess <- hessian( sym.d.hts, sym.ds.params )
+
+stopifnot( all( abs( (d.hts.deriv - ds.p$gradient)/d.hts.deriv ) < 1e-5 ) )
+stopifnot( all( abs( (d.hts.hess - ds.p$hessian)/d.hts.hess ) < 3e-5 ) )
+
 
 ###
 # check everything agrees with previously saved versions

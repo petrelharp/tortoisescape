@@ -2,7 +2,48 @@
 # Functions to return setup for various optimization problems.
 require(trust)
 
-direct.setup <- function (obs.locs, obs.hts, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
+direct.setup <- function (...,symmetric=TRUE) {
+    return( if (symmetric) {
+            direct.symmetric.setup(...)
+        } else {
+            direct.asymmetric.setup(...)
+        } )
+}
+
+direct.symmetric.setup <- function (obs.locs, obs.hts, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
+    #  Differs from direct.setup below in that it fits commute times rather than hitting times.
+    # here, parameters are:
+    #     (T, beta, gamma, delta)
+    #   where T is an overall shift
+    # this omits any comparisons where obs.hts is NA.
+    if (!nrow(obs.hts)==ncol(hts)) { stop("For symmetric version need a square matrix of hitting times.") }
+    obs.notna <- which( !is.na(obs.hts) )
+    t.obs.notna <- seq_along(obs.hts)
+    dim(t.obs.notna) <- dim(obs.hts)
+    t.obs.notna <- t(t.obs.notna)[obs.notna]
+    return( function (params) {
+            T.shift <- params[1]
+            hs <- hitting.sensitivity(params[-1], neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=TRUE, numcores=numcores )
+            hs.grad <- hs$gradient[obs.locs,,]
+            new.hts <- (-1)*hs$gradient[obs.locs,,1]  # this works because beta enters as exponential
+            resids <- as.vector( (new.hts+t(new.hts))/2 - obs.hts + T.shift )[ obs.notna ]
+            dim(hs.grad) <- c( prod(dim(hs.grad)[1:2]), dim(hs.grad)[3] )
+            hs.grad <- ( hs.grad[obs.notna,] + hs.grad[t.obs.notna,] )/2  # deriv of commute time
+            hs.hess <- hs$hessian[obs.locs,,,]
+            dim(hs.hess) <- c( prod(dim(hs.hess)[1:2]), prod(dim(hs.hess)[3:4]) )
+            hs.hess <- ( hs.hess[obs.notna,] + hs.hess[t.obs.notna,] )/2  # deriv of commute time
+            ht.hessian <- crossprod( hs.hess, resids )
+            dim(ht.hessian) <- c( length(params)-1, length(params)-1 )
+            gradient <- 2 * c( sum(resids), crossprod( hs.grad, resids ) )
+            hessian <- matrix( 0, nrow=length(params), ncol=length(params) )
+            hessian[1,1] <- 2 * length(resids) 
+            hessian[-1,1] <- hessian[1,-1] <- 2 * colSums(hs.grad) 
+            hessian[-1,-1] <- 2 * ( ht.hessian + crossprod(hs.grad) )
+            return( list( value=sum(resids^2), gradient=gradient, hessian=hessian ) )
+        } )
+}
+
+direct.asymmetric.setup <- function (obs.locs, obs.hts, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {
     # here, parameters are:
     #     (T, beta, gamma, delta)
     #   where T is an overall shift

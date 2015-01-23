@@ -47,7 +47,8 @@ diag(na.pimat) <- NA
 ds <- direct.setup( obs.locs=locs, obs.hts=na.pimat[,ref.inds], 
         neighborhoods=neighborhoods[ref.inds], 
         G=G, update.G=update.G, layers=layers, 
-        transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma
+        transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma,
+        symmetric=TRUE
     )
 
 # check this runs
