@@ -31,7 +31,7 @@ cat( "Proportion of variance:\n" )
 cat( paste(formatC( eig.covmat$values / sum(eig.covmat$values)*100, digits=3 )[1:8],"%",sep=''), "\n" )
 
 pcs <- eig.covmat$vectors[,1:10]
-colnames(pcs) <- paste("PC",1:ncol(pcs))
+colnames(pcs) <- paste("PC",1:ncol(pcs),sep='')
 pcs <- cbind( data.frame( etort=inds ), pcs )
 
 write.csv( pcs, file=outfile, row.names=FALSE )
