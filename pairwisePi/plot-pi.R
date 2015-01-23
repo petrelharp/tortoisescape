@@ -33,12 +33,12 @@ pimats <- list(
 
 sapply( pimats, mean )
 
-torts <- read.csv("../1st_180_torts.csv",header=TRUE)
+torts <- read.csv("../tort_180_info/1st_180_torts.csv",header=TRUE)
 torts$EM_Tort_ID <- levels(torts$EM_Tort_ID)[as.numeric(torts$EM_Tort_ID)]
 torts$EM_Tort_ID <- factor( torts$EM_Tort_ID , levels=torts$EM_Tort_ID  )
 
 # pairwise distances
-dists <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE,stringsAsFactors=FALSE)
+dists <- read.table("../tort_180_info/1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE,stringsAsFactors=FALSE)
 dists$etort1 <- factor( dists$etort1, levels=levels(torts$EM_Tort_ID) )
 dists$etort2 <- factor( dists$etort2, levels=levels(torts$EM_Tort_ID) )
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
@@ -53,7 +53,7 @@ torts$coverage <- coverages$sequence_yield_megabases
 elev.file <- "../geolayers/TIFF/10x/crop_resampled_masked_aggregated_10x_dem_30.gri"
 elev <- raster(elev.file)
 # and tortoise locs on it
-load("../tort.coords.rasterGCS.Robj")
+load("../tort_180_info/tort.coords.rasterGCS.Robj")
 load("../county_lines.Robj")  # @gbradburd: how was this produced?
 
 # make a table

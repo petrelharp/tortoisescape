@@ -33,12 +33,12 @@ layer <- raster(layer.file)
 
 ###
 # tortoise locations
-load("../tort.coords.rasterGCS.Robj")  # provides tort.coords.rasterGCS
+load("../tort_180_info/tort.coords.rasterGCS.Robj")  # provides tort.coords.rasterGCS
 orig.locs <- cellFromXY( layer, tort.coords.rasterGCS )
 tort.coords.raw <- coordinates(tort.coords.rasterGCS)
 
 ### tort info
-torts <- read.csv("../1st_180_torts.csv",header=TRUE)
+torts <- read.csv("../tort_180_info/1st_180_torts.csv",header=TRUE)
 nind <- nrow(torts)
 
 # pairwise divergence values
@@ -49,7 +49,7 @@ pimat[upper.tri(pimat,diag=TRUE)] <- pimat.vals
 pimat[lower.tri(pimat,diag=FALSE)] <- t(pimat)[lower.tri(pimat,diag=FALSE)]
 
 # pairwise distances
-tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
+tort.dist.table <- read.table("../tort_180_info/1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
 tort.dists[ cbind( match(tort.dist.table$etort1,torts$EM_Tort_ID), match(tort.dist.table$etort2,torts$EM_Tort_ID) ) ] <- tort.dist.table$DISTANCE
 tort.dists <- tort.dists + t(tort.dists)

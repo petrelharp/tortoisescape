@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
+setwd("..")  # move to base of tortoisescape
 
-load("tort.coords.rasterGCS.Robj")
+load("tort_180_info/tort.coords.rasterGCS.Robj")
 
 # converting these pi values to divergence:
 # Evan: "So the total size of the first hundred scaffolds is 285,214,272bp. In those 285,214,272bp we found a total of 5,319,387 SNPs with that angsd run."
@@ -98,7 +99,7 @@ infl <- function (x,fac=.5) { as.vector(mean(x) + (1+fac)*(x-mean(x))) }
 
 require(plotrix)
 
-pdf(file="ivanpah-ibd.pdf", width=10, height=6, pointsize=10)
+pdf(file="visualization/plots/ivanpah-ibd.pdf", width=10, height=6, pointsize=10)
 layout(t(1:2))
 plot(layer, xlim=infl(ivanpah_coords@bbox["coords.x1",],.8), ylim=infl(ivanpah_coords@bbox["coords.x2",]), main="Ivanpah valley", xaxt='n', yaxt='n' )
 points( ivanpah_coords, pch=20 ) #, col=torts$Location_ID[torts$Location_ID %in% ivanpah_locs] )

@@ -18,11 +18,11 @@ rasterOptions(tmpdir=".")
 ################################
 
 #	First, read in tortoise data from .csv file
-tort.coord.data <- read.csv("1st_180_torts.csv")
+tort.coord.data <- read.csv("tort_180_info/1st_180_torts.csv")
 
 #	also, grab the proj4 string describing the GCS of
 #		the rasters from jannet
-load("raster_GCS_CRS_proj4.Robj")
+raster_GCS_CRS_proj4 <- CRS(scan("raster_GCS_CRS_proj4.txt",what="char",sep="\n"))
 tort.coords <- cbind(tort.coord.data$Easting,tort.coord.data$Northing)
 
 #	get the UTM zone, because not all are from zone 11
@@ -42,7 +42,7 @@ tort.coords.rasterGCS <- rbind(tort.coords_zone11_rasterGCS[1:(grep("12",tort.zo
 								tort.coords_zone11_rasterGCS[grep("12",tort.zone):(length(tort.zone)-1),])
 
 row.names(tort.coords.rasterGCS) <- tort.coord.data$EM_Tort_ID
-save(tort.coords.rasterGCS,file="tort.coords.rasterGCS.Robj")
+save(tort.coords.rasterGCS,file="tort_180_info/tort.coords.rasterGCS.Robj")
 
 ################################
 #	making pairwise distance table
@@ -54,11 +54,11 @@ tort.distance <- pointDistance(tort.coords.rasterGCS,lonlat=FALSE)
 #	now for all 272 torts
 ################################
 
-tort.coord.data <- read.csv("torts_272_coordinates.csv",stringsAsFactors=FALSE)
+tort.coord.data <- read.csv("tort_272_info/torts_272_coordinates.csv",stringsAsFactors=FALSE)
 
 #	also, grab the proj4 string describing the GCS of
 #		the rasters from jannet
-load("raster_GCS_CRS_proj4.Robj")
+raster_GCS_CRS_proj4 <- CRS(scan("raster_GCS_CRS_proj4.txt",what="char",sep="\n"))
 tort.coords.272 <- cbind(tort.coord.data$Easting,tort.coord.data$Northing)
 
 #	get the UTM zone, because not all are from zone 11
@@ -78,4 +78,15 @@ tort.coords.272.rasterGCS <- rbind(tort.coords.272_zone11_rasterGCS[1:(grep("12"
 								tort.coords.272_zone11_rasterGCS[grep("12",tort.zone.272):(length(tort.zone.272)-1),])
 
 row.names(tort.coords.272.rasterGCS) <- tort.coord.data$EM_Tort_ID
-save(tort.coords.272.rasterGCS,file="tort272.coords.raster.GCS.Robj")
+save(tort.coords.272.rasterGCS,file="tort_272_info/geog_coords.RData")
+
+tort.272.distance <- pointDistance(tort.coords.272.rasterGCS,lonlat=FALSE)
+rownames(tort.272.distance) <- colnames(tort.272.distance) <- tort.coord.data$EM_Tort_ID
+
+tort.272.dist.df <- data.frame(
+        etort1=rownames(tort.272.distance)[row(tort.272.distance)][upper.tri(tort.272.distance,diag=TRUE)],
+        etort2=colnames(tort.272.distance)[col(tort.272.distance)][upper.tri(tort.272.distance,diag=TRUE)],
+        distance=tort.272.distance[upper.tri(tort.272.distance,diag=TRUE)]
+    )
+
+write.csv(tort.272.dist.df, file="tort_272_info/geog_distance.csv")

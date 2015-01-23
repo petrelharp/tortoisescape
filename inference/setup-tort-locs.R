@@ -35,7 +35,7 @@ onelayer <- raster(paste(layer.prefix,"dem_30",sep=''))
 
 ###
 # tortoise locations
-load("../tort.coords.rasterGCS.Robj")  # provides tort.coords.rasterGCS
+load("../tort_180_info/tort.coords.rasterGCS.Robj")  # provides tort.coords.rasterGCS
 orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 # #  locs.ij <- k.to.ij(locs,n)  # this produces j's that are off by one (zero-based?)
 # locs.ij <- cbind( colFromX(onelayer,tort.coords.rasterGCS), rowFromY(onelayer,tort.coords.rasterGCS) )

@@ -185,7 +185,7 @@ plot.ht.fn <- function (layer.prefix,nonmissing,layer.name="dem_30",
     # use this to make a quick plotting function
     require(raster)
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
-    load(file.path(homedir,"tort.coords.rasterGCS.Robj"))
+    load(file.path(homedir,"tort_180_info/tort.coords.rasterGCS.Robj"))
     orig.locs <- cellFromXY( layer, tort.coords.rasterGCS )
     locs <- match(orig.locs,nonmissing)
     ph <- function (x,...,do.lims=TRUE,par.args=default.par.args,zlim.fac=default.zlim.fac) { 

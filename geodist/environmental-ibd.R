@@ -19,9 +19,9 @@ require(MASS)
 pi.factor <- 5319387/285214272
 
 # geographic distance
-torts <- read.csv("../1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
+torts <- read.csv("../tort_180_info/1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
 nind <- nrow(torts)
-tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
+tort.dist.table <- read.table("../tort_180_info/1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
 tort.dists[ cbind( match(tort.dist.table$etort1,torts$EM_Tort_ID), match(tort.dist.table$etort2,torts$EM_Tort_ID) ) ] <- tort.dist.table$DISTANCE
 tort.dists <- tort.dists + t(tort.dists)
@@ -142,7 +142,7 @@ with( subset(dists,pcs$PC1[match(etort1,pcs$etort)]*pcs$PC1[match(etort2,pcs$eto
 
 
 layer <- raster("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_dem_30")
-load("../tort.coords.rasterGCS.Robj")
+load("../tort_180_info/tort.coords.rasterGCS.Robj")
 coord.names <- rownames(tort.coords.rasterGCS@coords)
 
 plot(layer,main="adjustment factor")

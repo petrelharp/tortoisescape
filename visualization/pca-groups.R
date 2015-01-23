@@ -1,19 +1,19 @@
 #!/usr/bin/Rscript
 
-load("tort.coords.rasterGCS.Robj")
+load("../tort_272_info/tort.coords.rasterGCS.Robj")
 
 require(raster)
-layer <- raster("geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_dem_30.gri")
+layer <- raster("../geolayers/TIFF/100x/crop_resampled_masked_aggregated_100x_dem_30.gri")
 
-torts <- read.csv("1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
+torts <- read.csv("../tort_272_info/1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
 torts$EM_Tort_ID <- factor( torts$EM_Tort_ID , levels=torts$EM_Tort_ID )
 nind <- nrow(torts)
 
-dists <- read.csv("pairwise-normalized-pi.csv",header=TRUE,stringsAsFactors=FALSE) # had DISTANCE, pi, and npi
+dists <- read.csv("../pairwise-normalized-pi.csv",header=TRUE,stringsAsFactors=FALSE) # had DISTANCE, pi, and npi
 dists$etort1 <- factor( dists$etort1 , levels=torts$EM_Tort_ID )
 dists$etort2 <- factor( dists$etort2 , levels=torts$EM_Tort_ID )
 
-pcs <- read.csv("covmat/tort-PCs.csv",stringsAsFactors=FALSE)
+pcs <- read.csv("../covmat/tort-PCs.csv",stringsAsFactors=FALSE)
 names(pcs)[1] <- "etort"
 pcs$etort <- factor( pcs$etort, levels=torts$EM_Tort_ID )
 stopifnot( all(pcs$etort==torts$EM_Tort_ID) )
@@ -32,7 +32,7 @@ for (k  in seq_along(kmean.list)) {
 }
 }
 
-pdf(file="pca-groups.pdf",width=12,height=4,pointsize=10)
+pdf(file="plots/pca-groups.pdf",width=12,height=4,pointsize=10)
 layout(matrix(1:6,nrow=2))
 for (k  in seq_along(kmean.list)) {
     plot(layer)

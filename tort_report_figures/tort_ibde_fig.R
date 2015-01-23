@@ -13,11 +13,11 @@ if(file.exists("~/Desktop/Dropbox/tortoisescape/tort_report_figures")){
 }
 
 # get the metadata
-torts <- read.csv("../1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
+torts <- read.csv("../tort_180_info/1st_180_torts.csv",header=TRUE,stringsAsFactors=FALSE)
 nind <- nrow(torts)
 
 # and the pairwise geographic distance matrix
-tort.dist.table <- read.table("../1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
+tort.dist.table <- read.table("../tort_180_info/1st180_pairwise_distances_sorted_redundancy_removed.txt",header=TRUE)
 tort.dists <- numeric(nind^2); dim(tort.dists) <- c(nind,nind)
 tort.dists[ cbind( match(tort.dist.table$etort1,torts$EM_Tort_ID), 
 					match(tort.dist.table$etort2,torts$EM_Tort_ID) ) ] <- tort.dist.table$DISTANCE

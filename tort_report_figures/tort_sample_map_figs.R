@@ -18,9 +18,9 @@ if(file.exists("~/desktop/dropbox/tortoisescape")){
 }
 # get tortoise coords and 
 #	county lines in raster coordinate space
-load("tort.coords.rasterGCS.Robj")
+load("tort_272_info/geog_coords.RData")
 load("county_lines.Robj")
-load("raster_GCS_CRS_proj4.Robj")
+raster_GCS_CRS_proj4 <- CRS(scan("raster_GCS_CRS_proj4.txt",what="char",sep="\n"))
 
 # and get state lines in bold
 state.lines <- map(database="state",regions=c("California","Arizona","Nevada"),plot=FALSE)
@@ -57,7 +57,7 @@ par(mfrow=c(1,2))
 	scalebar(d=20000,xy=c(x.min+2000,y.max-15000),type="line",below="meters",lwd=1.1,label="20km")
 dev.off()
 
-load("~/Desktop/Dropbox/tortoisescape/tort272.coords.raster.GCS.Robj")
+load("tort_272_info/geog_coords.RData")
 
 png(file="tort_report_figures/black&white_272_sample.map.png",res=200,width=10*200,height=5*200)
 #quartz(width=10,height=5)
