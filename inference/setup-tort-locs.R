@@ -45,6 +45,7 @@ orig.locs <- cellFromXY( onelayer, tort.coords.rasterGCS )
 # ok, but we need indices in NONMISSING ones
 cat("Loading ", paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissing.RData",sep=''), " .\n")
 load(paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_nonmissing.RData",sep=''))
+
 locs <- match(orig.locs,nonmissing)
 
 locs.outfile <- paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='') 
@@ -68,10 +69,6 @@ if (FALSE) {
 ndist <- 15000  # 15 km
 
 neighborhoods <- get.neighborhoods( ndist=ndist, locations=tort.coords.rasterGCS, nonmissing=nonmissing, layer=onelayer, numcores=numcores, na.rm=FALSE )
-# mclapply( seq_along(tort.coords.rasterGCS) , function (k) {
-#         d_tort <- distanceFromPoints( onelayer, tort.coords.rasterGCS[k] )
-#         match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
-#     }, mc.cores=numcores )
 
 outfile <- paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' )
 save(neighborhoods, file=outfile )

@@ -16,12 +16,13 @@ direct.symmetric.setup <- function (obs.locs, obs.hts, neighborhoods, G, update.
     #     (T, beta, gamma, delta)
     #   where T is an overall shift
     # this omits any comparisons where obs.hts is NA.
-    if (!nrow(obs.hts)==ncol(hts)) { stop("For symmetric version need a square matrix of hitting times.") }
+    if (nrow(obs.hts)!=ncol(obs.hts)) { stop("For symmetric version need a square matrix of hitting times.") }
+    if (length(obs.locs)!=length(neighborhoods)) { stop("For symmetric version need obs.locs corresponding to neighborhoods.") }
     obs.notna <- which( !is.na(obs.hts) )
     t.obs.notna <- seq_along(obs.hts)
     dim(t.obs.notna) <- dim(obs.hts)
     t.obs.notna <- t(t.obs.notna)[obs.notna]
-    return( function (params) {
+    ds <- function (params) {
             T.shift <- params[1]
             hs <- hitting.sensitivity(params[-1], neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, do.hessian=TRUE, numcores=numcores )
             hs.grad <- hs$gradient[obs.locs,,]
@@ -40,7 +41,8 @@ direct.symmetric.setup <- function (obs.locs, obs.hts, neighborhoods, G, update.
             hessian[-1,1] <- hessian[1,-1] <- 2 * colSums(hs.grad) 
             hessian[-1,-1] <- 2 * ( ht.hessian + crossprod(hs.grad) )
             return( list( value=sum(resids^2), gradient=gradient, hessian=hessian ) )
-        } )
+        }
+    return(ds)
 }
 
 direct.asymmetric.setup <- function (obs.locs, obs.hts, neighborhoods, G, update.G, layers, transfn, valfn, ndelta, ngamma, numcores=getcores()) {

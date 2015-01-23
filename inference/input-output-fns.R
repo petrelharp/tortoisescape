@@ -77,6 +77,20 @@ plot.model <- function(params,layer.names,layers,G,update.G,ph) {
 ####
 # read/write hitting times etc in standardized way
 
+df.to.sym <- function (x,inds) {
+    # takes a three-column data frame x, where the first two have labels in 'inds',
+    # and converts it to a matrix with rows and columns in the order of 'inds'
+    # and values given by the third column of x,
+    # assumed to be symmetric
+    ind1 <- match(x[,1],inds)
+    ind2 <- match(x[,2],inds)
+    mat <- matrix(NA,nrow=length(inds),ncol=length(inds))
+    rownames(mat) <- colnames(mat) <- inds
+    mat[ cbind(ind1,ind2) ] <- x[,3]
+    mat[is.na(mat)] <- t(mat)[is.na(mat)]
+    return(mat)
+}
+
 read.pairwise.hts <- function ( file, inds=1:n, n=length(inds), upper=TRUE, diag=TRUE ) {
     # read in unstructured hitting times
     # as e.g. output by pwp scripts
