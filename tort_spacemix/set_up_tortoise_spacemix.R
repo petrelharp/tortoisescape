@@ -18,7 +18,7 @@ tort.coords <- tort.coords[-c(271:272),]
 #	drop the last 6 rows/columns, as they are from dupe torts
 #		(the last 4 prepped w/ a different PCR protocol)
 
-sample.covariance <- as.matrix(read.table("276torts.covar"))[-c(271:276),-c(271:276)]
+sample.covariance <- as.matrix(read.table("tort_276_info/276torts.covar"))[-c(271:276),-c(271:276)]
 
 #	name the rows and columns
 row.names(sample.covariance) <- row.names(tort.coords)
