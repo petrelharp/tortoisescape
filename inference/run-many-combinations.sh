@@ -6,7 +6,7 @@
 #PBS -l mem=120gb
 #PBS -l vmem=120gb
 #PBS -l pmem=7500mb
-#PBS -t 1:210%20
+#PBS -t 1-210%20
 
 if [[ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]]
 then
