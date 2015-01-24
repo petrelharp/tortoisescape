@@ -31,8 +31,21 @@ then
     exit
 fi
 
-echo "executing: find ${BASEDIR} -mindepth 1 -maxdepth 1 -type 'd' | tail -n +${PBS_ARRAYID} | head -n 1"
-DIRNAME=$(find ${BASEDIR} -mindepth 1 -maxdepth 1 -type 'd' | tail -n +${PBS_ARRAYID} | head -n 1)
+# This SHOULD work:
+# DIRNAME=$(find ${BASEDIR} -mindepth 1 -maxdepth 1 -type 'd' | tail -n +${PBS_ARRAYID} | head -n 1)
+# but it does not, SO:
+NN=1
+SDIRS=$(find many-combinations/ -mindepth 1 -maxdepth 1 -type 'd')
+for SDIR in $SDIRS
+do
+    if [ $NN == $PBS_ARRAYID ] 
+    then 
+        DIRNAME=$SDIR
+        break
+    fi
+    NN=$((NN+1))
+done
+
 JOBID=$(echo $PBS_JOBID | sed -e 's/[^0-9].*//')
 CONFIG="${DIRNAME}/config.json"
 OUTPUT="${DIRNAME}/inference-${JOBID}_${PBS_ARRAYID}.RData"
