@@ -11,7 +11,8 @@ argvec <- if (interactive()) { scan(what='char') } else { commandArgs(TRUE) }
 if (length(argvec)<2) { stop(usage) }
 
 source("resistance-fns.R")
-require(parallel); numcores<-getcores()
+# require(parallel)
+numcores<-getcores()
 require(raster)
 rasterOptions(tmpdir=".")
 
