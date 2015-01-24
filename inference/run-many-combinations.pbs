@@ -23,7 +23,7 @@ set -o pipefail
 
 echo "Working in ${BASEDIR-}"
 
-if [[ -z ${BASEDIR-} || ! -r ${BASEDIR-} ]]
+if [[ -z ${BASEDIR-} || || -z ${MAXIT-} || ! -r ${BASEDIR-} ]]
 then
     echo "Usage:  qsub -vBASEDIR=\"(name of directory)\" run-many-combinations.sh"
     exit
@@ -40,7 +40,7 @@ echo "DIRNAME: ${DIRNAME}"
 echo "CONFIG: ${CONFIG}"
 echo "OUTPUT: ${OUTPUT}"
 
-Rscript direct-inference.R ${CONFIG} ${OUTPUT} 200
+Rscript direct-inference.R ${CONFIG} ${OUTPUT} ${MAXIT}
 
 exit
 
