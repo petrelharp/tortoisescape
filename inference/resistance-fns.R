@@ -339,22 +339,24 @@ interp.tradeoff <- function ( hts, locs, G, dG, obs.ht, obs.locs, numcores=getco
 get.hitting.probs <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
     # returns a list of matrices of with the [[k]]th has [i,j]th entry
     # the hitting probabilty from the i-th element of neighborhoods[[k]] to the j-th element of boundaries[[k]]
-    mclapply( seq_along(neighborhoods), function (k) {
+    this.lapply <- if ( numcores>1 && "parallel" %in% .packages()) { function (...) { mclapply( ..., mc.cores=numcores ) } } else { lapply }
+    this.lapply( seq_along(neighborhoods), function (k) {
             nh <- neighborhoods[[k]]
             bd <- boundaries[[k]]
             as.matrix( solve( G[nh,nh]-Diagonal(n=length(nh),x=dG[nh]), -G[nh,bd,drop=FALSE] ) )
-        }, mc.cores=numcores )
+        } )
 }
 
 get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()) {
     # returns a list of vectors with the [[k]]th has [i]th entry
     # the hitting times from the i-th element of neighborhoods[[k]] to boundaries[[k]]
     #  (like hitting.analytic but different syntax)
-    mclapply( seq_along(neighborhoods), function (k) {
+    this.lapply <- if ( numcores>1 && "parallel" %in% .packages()) { function (...) { mclapply( ..., mc.cores=numcores ) } } else { lapply }
+    this.lapply( seq_along(neighborhoods), function (k) {
             nh <- neighborhoods[[k]]
             bd <- boundaries[[k]]
             as.vector( solve( G[nh,nh]-Diagonal(n=length(nh),x=dG[nh]), rep.int(-1.0,length(nh)) ) )
-        }, mc.cores=numcores )
+        } )
 }
 
 
@@ -372,24 +374,26 @@ stationary.dist <- function (params,layers,transfn) {
 
 get.neighborhoods <- function ( ndist, locations, nonmissing, layer, numcores=getcores(), na.rm=TRUE ) {
     # locations should be either a SpatialPoints object or a 2-column matrix of coordinates
+    this.lapply <- if ( numcores>1 && "parallel" %in% .packages()) { function (...) { mclapply( ..., mc.cores=numcores ) } } else { lapply }
     if ( class(locations)=="SpatialPoints" ) { locations <- coordinates(locations) }  # this is the first thing distanceFromPoints does anyhow
     if (is.null(dim(locations))) { locations <- matrix(locations,ncol=2) }
-    neighborhoods <- mclapply( 1:NROW(locations) , function (k) {
-        d_tort <- distanceFromPoints( layer, locations[k,] ) 
-        match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
-    }, mc.cores=numcores )
+    neighborhoods <- this.lapply( 1:NROW(locations) , function (k) {
+            d_tort <- distanceFromPoints( layer, locations[k,] ) 
+            match( Which( d_tort <= max(ndist,minValue(d_tort)), cells=TRUE, na.rm=TRUE ), nonmissing )
+        } )
     if (na.rm) { neighborhoods <- lapply(neighborhoods,function (x) { x[!is.na(x)] }) }
     return(neighborhoods)
 }
 
 
 get.boundaries <- function ( neighborhoods, nonmissing, layer, numcores=getcores(), na.rm=TRUE ) {
-    boundaries <- mclapply( neighborhoods, function (nh) {
-        values(layer) <- TRUE
-        values(layer)[nonmissing][nh] <- NA
-        bdry <- boundaries(layer,directions=4)
-        match( which( (!is.na(values(bdry))) & (values(bdry)==1) ), nonmissing )
-    }, mc.cores=numcores )
+    this.lapply <- if ( numcores>1 && "parallel" %in% .packages()) { function (...) { mclapply( ..., mc.cores=numcores ) } } else { lapply }
+    boundaries <- this.lapply( neighborhoods, function (nh) {
+            values(layer) <- TRUE
+            values(layer)[nonmissing][nh] <- NA
+            bdry <- boundaries(layer,directions=4)
+            match( which( (!is.na(values(bdry))) & (values(bdry)==1) ), nonmissing )
+        } )
     if (na.rm) { boundaries <- lapply(boundaries,function (x) { x[!is.na(x)] }) }
     return(boundaries)
 }
