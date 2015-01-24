@@ -10,10 +10,7 @@
 if [[ -z "${PBS_O_WORKDIR-}" ]]  # not run through pbs
 then
     SETUP_DIR=${1-}
-fi
-
-if [[ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]]
-then
+else
     source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
     cd $PBS_O_WORKDIR
 fi
