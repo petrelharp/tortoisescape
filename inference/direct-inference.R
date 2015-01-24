@@ -10,6 +10,8 @@ e.g.
 "
 
 argvec <- if (!interactive()) { commandArgs(TRUE) } else { scan(what='char') }
+cat("argvec:\n")
+cat(paste(argvec,collapse=" ; "),"\n")
 
 if (length(argvec)<3) { stop(usage) }
 config.file <- argvec[1]
@@ -21,9 +23,11 @@ source("resistance-fns.R")
 require(parallel)
 require(trust)
 
+cat("Reading config: ", config.file, "\n")
 config <- read.json.config(config.file)
 layer.names <- config$layer_names
 for (x in file.path(dirname(config.file),config$setup_files)) {
+    cat("Loading: ", x, "\n")
     load( x )
 }
 
