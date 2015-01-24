@@ -17,17 +17,28 @@
 # notes on memory usage:
 #   256x needs < 6GB memory
 
-if [[ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]]
+if [[ -z "${PBS_O_WORKDIR-}" ]]  # not run through pbs
 then
+    BASEDIR=${1-}
+else
     source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
-    echo "Changing to ${PBS_O_WORKDIR}"
     cd $PBS_O_WORKDIR
 fi
 
-pwd
+set -eu
+set -o pipefail
+
+echo "Working in ${BASEDIR-}"
+
+if [[ -z ${BASEDIR-} || ! -r ${BASEDIR-} ]]
+then
+    echo "Usage:  qsub -vBASEDIR=\"(name of directory)\" run-many-combinations.sh"
+    exit
+fi
+
 
 JOBID=$(echo $PBS_JOBID | sed -e 's/[^0-9].*//')
-DIRNAME=$(find many-combinations -mindepth 1 -maxdepth 1 -type 'd' | tail -n +${PBS_ARRAYID} | head -n 1)  
+DIRNAME=$(find ${BASEDIR} -mindepth 1 -maxdepth 1 -type 'd' | tail -n +${PBS_ARRAYID} | head -n 1)  
 CONFIG="${DIRNAME}/config.json"
 OUTPUT="${DIRNAME}/inference-${JOBID}_${PBS_ARRAYID}.RData"
 echo "JOBID: ${JOBID}"

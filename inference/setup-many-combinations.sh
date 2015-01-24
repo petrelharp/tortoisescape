@@ -9,7 +9,7 @@
 
 if [[ -z "${PBS_O_WORKDIR-}" ]]  # not run through pbs
 then
-    SETUP_DIR=${1-}
+    BASEDIR=${1-}
 else
     source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
     cd $PBS_O_WORKDIR
@@ -18,16 +18,16 @@ fi
 set -eu
 set -o pipefail
 
-echo "Parsing ${SETUP_DIR-}"
+echo "Parsing ${BASEDIR-}"
 
-if [[ -z ${SETUP_DIR-} || ! -r ${SETUP_DIR-} ]]
+if [[ -z ${BASEDIR-} || ! -r ${BASEDIR-} ]]
 then
-    echo "Usage:  qsub -vSETUP_DIR=\"(name of directory)\" setup-many-combinations.sh"
+    echo "Usage:  qsub -vBASEDIR=\"(name of directory)\" setup-many-combinations.sh"
     exit
 fi
 
 
-for SDIR in $(find ${SETUP_DIR} -type d -mindepth 1 -maxdepth 1)
+for SDIR in $(find ${BASEDIR} -type d -mindepth 1 -maxdepth 1)
 do
     while (( $(jobs 2>&1 | grep -c Running) >= 17 )); do sleep 1; done
     Rscript setup-from-json.R ${SDIR}/config.json ${SDIR}/setup.RData  &
