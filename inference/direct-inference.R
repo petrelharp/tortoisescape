@@ -75,4 +75,5 @@ trust.optim$invocation <- paste(commandArgs())
 trust.optim$prev.file <- prev.file
 trust.optim$pimat <- fit.pimat
 
+cat("Saving to ", output.file,"\n")
 save( trust.optim, file=output.file )
