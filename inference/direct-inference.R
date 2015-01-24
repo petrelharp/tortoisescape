@@ -11,7 +11,7 @@ e.g.
 
 argvec <- if (!interactive()) { commandArgs(TRUE) } else { scan(what='char') }
 cat("argvec:\n")
-cat(paste(argvec,collapse=" ; "),"\n")
+cat(paste(argvec,collapse=" "),"\n")
 
 if (length(argvec)<3) { stop(usage) }
 config.file <- argvec[1]
