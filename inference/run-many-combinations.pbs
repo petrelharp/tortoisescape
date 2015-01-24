@@ -55,16 +55,17 @@ echo "CONFIG: ${CONFIG}"
 echo "OUTPUT: ${OUTPUT}"
 
 # find most recent output file to restart from (empty string if none exist)
-PAST_OUTPUTS=$(ls -t ${DIRNAME}/inference-*.RData 2>/dev/null)
-
+PAST_OUTPUTS=$(find $DIRNAME -name "inference-*.RData")
 echo "Past outputs:"
 echo ${PAST_OUTPUTS-}
-
-for PAST in ${PAST_OUTPUTS-}
-do
-    PAST_OUTPUT=$PAST  # take the first one
-    break
-done
+if [ ! -z "$PAST_OUTPUTS" ]
+then
+    for PAST in $(ls -t $PAST_OUTPUTS)
+    do
+        PAST_OUTPUT=$PAST  # take the first one
+        break
+    done
+fi
 
 echo "PAST_OUTPUT: ${PAST_OUTPUT-}"
 
