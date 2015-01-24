@@ -1,3 +1,4 @@
+#!/bin/bash
 #PBS -S /bin/bash
 #PBS -q cmb
 #PBS -l nodes=1:sl230s:ppn=16
@@ -11,7 +12,7 @@ then
     SETUP_DIR=${1-}
 fi
 
-if [ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]
+if [[ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]]
 then
     source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
     cd $PBS_O_WORKDIR
@@ -20,11 +21,13 @@ fi
 set -eu
 set -o pipefail
 
-echo "${SETUP_DIR}"
+echo "Parsing ${SETUP_DIR-}"
 
-if [ -z ${SETUP_DIR-} || ! -r ${SETUP_DIR} ]
+if [[ -z ${SETUP_DIR-} || ! -r ${SETUP_DIR-} ]]
 then
     echo "Usage:  qsub -v'SETUP_DIR=(name of directory)' setup-many-combinations.sh"
+    exit
+else
 fi
 
 
