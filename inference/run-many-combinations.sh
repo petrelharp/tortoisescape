@@ -33,6 +33,6 @@ then
     exit
 fi
 
-echo "Rscript direct-inference.R ${CONFIG} ${OUTPUT} 200"
+Rscript direct-inference.R ${CONFIG} ${OUTPUT} 200
 
 exit
