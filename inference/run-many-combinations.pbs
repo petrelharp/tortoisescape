@@ -22,6 +22,7 @@ set -eu
 set -o pipefail
 
 echo "Working in ${BASEDIR-}"
+echo "  on the ${PBS_ARRAYID-}th directory."
 
 if [[ -z ${BASEDIR-} ]] || [[ -z ${MAXIT-} ]] || [[ ! -r ${BASEDIR-} ]]
 then
