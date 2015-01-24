@@ -10,4 +10,5 @@ fi
 
 NDIRS=$(find $1 -mindepth 1 -maxdepth 1 -type 'd' | wc -l)
 
-qsub -vBASEDIR="$1" -t 1-${NDIRS}%20 run-many-combinations.pbs $2
+"qsub -vBASEDIR="$1",MAXIT=$2 -t 1-${NDIRS}%20 run-many-combinations.pbs"
+qsub -vBASEDIR="$1",MAXIT=$2 -t 1-${NDIRS}%20 run-many-combinations.pbs
