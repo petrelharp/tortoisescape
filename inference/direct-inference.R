@@ -33,6 +33,7 @@ ref.inds <- which.nonoverlapping(neighborhoods)
 if (is.null(prev.file)) {
     init.params <- paramvec(config)
 } else {
+    cat("Restarting from ", prev.file, "\n")
     load(prev.file)
     init.params <- trust.optim$argument
 }
