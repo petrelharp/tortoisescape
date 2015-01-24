@@ -39,7 +39,7 @@ json.config.fn <- function (layer.names) {
             "constant_gamma" : [ 1.0 ],
             "gamma"          : [ ', paste( rep("1.0",length(layer.names)), collapse=", " ), ' ],
             "constant_delta" : [ 1.0 ],
-            "delta"          : [ ', paste( rep("1.0",length(layer.names)), collapse=", " ), ' ],
+            "delta"          : [ ', paste( rep("1.0",length(layer.names)), collapse=", " ), ' ]
         }
 }
 ', sep='' ) )
