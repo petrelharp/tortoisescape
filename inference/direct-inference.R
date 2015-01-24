@@ -59,9 +59,13 @@ ds <- direct.setup( obs.locs=obs.locs, obs.hts=fit.pimat,
 system.time( init.value <- ds(init.params) )
 init.value$value  
 
+cat("Running trust().\n")
+
 # 'parscale' according to 'trust' should be 1/(typical step size)
 trust.optim <- trust( objfun=ds, parinit=init.params, parscale=1/param.scale,
         rinit=0.25, rmax=5, iterlim=maxit, blather=TRUE )
+
+cat("Done with trust().\n")
 
 trust.optim$param.scale <- param.scale
 trust.optim$ref.inds <- ref.inds
