@@ -1,6 +1,6 @@
 #PBS -S /bin/bash
 #PBS -q cmb
-#PBS -l nodes=1:sl230s:ppn=16
+#PBS -l nodes=1:sl230s:ppn=15
 #PBS -l walltime=48:00:00
 #PBS -l mem=24gb
 #PBS -l vmem=24gb
@@ -23,6 +23,7 @@ set -o pipefail
 
 echo "Working in ${BASEDIR-}"
 echo "  on the ${PBS_ARRAYID-}th directory."
+echo "Running a maximum of ${MAXIT-} iterations."
 
 if [ -z ${BASEDIR-} ] || [ -z ${MAXIT-} ] || [ ! -r ${BASEDIR-} ]
 then
