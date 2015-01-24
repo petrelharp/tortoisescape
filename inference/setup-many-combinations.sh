@@ -25,9 +25,8 @@ echo "Parsing ${SETUP_DIR-}"
 
 if [[ -z ${SETUP_DIR-} || ! -r ${SETUP_DIR-} ]]
 then
-    echo "Usage:  qsub -v'SETUP_DIR=(name of directory)' setup-many-combinations.sh"
+    echo "Usage:  qsub -vSETUP_DIR=\"(name of directory)\" setup-many-combinations.sh"
     exit
-else
 fi
 
 
