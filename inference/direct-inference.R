@@ -72,7 +72,6 @@ trust.optim$ref.inds <- ref.inds
 trust.optim$config.file <- config.file
 trust.optim$invocation <- paste(commandArgs())
 trust.optim$prev.file <- prev.file
-trust.optim$symmetric <- symmetric
 trust.optim$pimat <- fit.pimat
 
 save( trust.optim, file=output.file )
