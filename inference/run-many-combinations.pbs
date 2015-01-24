@@ -56,7 +56,12 @@ echo "CONFIG: ${CONFIG}"
 echo "OUTPUT: ${OUTPUT}"
 
 # find most recent output file to restart from (empty string if none exist)
-PAST_OUTPUT=$(ls -t ${DIRNAME}/inference-*.RData 2>/dev/null | head -n 1)
+PAST_OUTPUTS=$(ls -t ${DIRNAME}/inference-*.RData 2>/dev/null)
+for PAST in $PAST_OUTPUTS
+do
+    PAST_OUTPUT=$PAST  # take the first one
+    break
+done
 
 Rscript direct-inference.R ${CONFIG} ${OUTPUT} ${MAXIT} ${PAST_OUTPUT}
 
