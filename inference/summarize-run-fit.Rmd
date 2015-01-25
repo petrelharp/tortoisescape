@@ -71,11 +71,12 @@ print(dtab,type='html')
 
 Now, plots of inferred hitting times against the observed:
 ```{r plot_hts, echo=FALSE}
-for ( k in seq_along(run.info)[value.order] ) {
+for ( k in value.order ) {
     if (length(run.info[[k]])>1) {
         sym.hts <- run.params$T[k] + run.info[[k]]$hts
         sym.hts <- (sym.hts+t(sym.hts))/2
         pimat <- run.info[[k]]$pimat
+        ref.inds <- run.info[[k]]$trust.optim$ref.inds
         layout(t(1:2))
         plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times", main=subdirs[k] )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))

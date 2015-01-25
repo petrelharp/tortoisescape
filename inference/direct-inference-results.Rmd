@@ -70,9 +70,9 @@ sym.hts <- params[1]+hts[locs,]
 sym.hts <- (sym.hts+t(sym.hts))/2
 load("torts-info.RData")
 layout(t(1:2))
-plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
+plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
 legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
 abline(0,1)
-plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
+plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
 ```
 
