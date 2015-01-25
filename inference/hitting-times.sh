@@ -16,6 +16,8 @@ if [[ -z "${PBS_O_WORKDIR-}" ]]  # not run through pbs
 then
     LAYERFILE=${1-}
     PARAMFILE=${2-}
+else
+    cd $PBS_O_WORKDIR
 fi
 
 if [[ -z "${LAYERFILE-}" || ! -r "$LAYERFILE" || -z "${PARAMFILE-}" || ! -r "$PARAMFILE" ]]
@@ -35,7 +37,6 @@ echo "  parameter file:  $PARAMFILE"
 if [ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]
 then
     source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
-    cd $PBS_O_WORKDIR
 fi
 
 RESLIST="512x 256x 128x 64x 32x 16x" # 8x 4x 2x 1x"
