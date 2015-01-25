@@ -21,7 +21,8 @@ get.results <- function (subdir,numcores=1) {
         error=function (cond) {message(cond);message(paste("Error in",subdir)); NA}, 
         warning=function (cond) {message(cond);message(paste("Warning in",subdir)); NA} )
     return( list( subdir=subdir, params=params, hts=hts, pimat=pimat, layer.names=layer.names, value=trust.optim$value, 
-            converged=trust.optim$converged, accept.rate=mean(trust.optim$accept, iterations=trust.optim$iterations ) ) )
+            converged=trust.optim$converged, accept.rate=mean(trust.optim$accept, 
+                trust.optim=trust.optim, iterations=trust.optim$iterations ) ) )
 }
 run.info.files <- list.files(".","run-info.*RData")
 if (length(run.info.files)>0) {
@@ -71,13 +72,15 @@ print(dtab,type='html')
 Now, plots of inferred hitting times against the observed:
 ```{r plot_hts, echo=FALSE}
 for ( k in seq_along(run.info)[value.order] ) {
-    sym.hts <- run.params$T[k] + run.info[[k]]$hts
-    sym.hts <- (sym.hts+t(sym.hts))/2
-    pimat <- run.info[[k]]$pimat
-    layout(t(1:2))
-    plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
-    legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
-    abline(0,1)
-    plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
+    if (length(run.info[[k]])>1) {
+        sym.hts <- run.params$T[k] + run.info[[k]]$hts
+        sym.hts <- (sym.hts+t(sym.hts))/2
+        pimat <- run.info[[k]]$pimat
+        layout(t(1:2))
+        plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times", main=subdirs[k] )
+        legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
+        abline(0,1)
+        plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
+    }
 }
 ```
