@@ -2,7 +2,6 @@
 source("../resistance-fns.R")
 require(parallel); numcores=getcores()
 require(xtable)
-load("../torts-info.RData")  # for distances, tort.dists
 fig.dim <- 5
 opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 subdirs <- list.dirs(".",recursive=FALSE,full.names=FALSE)
@@ -33,28 +32,30 @@ if (length(run.info.files)>0) {
     run.info.file <- paste("run-info-",format(Sys.time(),"%d-%m-%Y-%H_%M_%S"),".RData",sep='')
     save(run.info,file=run.info.file)
 }
-all.layer.names <- unique( unlist( lapply( run.info, "[[", "layer.names" ) ) )
-run.gamma <- matrix( 0, nrow=length(run.info), ncol=length(all.layer.names) )
-run.delta <- matrix( 0, nrow=length(run.info), ncol=length(all.layer.names) )
+all.layer.names <- c("constant", unique( unlist( lapply( run.info, "[[", "layer.names" ) ) ) )
+run.gamma <- matrix( NA, nrow=length(run.info), ncol=length(all.layer.names) )
+run.delta <- matrix( NA, nrow=length(run.info), ncol=length(all.layer.names) )
+colnames(run.gamma) <- colnames(run.delta) <- all.layer.names
 denull <- function (x) { x[sapply(x,is.null)] <- NA; unlist(x) }
 run.params <- data.frame( 
         value=denull(lapply( run.info,"[[","value" )),
         T=denull(lapply( lapply(run.info,"[[","params"), "[", 1 )), 
         beta=denull(lapply( lapply(run.info,"[[","params"), "[", 2 )),
         converged=denull(lapply( run.info,"[[","converged" )),
-        iterations=denull(lapply( run.info,"[[","iterations" )),
+        iterations=denull(lapply( lapply( run.info,"[[","trust.optim"), "[[", "iterations" )),
         accept.rate=denull(lapply( run.info,"[[","accept.rate" ))
     )
 for (k in seq_along(run.info)) {
+    these.layer.names <- run.info[[k]]$layer.names
     these.layers <- run.info[[k]]$layer.names
     run.gamma[k,match(these.layers,all.layer.names)] <- run.info[[k]]$params[2+(1:length(these.layers))]
     run.delta[k,match(these.layers,all.layer.names)] <- run.info[[k]]$params[2+length(these.layers)+(1:length(these.layers))]
 }
+value.order <- order(run.params$value)
 ```
 
 Here is a table of the results:
 ```{r results_tab, results="asis"}
-value.order <- order(run.params$value)
 ptab <- xtable( run.params[value.order,], digits=c(0,0,0,2,0,0,2) )
 print(ptab,type='html')
 ```
@@ -69,19 +70,41 @@ dtab <- xtable( run.delta[value.order,] )
 print(dtab,type='html')
 ```
 
-Now, plots of inferred hitting times against the observed:
+Here's the observed hitting times against geographic distance:
+```{r geog_dist,fig.width=fig.dim}
+if (file.exists("../torts-info.RData")) {
+    load("../torts-info.RData")  # for distances, tort.dists
+    pimat <- run.info[[value.order[1]]]$pimat
+    ref.inds <- run.info[[1]]$trust.optim$ref.inds
+    used <- (col(pimat)%in%ref.inds) & (row(pimat)%in%ref.inds)
+    plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
+}
+```
+
+Now, plots of inferred hitting times against the observed
+(zoomed in on the right):
 ```{r plot_hts, echo=FALSE}
 for ( k in value.order ) {
     if (length(run.info[[k]])>1) {
         sym.hts <- run.params$T[k] + run.info[[k]]$hts
         sym.hts <- (sym.hts+t(sym.hts))/2
+        diag(sym.hts) <- NA
         pimat <- run.info[[k]]$pimat
+        diag(pimat) <- NA
         ref.inds <- run.info[[k]]$trust.optim$ref.inds
+        used <- (col(pimat)%in%ref.inds) & (row(pimat)%in%ref.inds)
+        subdir <- run.info[[k]]$subdir
+        xlims <- range(sym.hts[used],na.rm=TRUE)
+        ylims <- range(pimat[used],na.rm=TRUE)
         layout(t(1:2))
-        plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times", main=subdirs[k] )
+        plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times", main=subdir )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
         abline(0,1)
-        plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%trust.optim$ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
+        plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), 
+            pch=20, cex=0.5, ylab="observed times", xlab="fitted times", main=subdir,
+           xlim=xlims, ylim=ylims )
+        legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
+        abline(0,1)
     }
 }
 ```
