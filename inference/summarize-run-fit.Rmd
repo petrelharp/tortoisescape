@@ -16,12 +16,16 @@ get.results <- function (subdir,numcores=1) {
     params <- trust.optim$argument
     environment(update.G) <- environment(valfn) <- environment(transfn) <- environment()
     G@x <- update.G(params[-1])
+    gamma <- params[2+(1:length(layer.names))]
+    stationary.base <- rowSums( layers * gamma[col(layers)] )
+    jump.rates <- rowSums(G)
     hts <- tryCatch( { hitting.analytic(neighborhoods,G,numcores=numcores)[locs,] },
         error=function (cond) {message(cond);message(paste("Error in",subdir)); NA}, 
         warning=function (cond) {message(cond);message(paste("Warning in",subdir)); NA} )
     return( list( subdir=subdir, params=params, hts=hts, pimat=pimat, layer.names=layer.names, value=trust.optim$value, 
-            converged=trust.optim$converged, accept.rate=mean(trust.optim$accept, 
-                trust.optim=trust.optim, iterations=trust.optim$iterations ) ) )
+            converged=trust.optim$converged, accept.rate=mean(trust.optim$accept), 
+                stationary.base=stationary.base, jump.rates=jump.rates,
+                trust.optim=trust.optim, iterations=trust.optim$iterations ) )
 }
 run.info.files <- list.files(".","run-info.*RData")
 if (length(run.info.files)>0) {
@@ -70,11 +74,12 @@ dtab <- xtable( run.delta[value.order,] )
 print(dtab,type='html')
 ```
 
-Here's the observed hitting times against geographic distance:
+Here's the observed hitting times against geographic distance (with the self-comparisons removed):
 ```{r geog_dist,fig.width=fig.dim}
 if (file.exists("../torts-info.RData")) {
     load("../torts-info.RData")  # for distances, tort.dists
     pimat <- run.info[[value.order[1]]]$pimat
+    diag(pimat) <- NA
     ref.inds <- run.info[[1]]$trust.optim$ref.inds
     used <- (col(pimat)%in%ref.inds) & (row(pimat)%in%ref.inds)
     plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
@@ -83,7 +88,13 @@ if (file.exists("../torts-info.RData")) {
 
 Now, plots of inferred hitting times against the observed
 (zoomed in on the right):
-```{r plot_hts, echo=FALSE}
+```{r plot_hts, fig.width=3*fig.dim, echo=FALSE}
+# set up plotting
+tmp.config <- read.json.config(file.path("..",run.info[[value.order[1]]]$trust.optim$config.file))
+load(file.path(run.info[[value.order[1]]]$subdir,tmp.config$setup_files))
+tort.loc.obj <- load(file.path(run.info[[value.order[1]]]$subdir,tmp.config$sample_locs))
+assign("tort.locs",get(tort.loc.obj)[!na.indiv])
+ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
 for ( k in value.order ) {
     if (length(run.info[[k]])>1) {
         sym.hts <- run.params$T[k] + run.info[[k]]$hts
@@ -91,18 +102,22 @@ for ( k in value.order ) {
         diag(sym.hts) <- NA
         pimat <- run.info[[k]]$pimat
         diag(pimat) <- NA
+        mean.resids <- rowMeans( sym.hts - pimat, na.rm=TRUE )
         ref.inds <- run.info[[k]]$trust.optim$ref.inds
         used <- (col(pimat)%in%ref.inds) & (row(pimat)%in%ref.inds)
         subdir <- run.info[[k]]$subdir
         xlims <- range(sym.hts[used],na.rm=TRUE)
+        # plot
         ylims <- range(pimat[used],na.rm=TRUE)
-        layout(t(1:2))
-        plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times", main=subdir )
+        layout(t(1:3))
+        plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
         abline(0,1)
+        ph( run.info[[k]]$stationary.base, main=subdir )
+        points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
         plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), 
-            pch=20, cex=0.5, ylab="observed times", xlab="fitted times", main=subdir,
-           xlim=xlims, ylim=ylims )
+            pch=20, cex=0.5, ylab="observed times", xlab="fitted times", 
+            xlim=xlims, ylim=ylims )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
         abline(0,1)
     }
