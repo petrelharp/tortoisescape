@@ -80,7 +80,7 @@ if (file.exists("../torts-info.RData")) {
     load("../torts-info.RData")  # for distances, tort.dists
     pimat <- run.info[[value.order[1]]]$pimat
     diag(pimat) <- NA
-    ref.inds <- run.info[[1]]$trust.optim$ref.inds
+    ref.inds <- run.info[[value.order[1]]]$trust.optim$ref.inds
     used <- (col(pimat)%in%ref.inds) & (row(pimat)%in%ref.inds)
     plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
 }
