@@ -30,10 +30,12 @@ get.results <- function (subdir,numcores=1) {
 run.info.files <- list.files(".","run-info.*RData")
 if (length(run.info.files)>0) {
     run.info.file <- run.info.files[ rev(order(file.info(run.info.files)$mtime)) ][1]
+    cat("Loading from: ", run.info.file)
     load(run.info.file)
 } else {
     run.info <- mclapply( subdirs, get.results, mc.cores=numcores )
     run.info.file <- paste("run-info-",format(Sys.time(),"%d-%m-%Y-%H_%M_%S"),".RData",sep='')
+    cat("Saving to: ", run.info.file)
     save(run.info,file=run.info.file)
 }
 all.layer.names <- c("constant", unique( unlist( lapply( run.info, "[[", "layer.names" ) ) ) )
@@ -108,19 +110,22 @@ for ( k in value.order ) {
         used <- (col(pimat)%in%ref.inds) & (row(pimat)%in%ref.inds)
         subdir <- run.info[[k]]$subdir
         xlims <- range(sym.hts[used],na.rm=TRUE)
-        # plot
         ylims <- range(pimat[used],na.rm=TRUE)
-        layout(t(1:3))
+        # plot
+        layout(matrix(1:4,nrow=2,byrow=TRUE))
         plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
         abline(0,1)
-        ph( run.info[[k]]$stationary.base, main=subdir )
-        points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
         plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), 
             pch=20, cex=0.5, ylab="observed times", xlab="fitted times", 
             xlim=xlims, ylim=ylims )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
         abline(0,1)
+        ph( pmin(1e3,run.info[[k]]$jump.rates), main=subdir, do.lims=FALSE, zlims=c(0,1e3) )
+        points(tort.locs); points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
+        z <- 1/(1+exp(-run.info[[k]]$stationary.base))
+        ph( z/sum(z), do.lims=FALSE )
+        points(tort.locs); points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
     }
 }
 ```
