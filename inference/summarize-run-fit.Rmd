@@ -92,9 +92,9 @@ Now, plots of inferred hitting times against the observed
 for ( k in value.order ) {
     if (length(run.info[[k]])>1) {
         # set up plotting
-        tmp.config <- read.json.config(file.path("..",run.info[[value.order[k]]]$trust.optim$config.file))
-        load(file.path(run.info[[value.order[k]]]$subdir,tmp.config$setup_files))
-        tort.loc.obj <- load(file.path(run.info[[value.order[k]]]$subdir,tmp.config$sample_locs))
+        tmp.config <- read.json.config(file.path("..",run.info[[k]]$trust.optim$config.file))
+        load(file.path(run.info[[k]]$subdir,tmp.config$setup_files))
+        tort.loc.obj <- load(file.path(run.info[[k]]$subdir,tmp.config$sample_locs))
         assign("tort.locs",get(tort.loc.obj)[!na.indiv])
         ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
         # and hitting times
