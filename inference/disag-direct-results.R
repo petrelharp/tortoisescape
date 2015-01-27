@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-subdirs <- setdiff( list.dirs(".",recursive=FALSE,full.names=FALSE), c("figure","cache") )
+subdirs <- setdiff( list.dirs(commandArgs(TRUE)[1],recursive=FALSE,full.names=FALSE), c("figure","cache") )
 for (subdir in subdirs) {
     config <- read.json.config(file.path(subdir,"config.json"))
     result.files <- list.files(subdir,pattern="inference-.*RData",full.names=TRUE)
