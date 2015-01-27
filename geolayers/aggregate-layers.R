@@ -18,7 +18,7 @@ numcores <- detectCores()
 require(raster)
 rasterOptions(tmpdir=".")
 
-dir.create(outdir,recursive=TRUE)
+dir.create(outdir,recursive=TRUE,showWarnings=FALSE)
 
 mclapply( infiles, function (infile) {
         tryCatch({
