@@ -1,4 +1,7 @@
 ```{r setup, include=FALSE}
+### COPY THIS to the directory in which the directories are you want to summarize,
+### then run it, e.g. as
+###   R -e 'require(knitr); knit2html("summarize-run-fit.Rmd")'
 source("../resistance-fns.R")
 require(parallel); numcores=getcores()
 require(raster)
@@ -107,7 +110,7 @@ for ( k in value.order ) {
         load(file.path(run.info[[k]]$subdir,tmp.config$setup_files))
         tort.loc.obj <- load(file.path(run.info[[k]]$subdir,tmp.config$sample_locs))
         assign("tort.locs",get(tort.loc.obj)[!na.indiv])
-        ph <- plot.ht.fn("../../geolayers/multigrid/256x/crm_",nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
+        ph <- plot.ht.fn(file.path(run.info[[k]]$subdir,tmp.config$layer_prefix),nonmissing,homedir="../..",default.par.args=list(mar=c(3,3,3,3)+.1))
         # and hitting times
         sym.hts <- run.params$T[k] + run.info[[k]]$hts
         sym.hts <- (sym.hts+t(sym.hts))/2
