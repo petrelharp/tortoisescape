@@ -12,7 +12,7 @@ BASEDIR=$1
 NDIRS=$(find $1 -mindepth 1 -maxdepth 1 -type 'd' | wc -l)
 echo "Parsing ${NDIRS} directories in ${BASEDIR}"
 
-if [[ ! -z "${PBS_O_WORKDIR-}" ]]  # run through pbs
+if [[ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]]  # run on the cluster
 then
     qsub -vBASEDIR=\""$1"\" -t 1-${NDIRS}%32 setup-many-combinations.sh
 else

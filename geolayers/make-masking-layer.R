@@ -2,22 +2,24 @@
 
 usage <- "Combine crew, dem_2K_mask, and sea_NA_30 into a single layer for masking.
 Usage:
-    Rscript make-masking-layer.R (name of directory) ( more directories )
+    Rscript make-masking-layer.R (name of directory) 
 "
 
-if ( length(commandArgs(TRUE))<1 ) { stop(usage) }
+argvec <- if (interactive()) { scan(what='char') } else { commandArgs(TRUE) }
+if ( length(argvec)<1 ) { stop(usage) }
 
 require(raster)
 rasterOptions(tmpdir=".")
 
 orig.dir <- getwd()
 
-subdir <- commandArgs(TRUE)[1]
+subdir <- argvec[1]
 setwd(subdir)
-crew <- raster("crew_30_NA")
-dem.mask <- raster("dem_2K_mask")
-water <- raster("water0_30")
-sea <- raster("sea_NA_30")
+grd.or.tif <- function (x) { paste(x, if (file.exists(paste(x,".grd",sep=''))) { ".grd" } else { ".tif" }, sep='' ) }
+crew <- raster(grd.or.tif("crew_30_NA"))
+dem.mask <- raster(grd.or.tif("dem_2K_mask"))
+water <- raster(grd.or.tif("water0_30"))
+sea <- raster(grd.or.tif("sea_NA_30"))
 masked <- mask(crew,dem.mask)
 masked <- mask(masked,sea)
 d.mask <- distance(masked)
