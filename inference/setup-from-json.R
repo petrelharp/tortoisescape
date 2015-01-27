@@ -2,7 +2,7 @@
 
 usage <- "Set up for inference, from a json config file.
 Usage:
-   Rscript setup-from-json.R (name of json file) (output RData file)
+    Rscript setup-from-json.R (name of json file) (output RData file)
 e.g.
     Rscript setup-from-json.R real-data/nussear-256x/config.json real-data/nussear-256x/setup.RData
 "
@@ -34,8 +34,11 @@ layer.file.names <- gsub(paste(".*",config$layer_prefix,sep=''),"",gsub(".gri","
 use.files <- layer.files[match(layer.names,layer.file.names)]
 names(use.files) <- layer.names
 
-refname <- grep("dem_30",layer.file.names)[1]
-nalayer <- is.na( raster(layer.files[refname]) ) # dem
+# refname <- grep("dem_30",layer.file.names)[1]
+# nalayer <- is.na( raster(layer.files[refname]) ) # dem
+na.layer.base <- if ( is.null(config$mask.layer) ) { "dem_30" } else { config$mask.layer }
+refname <- grep( na.layer.base, layer.file.names )[1]
+nalayer <- is.na( raster(config$mask.layer) )
 
 for (lf in use.files) {
     other <- raster(lf) 
