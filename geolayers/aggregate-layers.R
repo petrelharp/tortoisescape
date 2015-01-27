@@ -1,6 +1,13 @@
 #!/usr/bin/Rscript
 
-# Create a set of new layers with a different resolution
+usage <- "
+Create a set of new layers with a different resolution,
+  aggregating with means (NAs removed).
+Usage:
+   Rscript (aggregation factor) (output directory) ( files to aggregate )
+"
+
+if (length(commandArgs(TRUE))<3) { stop(usage) }
 
 if (!interactive()) {
     agfact <- as.numeric( commandArgs(TRUE)[1] )
