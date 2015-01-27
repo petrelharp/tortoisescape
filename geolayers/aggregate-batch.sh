@@ -10,22 +10,34 @@
 ###
 # Make the various resolutions we want.
 
-if [ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]
+if [ ! -z ${PBS_O_WORKDIR-} ]
 then
     source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
     cd $PBS_O_WORKDIR
+else 
+    BASEDIR=${1-}
+    OUTDIR=${2-}
+fi
+
+if [ -z ${BASEDIR-} ] || [ -z ${OUTDIR-} ]
+then
+    echo "Steps down by factors of 2.  Usage:
+    qsub -vBASEDIR=\"expanded/expanded-TIFF\",OUTDIR=\"expanded/\" aggregate-batch.sh
+or
+    ./aggregate-batch.sh (directory of inputs) (base directory for outputs)
+"
+    exit
 fi
 
 set -eu
 set -o pipefail
 
-BASEDIR="geolayers/1x"
 
 for RES in 2 4 8 16 32 64 128 256 512
 do
     echo "-------------------"
-    echo "Beginning on ${RES}x."
-    NEWDIR="geolayers/multigrid/${RES}x"
+    NEWDIR="${OUTDIR}${RES}x"
+    echo "Beginning on ${RES}x and outputting to ${NEWDIR}."
     mkdir -p ${NEWDIR}
     Rscript aggregate-layers.R 2 $NEWDIR $(ls $BASEDIR/*.{grd,tif})
     echo "Done with ${RES}x."

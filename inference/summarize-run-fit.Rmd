@@ -1,10 +1,11 @@
 ```{r setup, include=FALSE}
 source("../resistance-fns.R")
 require(parallel); numcores=getcores()
+require(raster)
 require(xtable)
 fig.dim <- 5
 opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
-subdirs <- list.dirs(".",recursive=FALSE,full.names=FALSE)
+subdirs <- setdiff( list.dirs(".",recursive=FALSE,full.names=FALSE), c("figure","cache") )
 has.results <- sapply( subdirs, function (subdir) { length(list.files(subdir,pattern="inference-.*RData",full.names=TRUE)) } )
 get.results <- function (subdir,numcores=1) {
     result.files <- list.files(subdir,pattern="inference-.*RData",full.names=TRUE)
@@ -30,13 +31,15 @@ get.results <- function (subdir,numcores=1) {
 run.info.files <- list.files(".","run-info.*RData")
 if (length(run.info.files)>0) {
     run.info.file <- run.info.files[ rev(order(file.info(run.info.files)$mtime)) ][1]
+    cat("Loading from: ", run.info.file)
     load(run.info.file)
 } else {
     run.info <- mclapply( subdirs, get.results, mc.cores=numcores )
     run.info.file <- paste("run-info-",format(Sys.time(),"%d-%m-%Y-%H_%M_%S"),".RData",sep='')
+    cat("Saving to: ", run.info.file)
     save(run.info,file=run.info.file)
 }
-all.layer.names <- c("constant", unique( unlist( lapply( run.info, "[[", "layer.names" ) ) ) )
+all.layer.names <- unique( unlist( lapply( run.info, "[[", "layer.names" ) ) )
 run.gamma <- matrix( NA, nrow=length(run.info), ncol=length(all.layer.names) )
 run.delta <- matrix( NA, nrow=length(run.info), ncol=length(all.layer.names) )
 colnames(run.gamma) <- colnames(run.delta) <- all.layer.names
@@ -58,9 +61,15 @@ for (k in seq_along(run.info)) {
 value.order <- order(run.params$value)
 ```
 
+Here's the goodness of fit values (smaller is better):
+```{r gof, fig.width=fig.dim}
+plot( sort(run.params$value) )
+```
+
 Here is a table of the results:
 ```{r results_tab, results="asis"}
 ptab <- xtable( run.params[value.order,], digits=c(0,0,0,2,0,0,2) )
+row.names(ptab) <- subdirs[value.order]
 print(ptab,type='html')
 ```
 and the gamma parameters:
@@ -86,9 +95,11 @@ if (file.exists("../torts-info.RData")) {
 }
 ```
 
-Now, plots of inferred hitting times against the observed
-(zoomed in on the right):
-```{r plot_hts, fig.width=3*fig.dim, echo=FALSE}
+Now, plots of inferred hitting times against the observed,
+zoomed in the right-hand plot,
+and in the maps, with circles showing mean residuals by tortoise 
+(red means hitting times are larger than divergences; blue vice-versa):
+```{r plot_hts, fig.width=2*fig.dim, fig.height=2*fig.dim, echo=FALSE}
 for ( k in value.order ) {
     if (length(run.info[[k]])>1) {
         # set up plotting
@@ -108,19 +119,22 @@ for ( k in value.order ) {
         used <- (col(pimat)%in%ref.inds) & (row(pimat)%in%ref.inds)
         subdir <- run.info[[k]]$subdir
         xlims <- range(sym.hts[used],na.rm=TRUE)
-        # plot
         ylims <- range(pimat[used],na.rm=TRUE)
-        layout(t(1:3))
+        # plot
+        layout(matrix(1:4,nrow=2,byrow=TRUE))
         plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
         abline(0,1)
-        ph( run.info[[k]]$stationary.base, main=subdir )
-        points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
         plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(used,'red','black'),0.25), 
             pch=20, cex=0.5, ylab="observed times", xlab="fitted times", 
             xlim=xlims, ylim=ylims )
         legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
         abline(0,1)
+        ph( pmin(1e3,run.info[[k]]$jump.rates), do.lims=FALSE, zlim=c(0,1e3), main="truncated jump rates" )
+        points(tort.locs); points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
+        z <- 1/(1+exp(-run.info[[k]]$stationary.base))
+        ph( z/sum(z), do.lims=FALSE, main="stationary distribution" )
+        points(tort.locs); points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
     }
 }
 ```

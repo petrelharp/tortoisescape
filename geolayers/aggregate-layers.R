@@ -13,7 +13,7 @@ if (!interactive()) {
 }
 
 require(parallel)
-numcores <- as.numeric(scan(pipe("cat /proc/cpuinfo | grep processor | tail -n 1 | awk '{print $3}'")))+1
+numcores <- detectCores()
 
 require(raster)
 rasterOptions(tmpdir=".")
