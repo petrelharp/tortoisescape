@@ -12,7 +12,7 @@ require(raster)
 rasterOptions(tmpdir=".")
 
 subdir <- argvec[1]
-ag.fact <- argvec[2]
+ag.fact <- as.numeric(argvec[2])
 
 setwd(subdir)
 grd.or.tif <- function (x) { paste(x, if (file.exists(paste(x,".grd",sep=''))) { ".grd" } else { ".tif" }, sep='' ) }
@@ -25,12 +25,12 @@ masked <- mask(masked,sea)
 d.mask <- distance(masked)
 mask.exp <- ( d.mask > 300 )
 mask.exp[mask.exp==0] <- NA
-mask.ag <- aggregate(mask.exp,fact=ag.fact,fun=mean,na.rm=FALSE)
+mask.ag <- if (ag.fact>1) { aggregate(mask.exp,fact=ag.fact,fun=mean,na.rm=FALSE) } else { mask.exp }
 mask.clumps <- clump(mask.ag)
 clump.sizes <- table(values(mask.clumps))
 big.clump <- which.max( clump.sizes )
 mask.ag[mask.clumps!=big.clump] <- NA
-mask.disag <- disaggregate( mask.ag, fact=ag.fact )
+mask.disag <- if (ag.fact>1) { disaggregate( mask.ag, fact=ag.fact ) } else { mask.ag }
 masked <- mask( masked, mask.disag )
 writeRaster(masked,file="mask_crew_dem_2K_sea.grd")
 removeTmpFiles()
