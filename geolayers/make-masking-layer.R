@@ -31,6 +31,6 @@ clump.sizes <- table(values(mask.clumps))
 big.clump <- which.max( clump.sizes )
 mask.ag[mask.clumps!=big.clump] <- NA
 mask.disag <- if (ag.fact>1) { disaggregate( mask.ag, fact=ag.fact ) } else { mask.ag }
-masked <- mask( masked, mask.disag )
+masked <- mask( masked, crop(mask.disag,masked) )
 writeRaster(masked,file="mask_crew_dem_2K_sea.grd")
 removeTmpFiles()
