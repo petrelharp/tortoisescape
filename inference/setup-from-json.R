@@ -36,9 +36,9 @@ names(use.files) <- layer.names
 
 # refname <- grep("dem_30",layer.file.names)[1]
 # nalayer <- is.na( raster(layer.files[refname]) ) # dem
-na.layer.base <- if ( is.null(config$mask.layer) ) { "dem_30" } else { config$mask.layer }
+na.layer.base <- if ( is.null(config$mask_layer) ) { "dem_30" } else { config$mask_layer }
 refname <- grep( na.layer.base, layer.file.names )[1]
-nalayer <- is.na( raster(paste(config$layer.prefix,config$mask.layer,sep='')) )
+nalayer <- is.na( raster(paste(full.layer.prefix,config$mask_layer,sep='')) )
 
 for (lf in use.files) {
     other <- raster(lf) 

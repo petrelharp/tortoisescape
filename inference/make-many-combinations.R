@@ -22,7 +22,7 @@ json.config.fn <- function (layer.names) {
     "description" : "Configuration for direct inference on 256x grid.",
     "layer_names" : [ "', paste( layer.names, collapse='", "' ),  '" ],
     "layer_prefix" : "../../../geolayers/multigrid/256x/crm_",
-    "mask.layer": [ "mask_crew_dem_2K_sea" ],
+    "mask_layer": [ "mask_crew_dem_2K_sea" ],
     "setup_files" : [ "setup.RData" ],
     "sample_locs" : [ "../../../tort_180_info/tort.coords.rasterGCS.Robj" ],
     "divergence_file" : [ "../../../tort_180_info/alleleCounts_1millionloci.pwp.csv" ],
