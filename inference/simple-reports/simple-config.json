@@ -1,6 +1,7 @@
 {
     "description" : "Configuration for inference, example file.",
     "layer_names" : [ "layer_a", "layer_b" ],
+    "mask.layer": [ "mask_crew_dem_2K_sea" ],
     "setup_files" : [ "simple-setup.RData" ],
     "alpha" : 0.2,
     "method" : "analytic",
