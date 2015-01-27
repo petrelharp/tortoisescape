@@ -1,0 +1,44 @@
+#PBS -S /bin/bash
+#PBS -q cmb
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=2:00:00
+#PBS -l mem=12gb
+#PBS -l vmem=12gb
+#PBS -l pmem=12gb
+
+source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+cd $PBS_O_WORKDIR
+
+echo "Parsing ${BASEDIR-}"
+echo "  on the ${PBS_ARRAYID-}th directory."
+
+if [[ -z ${BASEDIR-} || ! -r ${BASEDIR-} ]]
+then
+    echo "Usage:  qsub -vBASEDIR=\"(name of directory)\" setup-many-combinations.sh"
+    exit
+fi
+
+NN=1
+SDIRS=$(find $BASEDIR -mindepth 1 -maxdepth 1 -type 'd')
+for SDIR in $SDIRS
+do
+    if [ $NN == $PBS_ARRAYID ] 
+    then 
+        DIRNAME=$SDIR
+        break
+    fi
+    NN=$((NN+1))
+done
+
+JOBID=$(echo $PBS_JOBID | sed -e 's/[^0-9].*//')
+CONFIG="${DIRNAME}/config.json"
+OUTPUT="${DIRNAME}/setup.RData"
+echo "JOBID: ${JOBID}"
+echo "PBS_ARRAYID: ${PBS_ARRAYID}"
+echo "DIRNAME: ${DIRNAME}"
+echo "CONFIG: ${CONFIG}"
+echo "OUTPUT: ${OUTPUT}"
+
+Rscript setup-from-json.R $CONFIG $OUTPUT
+
+

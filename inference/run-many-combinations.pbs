@@ -34,7 +34,7 @@ fi
 # DIRNAME=$(find ${BASEDIR} -mindepth 1 -maxdepth 1 -type 'd' | tail -n +${PBS_ARRAYID} | head -n 1)
 # but it does not, SO:
 NN=1
-SDIRS=$(find many-combinations/ -mindepth 1 -maxdepth 1 -type 'd')
+SDIRS=$(find $BASEDIR -mindepth 1 -maxdepth 1 -type 'd')
 for SDIR in $SDIRS
 do
     if [ $NN == $PBS_ARRAYID ] 
