@@ -29,6 +29,6 @@ fi
 
 for SDIR in $(find ${BASEDIR} -type d -mindepth 1 -maxdepth 1)
 do
-    while (( $(jobs 2>&1 | grep -c Running) >= 17 )); do sleep 1; done
+    while (( $(jobs 2>&1 | grep -c Running) >= 16 )); do sleep 1; done
     Rscript setup-from-json.R ${SDIR}/config.json ${SDIR}/setup.RData  &
 done

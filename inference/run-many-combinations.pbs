@@ -1,9 +1,9 @@
 #PBS -S /bin/bash
 #PBS -q cmb
-#PBS -l nodes=1:sl230s:ppn=15
+#PBS -l nodes=1:sl230s:ppn=16
 #PBS -l walltime=48:00:00
 #PBS -l mem=24gb
-#PBS -l vmem=24gb
+#PBS -l vmem=120gb
 #PBS -l pmem=1500mb
 ## max on sl230s:
 # #PBS -l mem=120gb
@@ -14,11 +14,10 @@
 ###
 # notes on memory usage:
 #   256x needs < 6GB memory
+#   128x needs 56GB memory on 16 cores (why??)
 
 source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
 cd $PBS_O_WORKDIR
-
-set -eu
 
 echo "Working in ${BASEDIR-}"
 echo "  on the ${PBS_ARRAYID-}th directory."
@@ -34,7 +33,7 @@ fi
 # DIRNAME=$(find ${BASEDIR} -mindepth 1 -maxdepth 1 -type 'd' | tail -n +${PBS_ARRAYID} | head -n 1)
 # but it does not, SO:
 NN=1
-SDIRS=$(find many-combinations/ -mindepth 1 -maxdepth 1 -type 'd')
+SDIRS=$(find ${BASEDIR} -mindepth 1 -maxdepth 1 -type 'd')
 for SDIR in $SDIRS
 do
     if [ $NN == $PBS_ARRAYID ] 
