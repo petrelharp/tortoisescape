@@ -5,7 +5,6 @@
         "mask_crew_dem_2K_sea"
     ],
     "layer_prefix" : "../../../geolayers/multigrid/256x/crm_",
-    "mask.layer": [ "mask_crew_dem_2K_sea" ],
     "setup_files" : [ "../../../256x/crm_six-raster-list-setup.RData" ],
     "observed_ht_file" : "sim-hts.tsv",
     "fitted_ht_file" : "interp-hts.tsv",

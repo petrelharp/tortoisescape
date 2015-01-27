@@ -1,7 +1,6 @@
 {
     "description" : "Configuration for inference, example file.",
     "layer_names" : [ "imperv_30", "agp_250", "m2_ann_precip", "avg_rough_30", "dem_30", "bdrock_ss2_st" ],
-    "mask.layer": [ "mask_crew_dem_2K_sea" ],
     "layer_prefix" : "../../../../geolayers/multigrid/256x/crm_",
     "mask.layer": [ "mask_crew_dem_2K_sea" ],
     "setup_files" : [ "../../../256x/crm_six-raster-list-setup.RData" ],
