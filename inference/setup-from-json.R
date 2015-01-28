@@ -14,7 +14,7 @@ source("resistance-fns.R")
 # require(parallel)
 numcores<-getcores()
 require(raster)
-rasterOptions(tmpdir=".")
+require(rgdal)
 
 config.file <- argvec[1]
 outfile <- argvec[2]
@@ -24,12 +24,14 @@ source.ls <- ls()
 
 layer.names <- config$layer_names
 full.layer.prefix <- file.path(dirname(config.file),config$layer_prefix)
+dir.layer.prefix <- if (grepl("/$",config$layer_prefix)) { full.layer.prefix } else { dirname(full.layer.prefix) }
+base.layer.prefix <- if (grepl("/$",config$layer_prefix)) { "" } else { basename(config$layer_prefix) }
 
 ### from make-overlap-na-layer.R
 
 # setup NA overlap layer
 
-layer.files <- list.files(dirname(full.layer.prefix),paste(basename(config$layer_prefix),".*gri",sep=''),full.names=TRUE)
+layer.files <- gsub("//","/",list.files(full.layer.prefix,pattern="gri$",full.names=TRUE),fixed=TRUE)
 layer.file.names <- gsub(paste(".*",config$layer_prefix,sep=''),"",gsub(".gri","",layer.files,fixed=TRUE))
 use.files <- layer.files[match(layer.names,layer.file.names)]
 names(use.files) <- layer.names
@@ -38,17 +40,17 @@ names(use.files) <- layer.names
 # nalayer <- is.na( raster(layer.files[refname]) ) # dem
 na.layer.base <- if ( is.null(config$mask_layer) ) { "dem_30" } else { config$mask_layer }
 refname <- grep( na.layer.base, layer.file.names )[1]
-nalayer <- is.na( raster(paste(full.layer.prefix,config$mask_layer,sep='')) )
+nalayer <- raster(paste(full.layer.prefix,config$mask_layer,sep=''))
 
 for (lf in use.files) {
     other <- raster(lf) 
-    nalayer <- nalayer | is.na(other)
+    nalayer <- mask( nalayer, other )
 }
 
 
 ### from setup-real-G.R
 
-nonmissing <- which(values(nalayer)==0)
+nonmissing <- which(!is.na(values(nalayer)))
 
 G <- make.G( layer=nalayer, nonmissing=nonmissing )
 Gjj <- p.to.j(G@p)
@@ -83,10 +85,11 @@ G@x <- update.G(paramvec(config))
 
 sample.loc.obj <- load(file.path(dirname(config.file),config$sample_locs))
 assign("sample.locs",get(sample.loc.obj))
+sample.locs <- spTransform( sample.locs, CRSobj=CRS(proj4string(nalayer)))
 rm(sample.loc.obj)
 sample.ids <- row.names(sample.locs)
 
-orig.locs <- cellFromXY( nalayer, tort.coords.rasterGCS )
+orig.locs <- cellFromXY( nalayer, sample.locs )
 locs <- match(orig.locs,nonmissing)
 
 ndist <- 15000  # 15 km

@@ -1,0 +1,25 @@
+{
+    "description" : "Configuration for direct inference ussing the Nussear et al model layer.",
+    "layer_names" : [ "nussear" ],
+    "layer_prefix" : "../../../geolayers/nussear/habitat-model/",
+    "mask_layer" : [ "mask_crew_dem_2K_sea" ],
+    "setup_files" : [ "setup.RData" ],
+    "sample_locs" : [ "../../../tort_272_info/geog_coords.RData" ],
+    "divergence_file" : [ "../../../tort_272_info/all_angsd_snps.pwp.csv" ],
+    "params" : {
+            "T"              : [ 3.5e5 ],
+            "beta"           : [ 8.0 ],
+            "constant_gamma" : [ 0.0 ],
+            "gamma"          : [ 1.0 ],
+            "constant_delta" : [ 0.0 ],
+            "delta"          : [ 1.0 ]
+        },
+    "param_scale" : {
+            "T"              : [ 3.5e5 ],
+            "beta"           : [ 1.0 ],
+            "constant_gamma" : [ 1.0 ],
+            "gamma"          : [ 1.0 ],
+            "constant_delta" : [ 1.0 ],
+            "delta"          : [ 1.0 ]
+        }
+}
