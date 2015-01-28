@@ -10,11 +10,12 @@ sea <- crop(sea,nus)
 nus <- crop(nus,sea)
 masked <- mask(crew,dem)
 masked <- mask(masked,sea)
-mask.clumps <- clump(masked)
+masked <- mask(masked,nus)
+# remove isolated regions
+mask.clumps <- clump(masked,directions=4)
 clump.sizes <- table(values(mask.clumps))
 big.clump <- which.max( clump.sizes )
-mask.ag[mask.clumps!=big.clump] <- NA
-masked <- mask( masked, mask.disag )
+masked[mask.clumps!=big.clump] <- NA
 writeRaster(masked,file="mask_crew_dem_2K_sea.tif",overwrite=TRUE)
 
 setwd("..")
