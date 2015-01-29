@@ -8,7 +8,7 @@ e.g.
 "
 
 argvec <- if (interactive()) { scan(what='char') } else { commandArgs(TRUE) }
-if (length(argvec)<2) { stop(usage) }
+if (length(argvec)<1) { stop(usage) }
 
 source("resistance-fns.R")
 # require(parallel)
@@ -17,8 +17,8 @@ require(raster)
 require(rgdal)
 
 config.file <- argvec[1]
-outfile <- argvec[2]
 config <- read.json.config(config.file)
+outfile <- if (length(argvec)>1) { argvec[2] } else { file.path(dirname(config.file),config$setup_files) }
 
 source.ls <- ls()
 

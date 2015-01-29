@@ -4,8 +4,8 @@ require(rgdal)
 require(parallel)
 numcores <- getcores()
 
-config <- read.json.config("nussear-transforms/habitat-dem/config.json")
-load("nussear-transforms/habitat-dem/setup.RData")
+config <- read.json.config("habitat/config.json")
+load("habitat/setup.RData")
 
 ## look at where samples go
 ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer)
@@ -26,8 +26,11 @@ f <- function (p) {
     dev.off()
 }
 
-f(c(3e5,8,0,4,4,0,0,0))  # too long, no structure
-f(c(3e5,8,2,4,4,0,4,0))  # a bit better
-f(c(3e5,8,2,4,4,0,4,-5))  # hm, interesting. too long
-f(c(3e5,8,2,4,4,0,8,-5))  # hm, interesting. too long
-f(c(3e5,15,2,4,4,3,8,-5))  # 
+f(c(3e5,8,0,8,0,0))  # no structure
+f(c(3e5,5,0,8,0,3))  # looks promising but too long
+f(c(3e5,5,0,8,-1,2)) # looks promising but too long
+f(c(3e5,5,6,8,-1,2)) # right scale! but too much structure
+f(c(2.9e5,5,6,8,-1,1)) # right scale! needs more structure
+f(c(2.9e5,5,6,8,-3,5)) # similar; has outliers
+f(c(2.9e5,5,4,10,-2,5)) # too long, not enough structure
+f(c(2.9e5,7,4,10,-2,5)) # too long, not enough structure
