@@ -38,6 +38,8 @@ echo "PBS_ARRAYID: ${PBS_ARRAYID}"
 echo "DIRNAME: ${DIRNAME}"
 echo "CONFIG: ${CONFIG}"
 echo "OUTPUT: ${OUTPUT}"
+export MC_CORES=${PBS_NUM_PPN-}
+echo "  Using $MC_CORES cpus."
 
 Rscript setup-from-json.R $CONFIG $OUTPUT
 
