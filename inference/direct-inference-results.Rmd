@@ -45,10 +45,10 @@ legend("topleft", lty=1, col=1:(1+nlayers), legend=c('beta',layer.names))
 Now, let's look at the actual model.
 ```{r model_setup, echo=FALSE}
 for (x in config$setup_files) { load(file.path(dirname(trust.optim$config.file),x)) }
-ph <- plot.ht.fn(file.path(dirname(trust.optim$config.file),config$layer_prefix),nonmissing,homedir="..",default.par.args=list(mar=c(3,3,3,3)+.1))
+ph <- plot.ht.fn(file.path(dirname(trust.optim$config.file),config$layer_prefix),nonmissing,homedir="..",default.par.args=list(mar=c(3,3,3,3)+.1),layer=nalayer)
 params <- trust.optim$argument
 layout(t(1:2))
-plot.model(params[-1],layer.names,layers,G,update.G,ph)
+plot.model(params,layer.names,layers,G,update.G,ph)
 ```
 
 Now, hitting times:
@@ -69,11 +69,13 @@ and how the fit compares to distance:
 sym.hts <- params[1]+hts[locs,]
 sym.hts <- (sym.hts+t(sym.hts))/2
 ref.inds <- trust.optim$ref.inds
-load("torts-info.RData")
+diag(sym.hts) <- diag(pimat) <- NA
+tort.dists <- pointDistance(sample.locs,lonlat=FALSE)
+ut <- upper.tri(pimat,diag=FALSE)
 layout(t(1:2))
-plot( as.vector(sym.hts), pimat, col=adjustcolor(ifelse(col(pimat)%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
+plot( sym.hts[ut], pimat[ut], col=adjustcolor(ifelse(col(pimat)[ut]%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="fitted times" )
 legend("bottomright",pch=20,col=c("red","black"),legend=c("used in fitting","not used in fitting"))
 abline(0,1)
-plot( as.vector(tort.dists), pimat, col=adjustcolor(ifelse(col(pimat)%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
+plot( tort.dists[ut], pimat[ut], col=adjustcolor(ifelse(col(pimat)[ut]%in%ref.inds,'red','black'),0.25), pch=20, cex=0.5, ylab="observed times", xlab="geographic distance" )
 ```
 

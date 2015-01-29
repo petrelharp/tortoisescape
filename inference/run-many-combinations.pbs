@@ -70,6 +70,8 @@ echo "PAST_OUTPUT: ${PAST_OUTPUT-}"
 
 echo "Running:"
 echo "  Rscript direct-inference.R ${CONFIG} ${OUTPUT} ${MAXIT} ${PAST_OUTPUT-}"
+export MC_CORES=${PBS_NUM_PPN-}
+echo "  using $MC_CORES cpus."
 
 Rscript direct-inference.R ${CONFIG} ${OUTPUT} ${MAXIT} ${PAST_OUTPUT-}
 

@@ -69,7 +69,7 @@ plot.model <- function(params,layer.names,layers,G,update.G,ph) {
     ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
     delta <- params[2+length(layer.names)+(1:length(layer.names))]
     jump.base <- rowSums( layers * delta[col(layers)] )
-    G@x <- update.G(params)
+    G@x <- update.G(params[-1])
     ph( rowSums(G), main="total jump rate", do.lims=FALSE )
 }
 
@@ -203,13 +203,17 @@ getset.seed <- function () {
 
 plot.ht.fn <- function (layer.prefix,nonmissing,layer.name="dem_30",
         layer=raster(paste(layer.prefix,layer.name,sep='')),homedir="..",
+        sample.loc.file=file.path(homedir,"tort_272_info/geog_coords.RData"),
         default.par.args=list(mar=c(5,4,4,7)+.1),
         default.zlim.fac=1.2) {
     # use this to make a quick plotting function
     require(raster)
+    require(rgdal)
     values(layer)[-nonmissing] <- NA # NOTE '-' NOT '!'
-    load(file.path(homedir,"tort_180_info/tort.coords.rasterGCS.Robj"))
-    orig.locs <- cellFromXY( layer, tort.coords.rasterGCS )
+    sample.loc.obj <- load(sample.loc.file)
+    assign("sample.locs",get(sample.loc.obj))
+    sample.locs <- spTransform( sample.locs, CRSobj=CRS(proj4string(layer)))
+    orig.locs <- cellFromXY( layer, sample.locs )
     locs <- match(orig.locs,nonmissing)
     ph <- function (x,...,do.lims=TRUE,par.args=default.par.args,zlim.fac=default.zlim.fac) { 
         if (do.lims) {  # restrict to the range observed in observed locations
@@ -220,11 +224,11 @@ plot.ht.fn <- function (layer.prefix,nonmissing,layer.name="dem_30",
         values(layer)[nonmissing] <- x
         opar <- par(par.args)  # plotting layers messes up margins
         plot(layer,...)
-        points(tort.coords.rasterGCS,pch=20,cex=.25)
+        points(sample.locs,pch=20,cex=.25)
         par(opar)
     }
     environment(ph) <- new.env()
-    assign("tort.coords.rasterGCS",tort.coords.rasterGCS,environment(ph))
+    assign("sample.locs",sample.locs,environment(ph))
     assign("locs",locs,environment(ph))
     assign("default.par.args",default.par.args,environment(ph))
     return(ph)
