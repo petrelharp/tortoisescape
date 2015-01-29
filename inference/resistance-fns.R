@@ -10,8 +10,14 @@ source(file.path(.PATH,"input-output-fns.R"))
 
 # number of cores for parallel
 getcores <- function (subdir) {
+    # check in environment variables first
     if ( "parallel" %in% .packages()) {
-        numcores <- detectCores()
+        numcores.env <- as.numeric( Sys.getenv("MC_CORES",unset=NA) )
+        if ( is.numeric(numcores.env) && !is.na(numcores.env) ) { 
+            numcores <- numcores.env
+        } else {
+            numcores <- detectCores()
+        }
     } else {
         numcores <- 1
     }
