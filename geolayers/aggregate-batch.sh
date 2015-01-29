@@ -17,14 +17,20 @@ then
 else 
     BASEDIR=${1-}
     OUTDIR=${2-}
+    NSTEPS=${3-}
+fi
+
+if [ -z ${NSTEPS-} ]
+then
+    NSTEPS=9
 fi
 
 if [ -z ${BASEDIR-} ] || [ -z ${OUTDIR-} ]
 then
     echo "Steps down by factors of 2.  Usage:
-    qsub -vBASEDIR=\"expanded/expanded-TIFF\",OUTDIR=\"expanded/\" aggregate-batch.sh
+    qsub -vBASEDIR=\"expanded/expanded-TIFF\",OUTDIR=\"expanded/\",NSTEPS=\"9\" aggregate-batch.sh
 or
-    ./aggregate-batch.sh (directory of inputs) (base directory for outputs)
+    ./aggregate-batch.sh (directory of inputs) (base directory for outputs) (number of steps)
 "
     exit
 fi
@@ -32,9 +38,10 @@ fi
 set -eu
 set -o pipefail
 
-
-for RES in 2 4 8 16 32 64 128 256 512
+RES=1
+for N in $(seq $NSTEPS)
 do
+    RES=$((RES*2))
     echo "-------------------"
     NEWDIR="${OUTDIR}${RES}x"
     echo "Beginning on ${RES}x and outputting to ${NEWDIR}."

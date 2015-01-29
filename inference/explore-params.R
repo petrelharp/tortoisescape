@@ -1,89 +1,46 @@
-
-layer.prefix <- "../geolayers/multigrid/256x/crm_"
-subdir <- "256x"
-layer.file <- "six-raster-list"
-
-
 source("resistance-fns.R")
 require(raster)
-
+require(rgdal)
 require(parallel)
 numcores <- getcores()
 
-layer.names <- scan(layer.file,what="char") 
-
-load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"-","setup.RData",sep=''))  # provides below, also 'pimat'
-# load( paste(subdir,"/",basename(layer.prefix),"_",basename(layer.file),"_","G.RData",sep='') ) # provides "G"    "Gjj"    "update.G" "ndelta"   "ngamma"   "transfn"  "valfn"    "layers"
-# load( paste( subdir, "/", basename(layer.prefix), basename(layer.file), "_neighborhoods.RData", sep='' ) ) # provides 'neighborhoods'
-# load(paste(subdir,"/",basename(layer.prefix),basename(layer.file),"_tortlocs.RData",sep='')) # provides 'locs'
-# load( paste(subdir, "/", basename(layer.prefix),"_", basename(layer.file),"_nonmissing.RData",sep='') ) # provides nonmissing
-
-## LOGISTIC FUNCTION
-transfn <- function (x) { 1/(1+exp(-x)) }
-
-## END SETUP
-dem <- raster(paste(layer.prefix,"dem_30_m800_sq",sep=''))
+config <- read.json.config("nussear-transforms/habitat-dem/config.json")
+load("nussear-transforms/habitat-dem/setup.RData")
 
 ## look at where samples go
-ph <- plot.ht.fn(layer.prefix,nonmissing,"dem_30_m800_sq")
-plot(dem)
-# NOT tort_IDs but indices (what are passed in via dothese below)
-with(environment(ph),text(tort.coords.rasterGCS,labels=ifelse(seq_along(tort.coords.rasterGCS)%in%na.indiv,"*",cumsum(!seq_along(tort.coords.rasterGCS)%in%na.indiv))))
+ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer)
 
-dev.new()
+diag(pimat) <- NA
+pimat[pimat<2e5] <- NA
+ref.inds <- c(10,23,42,179)
+ref.inds <- c(21,24,3,105,213,97,114,235,35,222,227,15,12,89,155,179)
 
-newparams <- function (params,dothese,do.layout=TRUE) {
-    # params are parameters: for n layers,
-    #  params[1] is beta, of which exp(beta) is overall multiplicative constant
-    #  params[2:(n+1)] is gamma, weights on the layers that give the stationary distribution
-    #  params[(n+2):(2*n+1)] is delta, the weights on the layers that give the jump rates
-    #
-    # dothese is a vector of indices of tortoise locations to compute hitting times of
-    #
-    # Produces n+4 plots.
-    if (do.layout) {
-        nplots <- length(dothese)+4
-        nplotrows <- floor(sqrt(nplots))
-        layout( matrix(1:(nplotrows*ceiling(nplots/nplotrows)),nrow=nplotrows) )
-    }
-    G@x <- update.G(params)
-    hts <- hitting.analytic( neighborhoods[dothese], G, numcores=numcores )
-    hts[hts<0] <- NA
-    # 'locs' are indices of tortoise locations
-    ymax <- 1.5*max(hts[locs,])  # 1.5 times maximum hitting time to another tortoise location
-    # plot with maximum value at ymax
-    for (k in seq_along(dothese)) { ph(pmin(ymax,hts[,k]), main=paste("hitting time to ", dothese[k]) ) }
-    # omit self comparisons
-    diag(pimat) <- NA
-    vshift <- mean( (pimat[,dothese] - hts[locs,])[hts[locs,]>0], na.rm=TRUE )
-    plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence' )
-    abline(vshift,1,untf=TRUE)
-    abline(33e4,1,untf=TRUE,col='red')
-    legend("bottomright",pch=1,col=seq_along(dothese),legend=dothese)
-    plot( hts[locs,], pimat[,dothese], col=col(pimat[,dothese]), xlab='hitting time', ylab='divergence', log='xy' )
-    abline(vshift,1,untf=TRUE)
-    abline(33e4,1,untf=TRUE,col='red')
-    ph( valfn( params[1 + (1:ngamma)] ), main="stationary distribution" )
-    ph( valfn( params[1 + ngamma + (1:ndelta)] ), main="relative jump rate" )
-    invisible(hts)
+f <- function (p) {
+    G@x <- update.G(p[-1])
+    hts <- hitting.analytic(neighborhoods[ref.inds],G,numcores=numcores)
+    png(file="Rplots.png",width=24*144,height=12*144,pointsize=10,res=144)
+    layout(matrix(1:18,nrow=3,byrow=TRUE))
+    for (k in 1:ncol(hts)) { ph(hts[,k],zlim=c(0,1e5)) }
+    plot( p[1]+hts[locs,], pimat[,ref.inds], pch=20 ); abline(0,1)
+    plot( p[1]+((hts[locs[ref.inds],]+t(hts[locs[ref.inds],]))/2), pimat[ref.inds,ref.inds], pch=20 ); abline(0,1)
+    dev.off()
 }
 
-#  six-raster-layers  :  "imperv_30"  "agp_250"  "m2_ann_precip"  "avg_rough_30"  "dem_30"  "bdrock_ss2_st"
-hts <- newparams(c( 2.0,
-        c( -1, 0.1, -0.05, -0.2, -1.3, 0.02),
-        c( -2, 0.0,  0.00, -2.0, -.9, 0.00) ),
-    c(1,10,58,70))
+f(c(3e5,8,0,4,4,0,0,0))  # too long, no structure
+f(c(3e5,8,2,4,4,0,4,0))  # a bit better
+f(c(3e5,8,2,4,4,0,4,-5))  # hm, interesting. too long
+f(c(3e5,8,2,4,4,0,8,-5))  # hm, interesting. too long
+f(c(3e5,9,2,4,-4,-3,8,-5))  # hey, closer!
+f(c(3e5,9,2,4,-4,-3,8,-7))  # hm, outliers
+f(c(3e5,9,2,4,-4,-3,10,-7))  # got rid of most of outliers
+f(c(3e5,8,3,4,-4,-3,10,-7))  # hm, ok-ish
+f(c(3e5,8,2,5,-4,-3,10,-7))  # better?
+f(c(3e5,8,2,5,-4,-2.5,10,-7))  # and a bit more?
+f(c(3e5,8.5,2,5,-4,-2.5,8,-7))  # 
+f(c(3e5,8.8,2.3,5,-4,-2.5,8,-7))  # 
+f(c(3e5,8.8,2.3,5,-3.8,-2.5,8,-7))  # 
+f(c(3e5,8.8,2.3,5,-3.6,-2.5,8,-8))  # 
 
-stop('here')
-
-hts <- newparams(c(.01,0,-1),c(10,83))
-
-hts <- newparams(c(.01,0,-3),c(10,83))
-
-hts <- newparams(c(.01,-.1,-3),c(10,83))
-
-
-# what does a transformed layer look like?
-dem <- raster(paste(layer.prefix,"dem_30_m800_sq",sep=''))
-plot( exp((-2)*dem) )
-
+#####
+ref.inds <- 1:271
+f(c(3e5,8.8,2.3,5,-3.6,-2.5,8,-8))  # 
