@@ -1,10 +1,25 @@
 #PBS -S /bin/bash
 #PBS -q cmb
 #PBS -l nodes=1:sl230s:ppn=16
-#PBS -l walltime=48:00:00
+#PBS -l walltime=12:00:00
 #PBS -l mem=24gb
 #PBS -l vmem=120gb
 #PBS -l pmem=1500mb
+# #PBS -l nodes=1:sl230s:ppn=8
+# #PBS -l walltime=48:00:00
+# #PBS -l mem=60gb
+# #PBS -l vmem=64gb
+# #PBS -l pmem=12gb
+# #PBS -l nodes=1:dl165:ppn=20
+# #PBS -l walltime=48:00:00
+# #PBS -l mem=40gb
+# #PBS -l vmem=48gb
+# #PBS -l pmem=2000mb
+# #PBS -l nodes=1:sl230s:ppn=16
+# #PBS -l walltime=48:00:00
+# #PBS -l mem=24gb
+# #PBS -l vmem=64gb
+# #PBS -l pmem=1500mb
 ## max on sl230s:
 # #PBS -l mem=120gb
 # #PBS -l vmem=120gb

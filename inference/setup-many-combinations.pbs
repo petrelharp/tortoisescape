@@ -2,9 +2,9 @@
 #PBS -q cmb
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=2:00:00
-#PBS -l mem=12gb
-#PBS -l vmem=12gb
-#PBS -l pmem=12gb
+#PBS -l mem=32gb
+#PBS -l vmem=32gb
+#PBS -l pmem=32gb
 
 source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
 cd $PBS_O_WORKDIR
@@ -14,7 +14,7 @@ echo "  on the ${PBS_ARRAYID-}th directory."
 
 if [[ -z ${BASEDIR-} || ! -r ${BASEDIR-} ]]
 then
-    echo "Usage:  qsub -vBASEDIR=\"(name of directory)\" setup-many-combinations.sh"
+    echo "Usage:  qsub -vBASEDIR=\"(name of directory)\" setup-many-combinations.pbs"
     exit
 fi
 

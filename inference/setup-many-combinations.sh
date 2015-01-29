@@ -12,6 +12,8 @@ BASEDIR=$1
 NDIRS=$(find $1 -mindepth 1 -maxdepth 1 -type 'd' | wc -l)
 echo "Parsing ${NDIRS} directories in ${BASEDIR}"
 
+if [[ $NDIRS -lt 1 ]]; then echo "No directories!"; exit; fi
+
 if [[ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]]  # run on the cluster
 then
     qsub -vBASEDIR=\""$1"\" -t 1-${NDIRS}%32 setup-many-combinations.sh

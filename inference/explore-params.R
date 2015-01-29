@@ -20,7 +20,7 @@ f <- function (p) {
     hts <- hitting.analytic(neighborhoods[ref.inds],G,numcores=numcores)
     png(file="Rplots.png",width=24*144,height=12*144,pointsize=10,res=144)
     layout(matrix(1:18,nrow=3,byrow=TRUE))
-    for (k in 1:ncol(hts)) { ph(hts[,k]) }
+    for (k in 1:ncol(hts)) { ph(hts[,k],zlim=c(0,1e5)) }
     plot( p[1]+hts[locs,], pimat[,ref.inds], pch=20 ); abline(0,1)
     plot( p[1]+((hts[locs[ref.inds],]+t(hts[locs[ref.inds],]))/2), pimat[ref.inds,ref.inds], pch=20 ); abline(0,1)
     dev.off()
