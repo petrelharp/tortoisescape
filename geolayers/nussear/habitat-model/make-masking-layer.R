@@ -27,4 +27,24 @@ writeRaster(masked,file="mask_crew_dem_2K_sea.grd",overwrite=TRUE)
 
 removeTmpFiles()
 
+## and the north-south masks
 
+nus <- raster("nussear.grd")
+masked <- raster("mask_crew_dem_2K_sea.grd")
+
+lon <- raster("lon_utm_30.grd")
+lat <- raster("lat_utm_30.grd")
+
+# north mask
+n.mask <- mask( masked, (lon>5e5) & (lat>3.8e6), maskvalue=FALSE )
+n.mask.clump <- clump(n.mask)
+big.clump <- which.max(table(values(n.mask.clump)))
+n.mask[n.mask.clump != big.clump ] <- NA
+writeRaster(n.mask,file="mask_crew_dem_2K_sea_north.grd",overwrite=TRUE)
+
+# south mask
+s.mask <- mask( masked, (lat>4e6) & (lon>4.2e5), maskvalue=TRUE )
+s.mask.clump <- clump(s.mask)
+big.clump <- which.max(table(values(s.mask.clump)))
+s.mask[s.mask.clump != big.clump ] <- NA
+writeRaster(s.mask,file="mask_crew_dem_2K_sea_south.grd",overwrite=TRUE)
