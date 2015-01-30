@@ -32,14 +32,21 @@ nus <- raster("../nussear/habitat-model/nussear.grd")
 tort.loc.obj <- load("../../tort_272_info/geog_coords.RData")
 assign( "sample.locs", spTransform( get(tort.loc.obj), CRSobj=CRS(proj4string(nus)) ) )
 
+north <- raster("../nussear/mask_crew_dem_2K_sea_north.gri")
+south <- raster("../nussear/mask_crew_dem_2K_sea_south.gri")
+
 thresh <- 0.5
 nsamps <- 1e3
+neighbor.dist <- 10000
 samps <- xyFromCell( nus, which(values(nus)>thresh)[sample.int( sum(values(nus)>thresh,na.rm=TRUE), nsamps )] )
 plot(nus>thresh)
 points(samps,pch=20)
 nonmissing <- which(!is.na(values(nus)))
-neighborhoods <- get.neighborhoods( 1000, samps, nonmissing, nus )
+neighborhoods <- get.neighborhoods( neighbor.dist, samps, nonmissing, nus )
 nonoverlapping <- which.nonoverlapping(neighborhoods)
+
+
+# Jannet's:
 
 n.pts <- readShapePoints("north_regular.shp")
 s.pts <- readShapePoints("south_regular.shp")
