@@ -45,7 +45,7 @@ legend("topleft", lty=1, col=1:(1+nlayers), legend=c('beta',layer.names))
 Now, let's look at the actual model.
 ```{r model_setup, echo=FALSE}
 for (x in config$setup_files) { load(file.path(dirname(trust.optim$config.file),x)) }
-ph <- plot.ht.fn(file.path(dirname(trust.optim$config.file),config$layer_prefix),nonmissing,homedir="..",default.par.args=list(mar=c(3,3,3,3)+.1),layer=nalayer)
+ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,homedir="..")
 params <- trust.optim$argument
 layout(t(1:2))
 plot.model(params,layer.names,layers,G,update.G,ph)

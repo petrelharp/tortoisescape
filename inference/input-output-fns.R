@@ -65,7 +65,7 @@ plot.model <- function(params,layer.names,layers,G,update.G,ph,...) {
     # plot the stationary distribution and jump rates for a model
     gamma <- params[2+(1:length(layer.names))]
     stationary.base <- rowSums( layers * gamma[col(layers)] )
-    stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
+    stationary.dist <- ( 1 + exp( -stationary.base ) )  # recall stationary distribution is ** 1/ ** rho( )
     ph( stationary.dist, main="stationary distribution", do.lims=FALSE )
     delta <- params[2+length(layer.names)+(1:length(layer.names))]
     jump.base <- rowSums( layers * delta[col(layers)] )

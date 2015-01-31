@@ -23,30 +23,46 @@ load(last.result)
 ref.inds <- trust.optim$ref.inds
 params <- trust.optim$argument
 G@x <- update.G(params[-1])
-# plotting whatnot
-ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,sample.loc.file=config$sample_locs)
 # reference points
-ref.pt.obj  <- load(file.path(base.dir,"geolayers/reference_points/all_ref_points.RData"))
+ref.pt.file <- file.path(base.dir,"geolayers/reference_points/all_ref_points.RData")
+ref.pt.obj  <- load(ref.pt.file)
 ref.points <- get(ref.pt.obj)
+ref.locs <- unlist(get.neighborhoods( 1e-3, ref.points, nonmissing, nalayer ))
 ref.neighborhoods <- get.neighborhoods( 15e3, ref.points, nonmissing, nalayer )
 plot.points <- which.nonoverlapping( get.neighborhoods( 80e3, ref.points, nonmissing, nalayer ) )
+good.points <- which( values(habitat)[nonmissing[ref.locs]] > 0.4 )
+# plotting helper
+ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,sample.loc.file=ref.pt.file)
 # layers for plotting
 habitat <- raster(file.path(base.dir,"geolayers/nussear/habitat-model/nussear.grd"))
 dem <- raster(file.path(base.dir,"geolayers/nussear/habitat-model/dem_30.grd"))
+# default extent of plotted maps
 xlims <- c(327250,877200)
 ylims <- c(3608100,4191500)
 # and the alternative
 alt <- crop( extend( raster(file.path(base.dir,"geolayers/alternatives",paste(alt.file,"_poly.tif",sep=''))), nalayer ), nalayer )
 stopifnot(compareRaster(alt,nalayer))
 orig.chunks <- lapply( unique(values(alt)), function (k) { match(which(values(alt)==k&!is.na(values(nalayer))),nonmissing) } )
-chunk.clumped <- clump( mask(nalayer,alt,inverse=TRUE) )
+chunk.clumped <- clump( mask(nalayer,alt,inverse=TRUE), directions=4 )
 chunk.clump.table <- table(values(chunk.clumped))
 alt.chunks <- c( orig.chunks, list( match( which( values(chunk.clumped)!=as.numeric(names(chunk.clump.table))[which.max(chunk.clump.table)] ), nonmissing ) ) )
+alt.chunks <- alt.chunks[ sapply(alt.chunks,length) > 0 ]
 all.chunks <- unique(unlist(alt.chunks))
 # check remainder is connected
 tmp <- nalayer
 tmp[nonmissing[unlist(alt.chunks)]] <- NA
 stopifnot(length(table(values(tmp)))==1)
+# helper function to deal with nonconnectedness
+chunk.hts <- function (k) {
+    chunk <- match( which(values(alt) %in% k), nonmissing )
+    chunk <- chunk[!is.na(chunk)]
+    nalayer[nonmissing[chunk]] <- NA
+    unblocked <- clump( nalayer, directions=4 )
+    unblocked.tab <- table(values(unblocked))
+    bigone <- as.numeric(names(unblocked.tab))[which.max(unblocked.tab)]
+    blocked <- match( which(values(unblocked)!=bigone), nonmissing )
+    hitting.analytic(ref.neighborhoods[plot.points],G,blocked=unique(c(chunk,blocked)))
+}
 ```
 
 This is the model in `r gsub(".*tortoisescape/","",getwd())`,
@@ -85,10 +101,12 @@ plot(alt,add=TRUE,legend=FALSE,col=rainbow(length(unique(values(alt)))))
 Now let's look at a few hitting times, and how they change after removing the alternative:
 ```{r some_hts, fig.width=3*fig.width}
 hts <- hitting.analytic(ref.neighborhoods[plot.points],G)
-alt.hts <- hitting.analytic(ref.neighborhoods[plot.points],G,blocked=all.chunks )
-layout(matrix(1:9,nrow=3))
+alt.hts <- chunk.hts(2)
+layout(t(1:2))
 for (k in 1:ncol(hts)) {
-    ph( hts[,k] )
+    ph( hts[,k], zlim=c(0,3.5e5) )
+    ph( alt.hts[,k], zlim=c(0,3.5e5) )
+    if (length(locator(1))==0) { break }
 }
 ```
 

@@ -292,7 +292,7 @@ J.from.G <- function (params,layers,transfn,G) {
     # try with the symmetrized matrix
     Gjj <- rep( seq.int(length(G@p)-1), diff(G@p) )
     J <- G
-    J@x <- G@x * ( sqrt(pivec)[Gjj] / sqrt(pivec)[1L+G@i] )
+    J@x <- G@x * ( sqrt(pivec)[1L+G@i] / sqrt(pivec)[Gjj] )
     J <- forceSymmetric(J)
     return( list(pivec=pivec, J=J) )
 }
@@ -372,7 +372,7 @@ get.hitting.times <- function (G,dG,neighborhoods,boundaries,numcores=getcores()
 stationary.dist <- function (params,layers,transfn) {
     # proportional to the stationary distribution
     gamma <- params[2:(1+ncol(layers))]
-    transfn( rowSums( layers * gamma[col(layers)] ) )
+    return( 1 / transfn( rowSums( layers * gamma[col(layers)] ) ) )
 }
 
 ########
