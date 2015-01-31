@@ -404,6 +404,16 @@ get.boundaries <- function ( neighborhoods, nonmissing, layer, numcores=getcores
     return(boundaries)
 }
 
+remove.clumps <- function (layer) {
+    # NA out everything but the biggest connected cluster
+    cl <- clump(layer,directions=4)
+    cl.table <- table(values(cl))
+    big.clump <- as.numeric(names(cl.table))[ which.max( table( values(cl) ) ) ]
+    layer[cl!=big.clump] <- NA
+    return(layer)
+}
+
+
 which.nonoverlapping <- function (neighborhoods) {
     # find a set of neighborhoods that are mutually nonoverlapping
     perm <- sample(length(neighborhoods))

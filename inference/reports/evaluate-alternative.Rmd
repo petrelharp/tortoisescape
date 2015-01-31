@@ -1,0 +1,95 @@
+```{r setup, include=FALSE}
+####
+#
+# Before running this, have pre-loaded:
+#
+#   alt.file : name of alternative (e.g. "pref_alt" or "alt_1")
+#
+####
+base.dir <- gsub("tortoisescape/inference/.*","tortoisescape",getwd())
+source(file.path(base.dir,"inference","resistance-fns.R"))
+require(parallel)
+require(colorspace)
+require(raster)
+require(xtable)
+fig.dim <- 5
+opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
+# load stuff
+config <- read.json.config("config.json")
+for (x in config$setup_files) { load(x) }
+result.files <- list.files(pattern="inference-.*RData",full.names=TRUE)
+last.result <- result.files[ rev(order( file.info(result.files)$mtime )) ][1]
+load(last.result)
+ref.inds <- trust.optim$ref.inds
+params <- trust.optim$argument
+G@x <- update.G(params[-1])
+# plotting whatnot
+ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,sample.loc.file=config$sample_locs)
+# reference points
+ref.pt.obj  <- load(file.path(base.dir,"geolayers/reference_points/all_ref_points.RData"))
+ref.points <- get(ref.pt.obj)
+ref.neighborhoods <- get.neighborhoods( 15e3, ref.points, nonmissing, nalayer )
+plot.points <- which.nonoverlapping( get.neighborhoods( 80e3, ref.points, nonmissing, nalayer ) )
+# layers for plotting
+habitat <- raster(file.path(base.dir,"geolayers/nussear/habitat-model/nussear.grd"))
+dem <- raster(file.path(base.dir,"geolayers/nussear/habitat-model/dem_30.grd"))
+xlims <- c(327250,877200)
+ylims <- c(3608100,4191500)
+# and the alternative
+alt <- crop( extend( raster(file.path(base.dir,"geolayers/alternatives",paste(alt.file,"_poly.tif",sep=''))), nalayer ), nalayer )
+stopifnot(compareRaster(alt,nalayer))
+orig.chunks <- lapply( unique(values(alt)), function (k) { match(which(values(alt)==k&!is.na(values(nalayer))),nonmissing) } )
+chunk.clumped <- clump( mask(nalayer,alt,inverse=TRUE) )
+chunk.clump.table <- table(values(chunk.clumped))
+alt.chunks <- c( orig.chunks, list( match( which( values(chunk.clumped)!=as.numeric(names(chunk.clump.table))[which.max(chunk.clump.table)] ), nonmissing ) ) )
+all.chunks <- unique(unlist(alt.chunks))
+# check remainder is connected
+tmp <- nalayer
+tmp[nonmissing[unlist(alt.chunks)]] <- NA
+stopifnot(length(table(values(tmp)))==1)
+```
+
+This is the model in `r gsub(".*tortoisescape/","",getwd())`,
+fitted data from `r basename(last.result)`,
+with layers `r paste(layer.names,collapse=", ")`.
+The parameters are
+```{r params, results='asis')
+xtable(cbind(paramvec(config)))
+```
+and the model looks like 
+```{r model_plot,echo=FALSE}
+layout(t(1:2))
+plot.model(params,layer.names,layers,G,update.G,ph,xlim=xlims,ylim=ylims)
+```
+
+We will use these reference points:
+```{r ref_pts, fig.width=fig.dim,echo=FALSE}
+plot(habitat,alpha=0.5,col=rev(terrain.colors(250)),legend=FALSE,xlim=xlims,ylim=ylims)
+contour(dem,add=TRUE,col="slategrey")
+points(ref.points,pch=20,col='red')
+# to-do: add state lines, stippling on E side of colorado...
+```
+
+Here is the alternative we are considering:
+```{r show_alt,echo=FALSE}
+layout(t(1:2))
+plot(habitat,alpha=0.5,col=rev(terrain.colors(250)),legend=FALSE,xlim=xlims,ylim=ylims)
+contour(dem,col="slategrey",add=TRUE)
+plot(alt,add=TRUE,legend=FALSE,col="red")
+# and without the background
+contour(dem,col="slategrey",xlim=xlims,ylim=ylims)
+plot(alt,add=TRUE,legend=FALSE,col=rainbow(length(unique(values(alt)))))
+```
+
+
+Now let's look at a few hitting times, and how they change after removing the alternative:
+```{r some_hts, fig.width=3*fig.width}
+hts <- hitting.analytic(ref.neighborhoods[plot.points],G)
+alt.hts <- hitting.analytic(ref.neighborhoods[plot.points],G,blocked=all.chunks )
+layout(matrix(1:9,nrow=3))
+for (k in 1:ncol(hts)) {
+    ph( hts[,k] )
+}
+```
+
+Here's how they change after
