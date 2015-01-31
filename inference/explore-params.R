@@ -1,46 +1,30 @@
-source("resistance-fns.R")
+source("../resistance-fns.R")
 require(raster)
 require(rgdal)
 require(parallel)
 numcores <- getcores()
 
-config <- read.json.config("nussear-transforms/habitat-dem/config.json")
-load("nussear-transforms/habitat-dem/setup.RData")
+config <- read.json.config("habitat-dem/config.json")
+load("habitat-dem/setup.RData")
 
 ## look at where samples go
-ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer)
+ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,sample.loc.file="../../tort_272_south_info/geog_coords.RData")
 
 diag(pimat) <- NA
 pimat[pimat<2e5] <- NA
-ref.inds <- c(10,23,42,179)
-ref.inds <- c(21,24,3,105,213,97,114,235,35,222,227,15,12,89,155,179)
+ref.inds <- sample(which.nonoverlapping(neighborhoods),16)
 
 f <- function (p) {
+    r.inds <- sample(ref.inds,16)
     G@x <- update.G(p[-1])
-    hts <- hitting.analytic(neighborhoods[ref.inds],G,numcores=numcores)
+    hts <- hitting.analytic(neighborhoods[r.inds],G,numcores=numcores)
     png(file="Rplots.png",width=24*144,height=12*144,pointsize=10,res=144)
     layout(matrix(1:18,nrow=3,byrow=TRUE))
-    for (k in 1:ncol(hts)) { ph(hts[,k],zlim=c(0,1e5)) }
-    plot( p[1]+hts[locs,], pimat[,ref.inds], pch=20 ); abline(0,1)
-    plot( p[1]+((hts[locs[ref.inds],]+t(hts[locs[ref.inds],]))/2), pimat[ref.inds,ref.inds], pch=20 ); abline(0,1)
+    for (k in 1:ncol(hts)) { ph(hts[,k]) }
+    plot( p[1]+hts[locs,], pimat[,r.inds], pch=20 ); abline(0,1)
+    plot( p[1]+((hts[locs[r.inds],]+t(hts[locs[r.inds],]))/2), pimat[r.inds,r.inds], pch=20 ); abline(0,1)
     dev.off()
 }
 
-f(c(3e5,8,0,4,4,0,0,0))  # too long, no structure
-f(c(3e5,8,2,4,4,0,4,0))  # a bit better
-f(c(3e5,8,2,4,4,0,4,-5))  # hm, interesting. too long
-f(c(3e5,8,2,4,4,0,8,-5))  # hm, interesting. too long
-f(c(3e5,9,2,4,-4,-3,8,-5))  # hey, closer!
-f(c(3e5,9,2,4,-4,-3,8,-7))  # hm, outliers
-f(c(3e5,9,2,4,-4,-3,10,-7))  # got rid of most of outliers
-f(c(3e5,8,3,4,-4,-3,10,-7))  # hm, ok-ish
-f(c(3e5,8,2,5,-4,-3,10,-7))  # better?
-f(c(3e5,8,2,5,-4,-2.5,10,-7))  # and a bit more?
-f(c(3e5,8.5,2,5,-4,-2.5,8,-7))  # 
-f(c(3e5,8.8,2.3,5,-4,-2.5,8,-7))  # 
-f(c(3e5,8.8,2.3,5,-3.8,-2.5,8,-7))  # 
-f(c(3e5,8.8,2.3,5,-3.6,-2.5,8,-8))  # 
+f(paramvec(config))
 
-#####
-ref.inds <- 1:271
-f(c(3e5,8.8,2.3,5,-3.6,-2.5,8,-8))  # 
