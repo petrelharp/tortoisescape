@@ -60,9 +60,9 @@ ref.points <- SpatialPoints(coords=ref.locs,proj4string=CRS(proj4string(nus.thre
 save(ref.points,file="all_ref_points.RData")
 
 pdf(file="all-ref-points.pdf",width=5,height=5,pointsize=10)
-plot(nus.thresh)
-points(samps,pch=20,cex=0.5)
-points(samps[nonoverlapping,],col='red')
+plot(nus)
+# points(samps,pch=20,cex=0.5)
+points(ref.points,pch=20,cex=0.5)
 dev.off()
 
 
