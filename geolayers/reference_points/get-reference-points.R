@@ -27,23 +27,43 @@ which.nonoverlapping <- function (neighborhoods) {
     return( which(goodones) )
 }
 
+remove.clumps <- function (layer) {
+    cl <- clump(layer,directions=4)
+    big.clump <- which.max( table( values(cl) ) )
+    layer[cl!=big.clump] <- NA
+    return(layer)
+}
+
 
 nus <- raster("../nussear/habitat-model/nussear.grd")
 tort.loc.obj <- load("../../tort_272_info/geog_coords.RData")
 assign( "sample.locs", spTransform( get(tort.loc.obj), CRSobj=CRS(proj4string(nus)) ) )
 
-north <- raster("../nussear/mask_crew_dem_2K_sea_north.gri")
-south <- raster("../nussear/mask_crew_dem_2K_sea_south.gri")
+masked <- raster("../nussear/habitat-model/mask_crew_dem_2K_sea.gri")
+north <- raster("../nussear/habitat-model/mask_crew_dem_2K_sea_north.gri")
+south <- raster("../nussear/habitat-model/mask_crew_dem_2K_sea_south.gri")
 
-thresh <- 0.5
-nsamps <- 1e3
+# the whole range
+thresh <- 0.2
+nus.thresh <- remove.clumps(mask(masked,nus>thresh,maskvalue=FALSE))
+nsamps <- 5e3
 neighbor.dist <- 10000
-samps <- xyFromCell( nus, which(values(nus)>thresh)[sample.int( sum(values(nus)>thresh,na.rm=TRUE), nsamps )] )
-plot(nus>thresh)
-points(samps,pch=20)
+samps <- xyFromCell( nus.thresh, which(!is.na(values(nus.thresh)))[sample.int( sum(!is.na(values(nus))), nsamps )] )
+
 nonmissing <- which(!is.na(values(nus)))
 neighborhoods <- get.neighborhoods( neighbor.dist, samps, nonmissing, nus )
 nonoverlapping <- which.nonoverlapping(neighborhoods)
+ref.locs <- na.omit( samps[nonoverlapping,] )
+
+ref.points <- SpatialPoints(coords=ref.locs,proj4string=CRS(proj4string(nus.thresh)),bbox=bbox(nus.thresh))
+
+save(ref.points,file="all_ref_points.RData")
+
+pdf(file="all-ref-points.pdf",width=5,height=5,pointsize=10)
+plot(nus.thresh)
+points(samps,pch=20,cex=0.5)
+points(samps[nonoverlapping,],col='red')
+dev.off()
 
 
 # Jannet's:
