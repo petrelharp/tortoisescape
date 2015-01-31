@@ -6,7 +6,7 @@ then
     exit
 fi
 
-RMD=$(realpath direct-inference-results.Rmd)
+RMD=$(readlink -f direct-inference-results.Rmd)
 DIRNAME=$(dirname $1)
 INFILE=$(basename $1)
 OUTFILE=$(echo $INFILE|sed -e 's/.[Rr][Dd]ata/.html/')
