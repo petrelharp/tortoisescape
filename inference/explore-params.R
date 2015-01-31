@@ -13,8 +13,10 @@ ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,sample.loc.file="../../tort
 diag(pimat) <- NA
 pimat[pimat<2e5] <- NA
 ref.inds <- which.nonoverlapping(neighborhoods)
+ref.inds <- sample(which.nonoverlapping(neighborhoods),16)
 
 f <- function (p) {
+    r.inds <- sample(ref.inds,16)
     G@x <- update.G(p[-1])
     hts <- hitting.analytic(neighborhoods[ref.inds],G,numcores=numcores)
     png(file="Rplots.png",width=20*144,height=12*144,pointsize=10,res=144)
@@ -22,8 +24,16 @@ f <- function (p) {
     for (k in 1:ncol(hts)) { ph(hts[,k],zlim=c(0,1e5)) }
     plot( p[1]+hts[locs,], pimat[,ref.inds], pch=20 ); abline(0,1)
     plot( p[1]+((hts[locs[ref.inds],]+t(hts[locs[ref.inds],]))/2), pimat[ref.inds,ref.inds], pch=20 ); abline(0,1)
+    hts <- hitting.analytic(neighborhoods[r.inds],G,numcores=numcores)
+    png(file="Rplots.png",width=24*144,height=12*144,pointsize=10,res=144)
+    layout(matrix(1:18,nrow=3,byrow=TRUE))
+    for (k in 1:ncol(hts)) { ph(hts[,k]) }
+    plot( p[1]+hts[locs,], pimat[,r.inds], pch=20 ); abline(0,1)
+    plot( p[1]+((hts[locs[r.inds],]+t(hts[locs[r.inds],]))/2), pimat[r.inds,r.inds], pch=20 ); abline(0,1)
     dev.off()
 }
+
+f(paramvec(config))
 
 f(c(3e5,8,0,8,0,0))  # no structure
 f(c(3e5,5,0,8,0,3))  # looks promising but too long
