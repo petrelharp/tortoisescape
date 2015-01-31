@@ -20,9 +20,6 @@ maxit <- as.numeric( argvec[3] )
 prev.file <- if (length(argvec)>3) { argvec[4] } else { NULL }
 
 source("resistance-fns.R")
-require(trust)
-require(parallel)
-numcores <- if (!is.null(config$numcores)) { config$numcores } else { getcores() }
 
 cat("Reading config: ", config.file, "\n")
 config <- read.json.config(config.file)
@@ -31,6 +28,10 @@ for (x in file.path(dirname(config.file),config$setup_files)) {
     cat("Loading: ", x, "\n")
     load( x )
 }
+
+require(trust)
+require(parallel)
+numcores <- if (!is.null(config$numcores)) { config$numcores } else { getcores() }
 
 # do relative to reference individuals
 ref.inds <- if (is.null(config$reference_inds)) {
