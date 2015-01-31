@@ -20,8 +20,9 @@ maxit <- as.numeric( argvec[3] )
 prev.file <- if (length(argvec)>3) { argvec[4] } else { NULL }
 
 source("resistance-fns.R")
-require(parallel)
 require(trust)
+require(parallel)
+numcores <- if (!is.null(config$numcores)) { config$numcores } else { getcores() }
 
 cat("Reading config: ", config.file, "\n")
 config <- read.json.config(config.file)
@@ -65,7 +66,8 @@ ds <- direct.setup( obs.locs=obs.locs, obs.hts=fit.pimat,
         neighborhoods=neighborhoods[ref.inds], 
         G=G, update.G=update.G, layers=layers, 
         transfn=transfn, valfn=valfn, ndelta=ndelta, ngamma=ngamma,
-        symmetric=TRUE
+        symmetric=TRUE,
+        numcores=numcores
     )
 
 # check this runs
