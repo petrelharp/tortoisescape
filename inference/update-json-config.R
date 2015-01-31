@@ -16,7 +16,7 @@ if (do.replace) {
 }
 
 source("input-output-fns.R")
-subdirs <- setdiff( list.dirs(basedir,recursive=FALSE,full.names=TRUE), c("figure","cache") )
+subdirs <- grep( c("figure","cache"), list.dirs(basedir,recursive=FALSE,full.names=TRUE), value=TRUE, inverse=TRUE )
 for (subdir in subdirs) {
     config <- read.json.config(file.path(subdir,"config.json"))
     # switch parameters
