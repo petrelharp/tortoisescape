@@ -1,4 +1,12 @@
 require(raster)
+
+remove.clumps <- function (layer) {
+    cl <- clump(layer,directions=4)
+    big.clump <- which.max( table( values(cl) ) )
+    layer[cl!=big.clump] <- NA
+    return(layer)
+}
+
 setwd("TIFFs")
 crew <- raster("crew_NA_1km.tif")
 dem <- raster("dem_2k_1km.tif")
@@ -36,15 +44,19 @@ lon <- raster("lon_utm_30.grd")
 lat <- raster("lat_utm_30.grd")
 
 # north mask
-n.mask <- mask( masked, (lon>5e5) & (lat>3.8e6), maskvalue=FALSE )
-n.mask.clump <- clump(n.mask)
-big.clump <- which.max(table(values(n.mask.clump)))
-n.mask[n.mask.clump != big.clump ] <- NA
+n.mask <- remove.clumps( mask( masked, (lon>5e5) & (lat>3.8e6), maskvalue=FALSE ) )
 writeRaster(n.mask,file="mask_crew_dem_2K_sea_north.grd",overwrite=TRUE)
 
 # south mask
-s.mask <- mask( masked, (lat>4e6) & (lon>4.2e5), maskvalue=TRUE )
-s.mask.clump <- clump(s.mask)
-big.clump <- which.max(table(values(s.mask.clump)))
-s.mask[s.mask.clump != big.clump ] <- NA
+s.mask <- remove.clumps( mask( masked, (lat>4e6) & (lon>4.2e5), maskvalue=TRUE ) )
 writeRaster(s.mask,file="mask_crew_dem_2K_sea_south.grd",overwrite=TRUE)
+
+# habitat mask
+nus.mask <- masked
+nus.mask[nus==0] <- NA
+nus.mask <- remove.clumps(nus.mask)
+writeRaster(nus.mask,file="mask_crew_dem_2K_sea_habitat.grd",overwrite=TRUE)
+n.nus.mask <- mask(nus.mask,n.mask)
+writeRaster(nus.mask,file="mask_crew_dem_2K_sea_habitat_north.grd",overwrite=TRUE)
+s.nus.mask <- mask(nus.mask,s.mask)
+writeRaster(nus.mask,file="mask_crew_dem_2K_sea_habitat_south.grd",overwrite=TRUE)
