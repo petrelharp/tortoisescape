@@ -32,7 +32,15 @@ for (x in file.path(dirname(config.file),config$setup_files)) {
 }
 
 # do relative to reference individuals
-ref.inds <- which.nonoverlapping(neighborhoods)
+ref.inds <- if (is.null(config$reference_inds)) {
+        which.nonoverlapping(neighborhoods)
+    } else {
+        match( config$reference_inds, rownames(pimat) )
+    }
+if (any(is.na(ref.inds))) {
+    warning(paste("Removed", paste(setdiff(config$reference_inds,rownames(pimat)),collapse=", "), "from reference individuals."))
+}
+ref.inds <- ref.inds[ !is.na(ref.inds) ]
 
 if (is.null(prev.file)) {
     init.params <- paramvec(config)
