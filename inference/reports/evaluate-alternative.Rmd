@@ -1,11 +1,4 @@
-```{r setup, include=FALSE}
-####
-#
-# Before running this, have pre-loaded:
-#
-#   alt.file : name of alternative (e.g. "pref_alt" or "alt_1")
-#
-####
+```{r setup_packages, include=FALSE}
 base.dir <- gsub("tortoisescape/inference/.*","tortoisescape",getwd())
 source(file.path(base.dir,"inference","resistance-fns.R"))
 require(parallel)
@@ -14,6 +7,15 @@ require(raster)
 require(xtable)
 fig.dim <- 5
 opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
+```
+```{r setup, include=FALSE, cache=TRUE}
+####
+#
+# Before running this, have pre-loaded:
+#
+#   alt.file : name of alternative (e.g. "pref_alt" or "alt_1")
+#
+####
 # load stuff
 config <- read.json.config("config.json")
 for (x in config$setup_files) { load(x) }
@@ -29,16 +31,16 @@ ref.pt.obj  <- load(ref.pt.file)
 ref.points <- get(ref.pt.obj)
 ref.locs <- unlist(get.neighborhoods( 1e-3, ref.points, nonmissing, nalayer ))
 ref.neighborhoods <- get.neighborhoods( 15e3, ref.points, nonmissing, nalayer )
-plot.points <- which.nonoverlapping( get.neighborhoods( 80e3, ref.points, nonmissing, nalayer ) )
-good.points <- which( values(habitat)[nonmissing[ref.locs]] > 0.4 )
-# plotting helper
-ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,sample.loc.file=ref.pt.file)
+```
+```{r setup_plots, include=FALSE}
 # layers for plotting
 habitat <- raster(file.path(base.dir,"geolayers/nussear/habitat-model/nussear.grd"))
 dem <- raster(file.path(base.dir,"geolayers/nussear/habitat-model/dem_30.grd"))
 # default extent of plotted maps
 xlims <- c(327250,877200)
 ylims <- c(3608100,4191500)
+# plotting helper
+ph <- plot.ht.fn(nonmissing=nonmissing,layer=nalayer,sample.loc.file=ref.pt.file)
 # and the alternative
 alt <- crop( extend( raster(file.path(base.dir,"geolayers/alternatives",paste(alt.file,"_poly.tif",sep=''))), nalayer ), nalayer )
 stopifnot(compareRaster(alt,nalayer))
@@ -53,7 +55,7 @@ tmp <- nalayer
 tmp[nonmissing[unlist(alt.chunks)]] <- NA
 stopifnot(length(table(values(tmp)))==1)
 # helper function to deal with nonconnectedness
-chunk.hts <- function (k) {
+chunk.hts <- function (k,plot.points=rep(TRUE,length(ref.neighborhoods))) {
     chunk <- match( which(values(alt) %in% k), nonmissing )
     chunk <- chunk[!is.na(chunk)]
     nalayer[nonmissing[chunk]] <- NA
@@ -61,6 +63,7 @@ chunk.hts <- function (k) {
     unblocked.tab <- table(values(unblocked))
     bigone <- as.numeric(names(unblocked.tab))[which.max(unblocked.tab)]
     blocked <- match( which(values(unblocked)!=bigone), nonmissing )
+    cat("Blocking an additional ", length(blocked), " cells.\n")
     hitting.analytic(ref.neighborhoods[plot.points],G,blocked=unique(c(chunk,blocked)))
 }
 ```
@@ -70,13 +73,14 @@ fitted data from `r basename(last.result)`,
 with layers `r paste(layer.names,collapse=", ")`.
 The parameters are
 ```{r params, results='asis')
-xtable(cbind(paramvec(config)))
+print(xtable(cbind(paramvec(config))))
 ```
 and the model looks like 
 ```{r model_plot,echo=FALSE}
 layout(t(1:2))
 plot.model(params,layer.names,layers,G,update.G,ph,xlim=xlims,ylim=ylims)
 ```
+
 
 We will use these reference points:
 ```{r ref_pts, fig.width=fig.dim,echo=FALSE}
@@ -86,7 +90,59 @@ points(ref.points,pch=20,col='red')
 # to-do: add state lines, stippling on E side of colorado...
 ```
 
-Here is the alternative we are considering:
+Inaccessible locations?
+=======================
+
+Under this model, some areas of the range may be inaccessible.
+The biggest hitting time we have estimated from divergence is $3.3\times 10^5$,
+so we'll treat anything that has mean hitting time larger than $10^6$ as *inacessible*.
+To figure out where these are, we first compute hitting times between each of the reference points,
+```{r get_hts, echo=FALSE, cache=TRUE, dependson="setup"}
+hts <- hitting.analytic(ref.neighborhoods,G)
+```
+then, identify the reference points whose median hitting time to the other points is larger than $10^6$.
+```{r inaccessible_refs}
+accessible <- function (hts, ref.locs, cutoff=1e6) { return( apply(hts[ref.locs,],2,median) < cutoff ) }
+accessible.refs <- accessible(hts,ref.locs)
+```
+
+Furthermore there are reference points that are accessible, but *isolated*:
+a walk started there will take more than $10^6$ generations on average
+to hit another accessible point.
+```{r isolated_refs, echo=FALSE}
+isolated <- function (hts,ref.locs,accessible.refs,cutoff=1e6) { return( rowMeans(hts[ref.locs,accessible.refs]) > cutoff ) }
+isolated.refs <- isolated(hts,ref.locs,accessible.ref)
+```
+
+Here is a plot of $log_{10}$ values of the mean hitting times
+from each point on the landscape to the *accessible* reference points,
+and on the right those locations where this mean is greater than $10^6$;
+the inaccessible reference locations are marked with red circles,
+and isolated locations are marked with blue circles:
+```{r mean_hts, echo=FALSE}
+z <- log10(1+rowMeans(hts[,accessible.refs]))
+layout(t(1:2))
+ph(z,zlim=c(0,max(z,na.rm=TRUE)),main="log10 mean hitting times")
+points(ref.points[!accessible.refs],cex=2,pch=21,col='red',lwd=2)
+points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2)
+ph(z>6,col=c('white','red'),legend=FALSE)
+points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2)
+```
+
+We omit both inaccessible and isolated locations from the rest of the analysis.
+```{r good_refs, echo=FALSE}
+good.refs <- ( accessible.refs & ! isolated.refs )
+```
+
+
+The alternative
+===============
+
+Here is the alternative we are considering, and the 
+`r length(
+  chunk.labels <- setdiff(unique(values(alt)),NA)
+)` 
+chunks it is divided into:
 ```{r show_alt,echo=FALSE}
 layout(t(1:2))
 plot(habitat,alpha=0.5,col=rev(terrain.colors(250)),legend=FALSE,xlim=xlims,ylim=ylims)
@@ -98,16 +154,151 @@ plot(alt,add=TRUE,legend=FALSE,col=rainbow(length(unique(values(alt)))))
 ```
 
 
-Now let's look at a few hitting times, and how they change after removing the alternative:
-```{r some_hts, fig.width=3*fig.width}
-hts <- hitting.analytic(ref.neighborhoods[plot.points],G)
-alt.hts <- chunk.hts(2)
-layout(t(1:2))
-for (k in 1:ncol(hts)) {
-    ph( hts[,k], zlim=c(0,3.5e5) )
-    ph( alt.hts[,k], zlim=c(0,3.5e5) )
+Effects of removing the entire alternative
+==========================================
+
+First we'll look at hitting times after removing the entire alternative.
+```{r alt_hts, include=FALSE, cache=TRUE, dependson="setup"}
+this.chunk <- chunk.labels
+alt.hts <- chunk.hts(this.chunk)
+```
+```{r newly_isolated,echo=FALSE}
+in.chunk <- function (k,locs) {
+    # find the bits isolated by chunks
+    chunk.clump <- clump( mask( nalayer, mask( alt, (alt %in% k), maskvalue=FALSE ), inverse=TRUE), directions=4 )
+    clump.table <- table(values(chunk.clump))
+    bigone <- as.numeric( names(clump.table)[which.max(clump.table)] )
+    return( is.na(values(chunk.clump)[nonmissing[locs]]) | ( values(chunk.clump)[nonmissing[locs]] != bigone ) )
+}
+in.chunk.refs <- in.chunk( this.chunk, ref.locs )
+alt.accessible.refs <- accessible(alt.hts, ref.locs )
+newly.inaccessible.refs <- ( accessible.refs & ! alt.accessible.refs )
+alt.isolated.refs <- isolated(alt.hts, ref.locs, alt.accessible.refs )
+newly.isolated.refs <- ( alt.isolated.refs & ! isolated.refs )
+alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.refs ) ) 
+```
+This has made 
+`r sum(alt.good.refs)` 
+additional reference points inaccessible and/or isolated.
+Here are a few hitting times, and how they change after removing the alternative:
+*(note: should mask inaccessible/isolated regions in plots?)*
+```{r some_hts, fig.width=3*fig.dim, echo=FALSE, cache=TRUE, dependson="alt_hts"}
+# representative points to plot
+plot.points <- which(alt.good.refs)[which.nonoverlapping( get.neighborhoods( 80e3, ref.points[alt.good.refs], nonmissing, nalayer ) )]
+zlims <- quantile( hts[ref.locs[alt.good.refs],alt.good.refs], c(0,.95) )
+diff.zlims <- quantile( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs], c(.05,.95) )
+ratio.zlims <- c(-1,1)*max(abs(quantile( ((alt.hts-hts)/(1+hts))[ref.locs[alt.good.refs],alt.good.refs], c(.01,.99) )))
+truncate <- function(x,lims) { pmin(lims[2],pmax(lims[1],x)) }
+layout(t(1:3))
+for (k in plot.points) {
+    ph( pmin(zlims[2],alt.hts[,k]), zlim=zlims, do.lims=FALSE, main="new hitting time" )
+    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    points( ref.points[k], pch=8, cex=2 )
+    ph( truncate((alt.hts[,k]-hts[,k]),diff.zlims), zlim=diff.zlims, do.lims=FALSE, main="difference" )
+    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    points( ref.points[k], pch=8, cex=2 )
+    ph( truncate((alt.hts[,k]-hts[,k])/(1+hts[,k]),ratio.zlims), zlim=ratio.zlims, do.lims=FALSE, main="ratio" )
+    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    points( ref.points[k], pch=8, cex=2 )
     if (length(locator(1))==0) { break }
 }
 ```
 
-Here's how they change after
+Removing these affects hitting times to and from each reference point;
+here, circle sizes show the sizes of these effects:
+```{r relative_effects, echo=FALSE}
+which.max.diffs  <- apply((alt.hts-hts)[,alt.good.refs],1,which.max)
+to.diffs <- colMeans((alt.hts-hts)[ref.locs[alt.good.refs],])
+from.diffs <- rowMeans((alt.hts-hts)[ref.locs,alt.good.refs])
+pt.legend <- function (x,npts=8) {
+    # put on points and say what the point sizes mean
+    points( ref.points[alt.good.refs], cex=2*abs(scale(x[alt.good.refs])), col=ifelse(x[alt.good.refs]>0,"red","blue") )
+    scaled <- scale(x[alt.good.refs])
+    zvals <- pretty( attr(scaled,"scaled:center")+c(-1,1)*attr(scaled,"scaled:scale"), n=npts )
+    vals <- (zvals - attr(scaled,"scaled:center"))/attr(scaled,"scaled:scale")
+    xvals <- rep(8e5,length(zvals))
+    yvals <- seq(3.7e6,3.9e6,length.out=length(zvals))
+    points( xvals, yvals, cex=2*abs(vals), col=ifelse(vals>0,"red","blue") )
+    text( xvals + .2e5, yvals, labels=sprintf("%0.1e",zvals), pos=4 )
+}
+layout(t(1:2))
+ph( which.max.diffs, do.lims=FALSE,main="mean difference to", legend=FALSE)
+pt.legend( to.diffs )
+ph( which.max.diffs, do.lims=FALSE,main="mean difference from", legend=FALSE)
+pt.legend( from.diffs )
+```
+
+
+Here is the map of change in hitting time to the reference locations:
+on the left is the mean across reference locations, the right is the maximum:
+```{r mean_diff_plot, echo=FALSE}
+layout(t(1:2))
+# mean difference
+mean.diffs <- rowMeans((alt.hts-hts)[,alt.good.refs])
+zlims <- range(0,mean.diffs[ref.locs[alt.good.refs]])
+ph( truncate(mean.diffs,zlims), do.lims=FALSE, main="mean difference" )
+plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+# max difference
+max.diffs <- apply((alt.hts-hts)[,alt.good.refs],1,max)
+zlims <- range(0,max.diffs[ref.locs[alt.good.refs]])
+ph( truncate(max.diffs,zlims), do.lims=FALSE, main="max difference" )
+plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+```
+Here is the same thing, except showing relative change (difference divided by one plus hitting time):
+```{r max_diff_plot, echo=FALSE}
+layout(t(1:2))
+# mean ratio
+mean.ratio <- rowMeans(((alt.hts-hts)/(1+hts))[,alt.good.refs])
+zlims <- range(0,mean.ratio[ref.locs[alt.good.refs]])
+ph( truncate(mean.ratio,zlims), do.lims=FALSE, main="mean ratio" )
+plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+# max ratio
+max.ratio <- apply(((alt.hts-hts)/(1+hts))[,alt.good.refs],1,max)
+zlims <- range(0,max.ratio[ref.locs[alt.good.refs]])
+ph( truncate(max.ratio,zlims), do.lims=FALSE, main="max ratio" )
+plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+```
+
+Summarizing the impact of the alternative
+-----------------------------------------
+
+At least preliminarily, we will look at these summaries of the effect of the alternative on gene flow:
+- (**area removed**) number of newly inaccessible or isolated reference locations **not** in the affected area (the remainder do not use these)
+- (**worst isolation**) the maximum across reference locations of the mean change in hitting time from other reference locations, with decreases in hitting time counted as zero
+- (**total reduction**) the mean change in hitting time between any pair of reference locations, with decreases in hitting time counted as zero
+- (**typical relative reduction**) the mean value of the ratio of change in hitting time to hitting time, with decreases in hitting time counted as zero
+```{r summary_fun,echo=FALSE}
+diffmat <- pmax(0,alt.hts[ref.locs[alt.good.refs],alt.good.refs]-hts[ref.locs[alt.good.refs],alt.good.refs])
+dim(diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
+summary.expr <- quote( { c(
+        "area removed" = sum( newly.inaccessible.refs | newly.isolated.refs ),
+        "worst isolation" = max( rowMeans( diffmat ) ),
+        "total reduction" = mean( diffmat ),
+        "relative reduction" = mean( diffmat/(1+hts[ref.locs[alt.good.refs],alt.good.refs]) )
+    ) } )
+eval(summary.expr)
+```
+
+
+Evaluating different subchunks
+==============================
+
+This alternative is broken up into `r length(chunk.labels)` pieces;
+we can compute the above things separately for each piece.
+First, we'll compute the necessary quantities:
+```{r subchunk_computation, echo=FALSE}
+chunk.stats <- sapply( chunk.labels, function (chunk.label) {
+        alt.hts <- chunk.hts(chunk.label)
+        in.chunk.refs <- in.chunk( chunk.label, ref.locs )
+        alt.accessible.refs <- accessible(alt.hts, ref.locs )
+        newly.inaccessible.refs <- ( accessible.refs & ! alt.accessible.refs )
+        alt.isolated.refs <- isolated(alt.hts, ref.locs, alt.accessible.refs )
+        newly.isolated.refs <- ( alt.isolated.refs & ! isolated.refs )
+        alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.refs ) ) 
+        save( chunk.label, alt.hts, in.chunk.refs, alt.accessible.refs, newly.inaccessible.refs, alt.isolated.refs, newly.isolated.refs, alt.good.refs, 
+           file=paste(alt.file,"-subchunk-",paste(chunk.label,collapse="_"),".RData",sep='') )
+       return( eval( summary.expr ) )
+    } )
+```
+
+
