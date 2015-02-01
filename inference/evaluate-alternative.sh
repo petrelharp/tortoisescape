@@ -26,11 +26,11 @@ or
     exit
 fi
 
-RMD=$(readlink -f evaluate-alternative.Rmd)
+RMD=$(readlink -f reports/evaluate-alternative.Rmd)
 OUTFILE="$DIRNAME/evaluate-${ALTNAME}.html"
 
 # note that despite the setwd() below, the .Rmd does *not* behave as if in $DIRNAME.
-ln -s $RMD $DIRNAME
+ln -s -f $RMD $DIRNAME
 R -e "setwd(\"${DIRNAME}\");library(knitr);alt.file=\"${ALTNAME}\";knit2html(\"evaluate-alternative.Rmd\",output=\"${OUTFILE}\");"
 
 exit
