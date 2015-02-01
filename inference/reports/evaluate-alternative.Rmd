@@ -112,7 +112,7 @@ a walk started there will take more than $10^6$ generations on average
 to hit another accessible point.
 ```{r isolated_refs, echo=FALSE}
 isolated <- function (hts,ref.locs,accessible.refs,cutoff=1e6) { return( rowMeans(hts[ref.locs,accessible.refs]) > cutoff ) }
-isolated.refs <- isolated(hts,ref.locs,accessible.ref)
+isolated.refs <- isolated(hts,ref.locs,accessible.refs)
 ```
 
 Here is a plot of $log_{10}$ values of the mean hitting times
