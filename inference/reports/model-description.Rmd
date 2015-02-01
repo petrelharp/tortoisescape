@@ -57,7 +57,7 @@ of a linear combination of the layers:
 ```{r show_gamma, fig.height=fig.dim}
 gamma <- params[2:(1+length(layer.names))]
 stationary.base <- rowSums( layers * gamma[col(layers)] )
-stationary.dist <- 1 / ( 1 + exp( -stationary.base ) )
+stationary.dist <- ( 1 + exp( -stationary.base ) )
 layout(t(1:2))
 ph( stationary.base, main="beta, linear combination" )
 ph( stationary.dist, main="stationary distribution", do.lims=FALSE )

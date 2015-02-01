@@ -73,7 +73,8 @@ fitted data from `r basename(last.result)`,
 with layers `r paste(layer.names,collapse=", ")`.
 The parameters are
 ```{r params, results='asis')
-print(xtable(cbind(paramvec(config))))
+xtab <- xtable(cbind(paramvec(config)))
+print(xtab,type='html')
 ```
 and the model looks like 
 ```{r model_plot,echo=FALSE}
@@ -288,15 +289,18 @@ we can compute the above things separately for each piece.
 First, we'll compute the necessary quantities:
 ```{r subchunk_computation, echo=FALSE}
 chunk.stats <- sapply( chunk.labels, function (chunk.label) {
-        alt.hts <- chunk.hts(chunk.label)
-        in.chunk.refs <- in.chunk( chunk.label, ref.locs )
-        alt.accessible.refs <- accessible(alt.hts, ref.locs )
-        newly.inaccessible.refs <- ( accessible.refs & ! alt.accessible.refs )
-        alt.isolated.refs <- isolated(alt.hts, ref.locs, alt.accessible.refs )
-        newly.isolated.refs <- ( alt.isolated.refs & ! isolated.refs )
-        alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.refs ) ) 
-        save( chunk.label, alt.hts, in.chunk.refs, alt.accessible.refs, newly.inaccessible.refs, alt.isolated.refs, newly.isolated.refs, alt.good.refs, 
-           file=paste(alt.file,"-subchunk-",paste(chunk.label,collapse="_"),".RData",sep='') )
+        this.file <- paste(alt.file,"-subchunk-",paste(chunk.label,collapse="_"),".RData",sep='')
+        if (!file.exists(this.file)) {
+            alt.hts <- chunk.hts(chunk.label)
+            in.chunk.refs <- in.chunk( chunk.label, ref.locs )
+            alt.accessible.refs <- accessible(alt.hts, ref.locs )
+            newly.inaccessible.refs <- ( accessible.refs & ! alt.accessible.refs )
+            alt.isolated.refs <- isolated(alt.hts, ref.locs, alt.accessible.refs )
+            newly.isolated.refs <- ( alt.isolated.refs & ! isolated.refs )
+            alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.refs ) ) 
+            save( chunk.label, alt.hts, in.chunk.refs, alt.accessible.refs, newly.inaccessible.refs, alt.isolated.refs, newly.isolated.refs, alt.good.refs, 
+               file=this.file )
+       } else { load(this.file) }
        return( eval( summary.expr ) )
     } )
 ```
