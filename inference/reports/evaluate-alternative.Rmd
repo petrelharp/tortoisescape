@@ -305,7 +305,7 @@ chunk.stats <- sapply( chunk.labels, function (chunk.label) {
        } else { load(this.file) }
        return( eval( summary.expr ) )
     } )
-xtab <- xtabe(t(chunk.stat))
+xtab <- xtable(t(chunk.stat))
 print(xtab,type='html')
 ```
 
