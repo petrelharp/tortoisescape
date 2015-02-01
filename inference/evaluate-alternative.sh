@@ -7,18 +7,26 @@
 #PBS -l vmem=120gb
 #PBS -l pmem=1500mb
 
-source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
-cd $PBS_O_WORKDIR
-
-if [ $# -lt 2 ]
+if [ ! -z ${PBS_O_WORKDIR-} ]
 then
-    echo "Usage:  evaluate-alternative.sh (name of directory) (name of alternative)"
+    source /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh
+    cd $PBS_O_WORKDIR
+else
+    DIRNAME=$1
+    ALTNAME=$2
+fi
+
+if [ -z ${DIRNAME-} ] || [ -z ${ALTNAME-} ]
+then
+    echo "Usage:\
+        evaluate-alternative.sh (name of directory) (name of alternative)
+or
+        qsub -vDIRNAME=(name of directory),ALTNAME=(name of alternative) evaluate-alternative.sh
+"
     exit
 fi
 
 RMD=$(readlink -f evaluate-alternative.Rmd)
-DIRNAME=$1
-ALTNAME=$2
 OUTFILE="$DIRNAME/evaluate-${ALTNAME}.html"
 
 # note that despite the setwd() below, the .Rmd does *not* behave as if in $DIRNAME.
