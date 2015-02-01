@@ -72,7 +72,7 @@ This is the model in `r gsub(".*tortoisescape/","",getwd())`,
 fitted data from `r basename(last.result)`,
 with layers `r paste(layer.names,collapse=", ")`.
 The parameters are
-```{r params, results='asis')
+```{r params, results='asis'}
 xtab <- xtable(cbind(paramvec(config)))
 print(xtab,type='html')
 ```
