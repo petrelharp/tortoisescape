@@ -4,7 +4,7 @@
 #PBS -l nodes=1:sl230s:ppn=16
 #PBS -l walltime=12:00:00
 #PBS -l mem=24gb
-#PBS -l vmem=120gb
+#PBS -l vmem=64gb
 #PBS -l pmem=1500mb
 
 if [ ! -z ${PBS_O_WORKDIR-} ]
