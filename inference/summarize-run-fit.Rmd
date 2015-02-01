@@ -135,7 +135,7 @@ for ( k in value.order ) {
         abline(0,1)
         ph( pmin(1e3,run.info[[k]]$jump.rates), do.lims=FALSE, zlim=c(0,1e3), main="truncated jump rates" )
         points(tort.locs); points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
-        z <- 1/(1+exp(-run.info[[k]]$stationary.base))
+        z <- (1+exp(-run.info[[k]]$stationary.base))  # recall stationary distribution is 1/rho( )
         ph( z/sum(z), do.lims=FALSE, main="stationary distribution" )
         points(tort.locs); points(tort.locs,cex=abs(scale(mean.resids)),col=ifelse(mean.resids>0,"red","blue"))
     }

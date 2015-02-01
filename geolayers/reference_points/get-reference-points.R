@@ -29,7 +29,8 @@ which.nonoverlapping <- function (neighborhoods) {
 
 remove.clumps <- function (layer) {
     cl <- clump(layer,directions=4)
-    big.clump <- which.max( table( values(cl) ) )
+    cl.table <- table(values(cl))
+    big.clump <- as.numeric(names(cl.table))[ which.max( table( values(cl) ) ) ]
     layer[cl!=big.clump] <- NA
     return(layer)
 }
