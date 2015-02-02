@@ -1,0 +1,18 @@
+{
+    "description" : "Skeleton configuration file for a common setup for evaluating models, allowing movement only in predicted habitat.",
+    "layer_prefix" : "../../../geolayers/nussear/habitat-model/",
+    "layer_names" : [ ],
+    "mask_layer" : [ "mask_crew_dem_2K_sea_habitat" ],
+    "setup_files" : [ "setup.RData" ],
+    "sample_locs" : [ "../../../tort_272_info/geog_coords.RData" ],
+    "divergence_file" : [ "../../../tort_272_info/all_angsd_snps.pwp.csv" ],
+    "params" : {
+            "T"              : [ 3e5 ],
+            "beta"           : [ 3.0 ],
+            "constant_gamma" : [ 0.0 ],
+            "gamma"          : [ ],
+            "constant_delta" : [ 0.0 ],
+            "delta"          : [ ]
+        }
+}
+
