@@ -2,14 +2,15 @@
 
 usage <- "Collate results stored in the .RData files passed in as arguments.
 Usage:
-    Rscript collate-comparisons.R ( file names )
+    Rscript collate-comparisons.R (outfile) ( file names ) 
 "
 
 argvec <- if (interactive()) { scan(what='char') } else { commandArgs(TRUE) }
-if (length(argvec)==0) { stop(usage) }
+if (length(argvec) < 2) { stop(usage) }
 
-infiles <- argvec
-readable <- file.exists(argvec)
+outfile <- argvec[1]
+infiles <- argvec[-1]
+readable <- file.exists(infiles)
 for (k in which(!readable)) { warning(infiles[k], " does not exist.\n") }
 
 source("resistance-fns.R")
@@ -49,13 +50,14 @@ results <- lapply( infiles[readable], function (infile) {
         w.mad <- weighted.median( abs(resids)[ut], pairwise.weights[ut] )
         w.mse <- sqrt( weighted.mean( resids[ut]^2, pairwise.weights[ut], na.rm=TRUE ) )
 
-        return( 
+        return( list(
                 summary=basename(dirname(config.file)), 
                 mad=w.mad, 
                 mse=w.mse, 
                 converged=trust.optim.results$converged, 
                 n.refs=length(local.config$reference_inds), 
                 file=infile 
-            )
-
+            ) )
     } )
+
+save(results, file=outfile)
