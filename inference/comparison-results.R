@@ -17,7 +17,7 @@ require(rgdal)
 
 infile <- argvec[1]
 summary.dir <- argvec[2]
-outfile <- if (length(argvec)>2) { argvec[3] } else { gsub("[.]R[dD]ata$", "-comparison.RData", infile) }
+outfile <- if (length(argvec)>2) { argvec[3] } else { gsub("[.]R[dD]ata$", paste("-comparison-",gsub("/","_",summary.dir),".RData",sep=''), infile) }
 outpng <- if (length(argvec)>3) { argvec[4] } else { gsub("[.]R[dD]ata$", ".png", outfile) }
 
 load(infile)
