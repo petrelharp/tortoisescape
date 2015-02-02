@@ -255,3 +255,21 @@ colorize <- function (x, nc=32, colfn=function (n) rainbow_hcl(n,c=100,l=50), ze
         return( colfn(nlevels(x))[as.numeric(x)] )
     }
 }
+
+###
+# other useful
+
+
+weighted.median <- function (x,w) { 
+    usethese <- w!=0 & !is.na(x) & !is.na(w)
+    x <- x[ usethese ]
+    w <- w[ usethese ]
+    if (length(x)==0) { return( NA ) }
+    xord <- order(x)
+    x <- x[xord]
+    w <- w[xord]
+    cw <- cumsum(w)
+    k <- min(which(cw>(0.5*cw[length(w)])))
+    a <- (0.5*cw[length(w)]-cw[k])/(cw[k+1]-cw[k])
+    return( (1-a)*x[k] + a*x[k+1] )
+}

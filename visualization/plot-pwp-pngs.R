@@ -32,7 +32,7 @@ pc.cols <- adjustcolor( ifelse( pcs$PC1[match(tort.ids,pcs$etort)] > 0, "blue", 
 # reorder so everything matches
 
 require(raster)
-layer <- raster("../visualization/crm_dem_30")
+layer <- raster("../visualization/dem_30")
 
 for (tid in tort.ids) {
     cat(tid,"\n")

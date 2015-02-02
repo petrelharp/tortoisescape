@@ -34,7 +34,7 @@ pc.cols <- adjustcolor( rainbow(9)[as.numeric(pcs.clust$cluster)], .75 )
 # reorder so everything matches
 
 require(raster)
-layer <- raster("../visualization/crm_dem_30")
+layer <- raster("../visualization/dem_30")
 
 for (tid in tort.ids) {
     cat(tid,"\n")

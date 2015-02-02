@@ -1,13 +1,13 @@
 [general] 
 creator=R package 'raster' 
-created= 2014-11-03 22:56:38 
+created= 2015-01-26 17:10:25 
 [georeference] 
-nrows= 361 
-ncols= 359 
-xmin= -2154451.09720173 
-ymin= -627697.303542712 
-xmax= -1496791.57160528 
-ymax= 33626.06342196 
+nrows= 420 
+ncols= 371 
+xmin= -2154605.11007871 
+ymin= -628160.384567192 
+xmax= -1474962.5362729 
+ymax= 141246.302760127 
 projection= +proj=eqdc +lat_0=39 +lon_0=-96 +lat_1=33 +lat_2=45 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0 
 [data] 
 datatype= FLT8S 
@@ -15,8 +15,8 @@ byteorder= little
 nbands= 1 
 bandorder= BIL 
 categorical= FALSE 
-minvalue= -84.7175908388151 
-maxvalue= 4014.23722733703 
+minvalue= -84.7293923944235 
+maxvalue= 3975.6932811141 
 nodatavalue= -1.7e+308 
 [legend] 
 legendtype=  

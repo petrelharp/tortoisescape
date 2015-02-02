@@ -5,7 +5,7 @@ require(rgdal)
 
 source("../inference/resistance-fns.R")
 
-layer <- raster("../visualization/crm_dem_30.gri")
+layer <- raster("../visualization/dem_30.gri")
 sample.locs.obj <- load("geog_coords.RData")
 sample.locs <- spTransform(get(sample.locs.obj),CRSobj=CRS(proj4string(layer)))
 
