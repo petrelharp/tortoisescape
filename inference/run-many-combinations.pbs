@@ -90,5 +90,8 @@ echo "  using $MC_CORES cpus."
 
 Rscript direct-inference.R ${CONFIG} ${OUTPUT} ${MAXIT} ${PAST_OUTPUT-}
 
+echo "Plotting results."
+./plot-direct-inference-results.sh ${OUTPUT}
+
 exit
 

@@ -73,7 +73,7 @@ fitted data from `r basename(last.result)`,
 with layers `r paste(layer.names,collapse=", ")`.
 The parameters are
 ```{r params, results='asis'}
-xtab <- xtable(cbind(paramvec(config)))
+xtab <- xtable(cbind(params))
 print(xtab,type='html')
 ```
 and the model looks like 
