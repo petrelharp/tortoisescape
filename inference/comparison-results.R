@@ -2,12 +2,12 @@
 
 usage <- "Use a fitted model to make predictions in a way comparable to others.
 Usage:
-    Rscript comparison-results.R (name of results .RData file) [name of output .RData file] [name of output .png file]
+    Rscript comparison-results.R (name of results .RData file) (name of summary directory) [name of output .RData file] [name of output .png file]
 and the outputs default to the input file, but with -comparison.RData and -comparison.png appended.
 "
 
 argvec <- if (interactive()) { scan(what='char') } else { commandArgs(TRUE) }
-if (length(argvec)<1) { stop(usage) }
+if (length(argvec)<2) { stop(usage) }
 
 source("resistance-fns.R")
 require(parallel)
@@ -16,12 +16,14 @@ require(raster)
 require(rgdal)
 
 infile <- argvec[1]
+summary.dir <- argvec[2]
+outfile <- if (length(argvec)>2) { argvec[3] } else { gsub("[.]R[dD]ata$", "-comparison.RData", infile) }
+outpng <- if (length(argvec)>3) { argvec[4] } else { gsub("[.]R[dD]ata$", ".png", outfile) }
+
 load(infile)
-outfile <- if (length(argvec)>1) { argvec[2] } else { gsub("[.]R[dD]ata$", "-comparison.RData", infile) }
-outpng <- if (length(argvec)>2) { argvec[3] } else { gsub("[.]R[dD]ata$", ".png", outfile) }
 
 # setup for using *everyone*, on habitat only
-config.file <- "summaries/habitat-only/config.json"
+config.file <- file.path("summaries",summary.dir,"config.json")
 config <- read.json.config(config.file)
 for (x in config$setup_files) { load(file.path(dirname(config.file),x)) }
 config$reference_inds <- row.names( sample.locs )
@@ -93,7 +95,7 @@ med.resids <- apply(resids,1,weighted.median,w=nearby.weights)
 dem <- raster( file.path( dirname( gsub("/inference/.*","/inference",getwd()) ), "visualization", "dem_30.gri" ) )
 dem.locs <- spTransform( sample.locs, CRSobj=CRS(proj4string(dem)) )
 
-png(file=outpng, width=4*288, height=4*288, res=288, pointsize=10)
+png(file=outpng, width=10*288, height=5*288, res=288, pointsize=10)
 layout(t(1:2))
 plot( fitted, pimat, pch=20, cex=0.5, col=pc.cols, ylim=range(pimat[!omit.comparisons]), 
    xlab="fitted hitting times", ylab="observed divergence" )
