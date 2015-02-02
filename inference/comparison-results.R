@@ -100,7 +100,7 @@ layout(t(1:2))
 plot( fitted, pimat, pch=20, cex=0.5, col=pc.cols, ylim=range(pimat[!omit.comparisons]), 
    xlab="fitted hitting times", ylab="observed divergence" )
 abline(0,1)
-plot( dem, main="median residuals" )
+plot( dem, main="median residuals", legend=FALSE )
 contour( dem, add=TRUE )
 points( dem.locs, pch=21, cex=sqrt(abs(med.resids)/5e3), col=ifelse(med.resids>0,"red","blue"), bg=adjustcolor(ifelse(med.resids>0,"red","blue"),.5) )
 lvals <- (c(2,1,-1,-2)*5e3)
