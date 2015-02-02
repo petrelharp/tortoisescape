@@ -20,6 +20,7 @@ config.file <- argvec[1]
 config <- read.json.config(config.file)
 outfile <- if (length(argvec)>1) { argvec[2] } else { file.path(dirname(config.file),config$setup_files) }
 
+# save everything after this point
 source.ls <- ls()
 
 layer.names <- config$layer_names
@@ -55,9 +56,13 @@ nonmissing <- which(!is.na(values(nalayer)))
 G <- make.G( layer=nalayer, nonmissing=nonmissing )
 Gjj <- p.to.j(G@p)
 
-layers <- sapply( layer.names, function (ln) {
-            scale( values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing] )
-        } )
+if (length(layer.names)>0) { 
+    layers <- sapply( layer.names, function (ln) {
+                scale( values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing] )
+            } )
+} else {
+    layers <- matrix(0,nrow=nrow(G),ncol=0)
+}
 stopifnot(nrow(layers)==nrow(G))
 
 # ADD the constant layer
@@ -78,7 +83,7 @@ update.G <- function(params) {
     return( exp(beta) * transfn(valfn(gamma))[G@i+1L] * transfn( valfn(delta)[G@i+1L] + valfn(delta)[Gjj] ) )
 }
 
-G@x <- update.G(paramvec(config))
+G@x <- update.G(paramvec(config)[-1])
 
 
 ### from setup-tort-locs.R
