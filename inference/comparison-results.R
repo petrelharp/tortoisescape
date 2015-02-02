@@ -3,7 +3,7 @@
 usage <- "Use a fitted model to make predictions in a way comparable to others.
 Usage:
     Rscript comparison-results.R (name of results .RData file) (name of summary directory) [name of output .RData file] [name of output .png file]
-and the outputs default to the input file, but with -comparison.RData and -comparison.png appended.
+and the outputs default to the input file, with 'inference-' replaced with 'comparison-' and appended with name of summary directory.
 "
 
 argvec <- if (interactive()) { scan(what='char') } else { commandArgs(TRUE) }
@@ -17,7 +17,9 @@ require(rgdal)
 
 infile <- argvec[1]
 summary.dir <- argvec[2]
-outfile <- if (length(argvec)>2) { argvec[3] } else { gsub("[.]R[dD]ata$", paste("-comparison-",gsub("/","_",summary.dir),".RData",sep=''), infile) }
+outfile <- if (length(argvec)>2) { argvec[3] } else {
+    gsub( "[.]R[dD]ata$", paste("-",gsub("/","_",summary.dir),".RData",sep=''), 
+        gsub("inference-", "comparison-", infile) ) }
 outpng <- if (length(argvec)>3) { argvec[4] } else { gsub("[.]R[dD]ata$", ".png", outfile) }
 
 load(infile)

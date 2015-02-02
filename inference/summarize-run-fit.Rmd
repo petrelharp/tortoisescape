@@ -9,7 +9,7 @@ require(xtable)
 fig.dim <- 5
 opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 subdirs <- setdiff( list.dirs(".",recursive=FALSE,full.names=FALSE), c("figure","cache") )
-has.results <- sapply( subdirs, function (subdir) { length(list.files(subdir,pattern="inference-.*RData",full.names=TRUE)) } )
+has.results <- sapply( subdirs, function (subdir) { length(grep("comparison",list.files(subdir,pattern="inference-.*RData",full.names=TRUE),value=TRUE,inverse=TRUE)) } )
 get.results <- function (subdir,numcores=1) {
     result.files <- list.files(subdir,pattern="inference-.*RData",full.names=TRUE)
     if ( (!file.exists(file.path(subdir,"config.json"))) | (length(result.files)==0) ) { return( list( subdir=subdir ) ) }

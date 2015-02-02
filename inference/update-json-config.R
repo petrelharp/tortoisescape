@@ -20,7 +20,7 @@ subdirs <- grep( c("figure","cache"), list.dirs(basedir,recursive=FALSE,full.nam
 for (subdir in subdirs) {
     config <- read.json.config(file.path(subdir,"config.json"))
     # switch parameters
-    result.files <- list.files(subdir,pattern="inference-.*RData",full.names=TRUE)
+    result.files <- grep( "comparison", list.files(subdir,pattern="inference-.*RData",full.names=TRUE), value=TRUE, inverse=TRUE )
     last.result <- result.files[ rev(order( file.info(result.files)$mtime )) ][1]
     load(last.result)
     params <- trust.optim$argument
