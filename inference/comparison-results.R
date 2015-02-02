@@ -54,6 +54,7 @@ stopifnot(nrow(layers)==nrow(G))
 # ADD the constant layer
 layers <- cbind( 1, layers )
 layer.names <- c( "constant", layer.names )
+ndelta <- ngamma <- length(layer.names)
 
 G@x <- update.G(paramvec(local.config)[-1])
 
