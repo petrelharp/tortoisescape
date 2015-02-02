@@ -33,15 +33,11 @@ base.layer.prefix <- if (grepl("/$",config$layer_prefix)) { "" } else { basename
 # setup NA overlap layer
 
 layer.files <- gsub("//","/",list.files(full.layer.prefix,pattern="gri$",full.names=TRUE),fixed=TRUE)
-layer.file.names <- gsub(paste(".*",config$layer_prefix,sep=''),"",gsub(".gri","",layer.files,fixed=TRUE))
+layer.file.names <- gsub(paste(".*",config$layer_prefix,sep=''),"",gsub("[.]((gri)|(tif)|(asc))$","",layer.files))
 use.files <- layer.files[match(layer.names,layer.file.names)]
 names(use.files) <- layer.names
 
-# refname <- grep("dem_30",layer.file.names)[1]
-# nalayer <- is.na( raster(layer.files[refname]) ) # dem
-na.layer.base <- if ( is.null(config$mask_layer) ) { "dem_30" } else { config$mask_layer }
-refname <- grep( na.layer.base, layer.file.names )[1]
-nalayer <- raster(paste(full.layer.prefix,config$mask_layer,sep=''))
+nalayer <- raster( grep( paste(config$mask_layer,"[.]((gri)|(tif)|(asc))$",sep=''), layer.files, value=TRUE )[1] )
 
 for (lf in use.files) {
     other <- raster(lf) 
