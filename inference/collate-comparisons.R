@@ -67,7 +67,7 @@ save(results, file=outfile)
 csvfile <- gsub("RData$","csv",outfile)
 cat(" and writing to ", csvfile, "\n")
 
-results.tab <- do.call(rbind,results)
+results.tab <- do.call(rbind,lapply(results,as.data.frame))
 results.tab <- results.tab[order(results.tab[,"mad"]),]
 
 write.csv( results.tab, file=csvfile, row.names=FALSE )
