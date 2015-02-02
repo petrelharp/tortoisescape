@@ -60,4 +60,11 @@ results <- lapply( infiles[readable], function (infile) {
             ) )
     } )
 
+cat("Saving results to ", outfile, "\n")
+
 save(results, file=outfile)
+
+csvfile <- gsub("RData$","csv",outfile)
+cat(" and writing to ", csvfile, "\n")
+
+write.csv( do.call(rbind,results), file=csvfile, row.names=FALSE )
