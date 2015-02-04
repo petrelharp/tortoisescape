@@ -18,7 +18,7 @@ require(raster)
 
 results <- lapply( infiles[readable], function (infile) {
         load(infile)
-        pcs <- read.csv(file.path(dirname(trust.optim$config.file),dirname(config$divergence_file),"pcs.csv"),header=TRUE)
+        pcs <- read.csv(file.path(dirname(config.file),dirname(config$divergence_file),"pcs.csv"),header=TRUE)
         omit.comparisons <- ( pcs$PC1[match(rownames(pimat),pcs$etort)][row(pimat)] * pcs$PC1[match(colnames(pimat),pcs$etort)][col(pimat)] < 0 )
         pc.cols <- adjustcolor( ifelse( pcs$PC1[match(rownames(pimat),pcs$etort)][row(pimat)] < 0, "purple", "blue" ), 0.5 )
         # remove duplicates: these are (etort-156 / etort-296 ) and (etort-143 / etort-297)
