@@ -18,9 +18,12 @@ if [[ -e /home/rcf-40/pralph/cmb/bin/R-setup-usc.sh ]]  # run on the cluster
 then
     qsub -vBASEDIR=\""$1"\" -t 1-${NDIRS}%32 setup-many-combinations.sh
 else
-    for SDIR in $(find ${BASEDIR} -type d -mindepth 1 -maxdepth 1)
+    for SDIR in $(find ${BASEDIR} -mindepth 1 -maxdepth 1 -type d )
     do
         while (( $(jobs 2>&1 | grep -c Running) >= 16 )); do sleep 1; done
-        Rscript setup-from-json.R ${SDIR}/config.json ${SDIR}/setup.RData  &
+        if [ -e ${SDIR}/config.json ]
+        then
+            Rscript setup-from-json.R ${SDIR}/config.json &
+        fi
     done
 fi

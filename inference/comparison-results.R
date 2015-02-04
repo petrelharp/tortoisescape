@@ -37,8 +37,8 @@ paramvec(local.config) <- trust.optim$argument
 # get centering and scaling used for the layers (HACK)
 local.env <- new.env()
 for (x in config$setup_files) { load(x,envir=local.env) }
-assign("layer.center",get("layer.center",local.env))
-assign("layer.scale",get("layer.scale",local.env))
+layer.center <- get("layer.center",local.env)
+layer.scale <- get("layer.scale",local.env)
 
 # get locally-specified layers in globally-specified way
 use.files <- layer.files[match(layer.names,layer.file.names)]
@@ -57,7 +57,6 @@ if (length(layer.names)>0) {
     layers <- sapply( layer.names, function (ln) {
                 scale( values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing] )
             } )
-    layers <- sweep(sweep(layers,2,layer.center,"-"),2,layer.scale,"/")
 } else {
     layers <- matrix(0,nrow=nrow(G),ncol=0)
 }
@@ -66,6 +65,7 @@ stopifnot(nrow(layers)==nrow(G))
 layers <- cbind( 1, layers )
 layer.names <- c( "constant", layer.names )
 ndelta <- ngamma <- length(layer.names)
+layers <- sweep(sweep(layers,2,layer.center,"-"),2,layer.scale,"/")
 
 G@x <- update.G(paramvec(local.config)[-1])
 
