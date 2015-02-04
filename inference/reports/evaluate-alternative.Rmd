@@ -481,7 +481,7 @@ Here are the plots above, specifically for each chunk
 ```{r subchunk_plots, echo=FALSE}
 layout(t(1:2))
 for (k in seq_along(chunk.info.list)) {
-    with( list2env( chunk.info.list[[k]] ), {
+    print( with( list2env( chunk.info.list[[k]] ), {
             cat("Chunk ", chunk.labels[k], ":\n")
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
             dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
@@ -492,8 +492,7 @@ for (k in seq_along(chunk.info.list)) {
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
             plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
-        } )
-    if (interactive() && length(locator(1))==0) { break; }
+        } ) )
 }
 
 ```
