@@ -482,6 +482,7 @@ Here are the plots above, specifically for each chunk
 layout(t(1:2))
 for (k in seq_along(chunk.info.list)) {
     with( list2env( chunk.info.list[[k]] ), {
+            cat("Chunk ", chunk.labels[k], ":\n")
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
             dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
             mean.tdiffs <- rowMeans(sym(pos.diffmat))
