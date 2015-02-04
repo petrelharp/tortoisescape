@@ -410,7 +410,7 @@ print(xtab,type='html')
 
 Wait, which chunk is which, again?
 Here are the locations and labels:
-```{r which_chunks, fig.width=2*fig.dim}
+```{r which_chunks, fig.height=2*fig.dim, echo=FALSE}
 chunk.centers.xy <- sapply( chunk.labels, function (k) { colMeans( xyFromCell( alt, which(values(alt)==k) ) ) } )
 chunk.centers <- SpatialPoints(coords=t( chunk.centers.xy),proj4string=CRS(proj4string(alt)),bbox=bbox(alt))
 chunk.cols <- rainbow(max(chunk.labels))[chunk.labels]
@@ -421,17 +421,17 @@ chunk.xylims <- list(
       south=list( xlim=c(5.9e5,7.5e5), ylim=c(3.6e6,3.78e6) )
   )
 layout(matrix(1:4,nrow=2))
-plot(alt, xlim=c(327250,777200), ylim=c(3.6e6,4.1e6), col=rainbow(max(chunk.labels)))
+plot(alt, xlim=c(327250,777200), ylim=c(3.6e6,4.1e6), col=rainbow(max(chunk.labels)), legend=FALSE)
 text( chunk.centers, labels=chunk.labels )
 points( chunk.centers, pch=21, cex=3, col=chunk.cols )
 for (xylims in chunk.xylims) {
-    plot(alt, xlim=xylims[["xlim"]], ylim=xylims[["ylim"]], col=rainbow(max(chunk.labels)))
+    plot(alt, xlim=xylims[["xlim"]], ylim=xylims[["ylim"]], col=rainbow(max(chunk.labels)), legend=FALSE)
     text( chunk.centers, labels=chunk.labels )
     points( chunk.centers, pch=21, cex=3, col=chunk.cols )
 }
 ```
 and the effects above:
-```{r isolation_stats}
+```{r isolation_stats, echo=FALSE}
 layout(t(1:2))
 plot( alt, main="worst isolation" )
 points( chunk.centers, pch=21, cex=sqrt(chunk.stats$worst.isolation/10), col=chunk.cols, bg=adjustcolor(chunk.cols,.5) )
@@ -440,11 +440,13 @@ points( chunk.centers, pch=21, cex=sqrt(chunk.stats$total.reduction/10), col=chu
 ```
 
 Here are the plots above, specifically for each chunk
-```{r subchunk_plots}
+```{r subchunk_plots, echo=FALSE}
 layout(t(1:2))
 for (k in seq_along(chunk.info.list)) {
     with( list2env( chunk.info.list[[k]] ), {
-            mean.tdiffs <- rowMeans(sym(pmax(0,(sub.alt.hts-sub.hts))))
+            pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
+            dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
+            mean.tdiffs <- rowMeans(sym(pos.diffmat))
             max.tdiffs <- apply(sym((sub.alt.hts-sub.hts)),1,max)
             zlims <- c(-1,1)*max(abs(max.tdiffs))
             plot( interp.values(mean.tdiffs,alt.good.refs), main="mean increase", col=diff.cols, zlim=zlims )
@@ -452,6 +454,7 @@ for (k in seq_along(chunk.info.list)) {
             plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
         } )
+    if (interactive() && length(locator(1))==0) { break; }
 }
 
 ```
