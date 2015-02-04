@@ -22,10 +22,12 @@ outfile <- if (length(argvec)>2) { argvec[3] } else {
         gsub("inference-", "comparison-", infile) ) }
 outpng <- if (length(argvec)>3) { argvec[4] } else { gsub("[.]R[dD]ata$", ".png", outfile) }
 
+if (!file.exists(infile)){ stop(paste(infile,"doesn't exist.")) }
 load(infile)
 
 # setup for using *everyone*, on habitat only
 config.file <- file.path("summaries",summary.dir,"config.json")
+if (!file.exists(config.file)){ stop(paste(config.file,"doesn't exist.")) }
 config <- read.json.config(config.file)
 for (x in config$setup_files) { load(file.path(dirname(config.file),x)) }
 config$reference_inds <- row.names( sample.locs )
