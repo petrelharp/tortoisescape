@@ -27,28 +27,32 @@ results <- lapply( infiles[readable], function (infile) {
         # and omit self comparisons
         omit.comparisons <- ( omit.comparisons | (row(pimat) == col(pimat))  )
 
-        fitted <- paramvec(local.config)[1] + (hts+t(hts))/2 
-        resids <- (fitted - pimat)
-        resids[omit.comparisons] <- NA
-        fitted[omit.comparisons] <- NA
+        if (is.numeric(hts)) {
+            fitted <- paramvec(local.config)[1] + (hts+t(hts))/2 
+            resids <- (fitted - pimat)
+            resids[omit.comparisons] <- NA
+            fitted[omit.comparisons] <- NA
 
-        # weight residuals by 1 / number of other samples within 25km
-        geodist <- pimat
-        geodist[] <- NA
-        geodist.tab <- read.csv( file.path(dirname(config.file),dirname(config$sample_locs),"geog_distance.csv"), header=TRUE, stringsAsFactors=FALSE )
-        geodist.inds <- cbind( match(geodist.tab[,1],rownames(geodist)), match(geodist.tab[,2],colnames(geodist)) )
-        usethese <- apply( !is.na(geodist.inds), 1, all )
-        geodist[ geodist.inds[usethese,] ] <- geodist.tab[usethese,3]
-        geodist[is.na(geodist)] <- t(geodist)[is.na(geodist)]
-        nearby.weights <- 1 / rowSums( geodist < 25e3 )
-        pairwise.weights <- outer(nearby.weights,nearby.weights,"*")
+            # weight residuals by 1 / number of other samples within 25km
+            geodist <- pimat
+            geodist[] <- NA
+            geodist.tab <- read.csv( file.path(dirname(config.file),dirname(config$sample_locs),"geog_distance.csv"), header=TRUE, stringsAsFactors=FALSE )
+            geodist.inds <- cbind( match(geodist.tab[,1],rownames(geodist)), match(geodist.tab[,2],colnames(geodist)) )
+            usethese <- apply( !is.na(geodist.inds), 1, all )
+            geodist[ geodist.inds[usethese,] ] <- geodist.tab[usethese,3]
+            geodist[is.na(geodist)] <- t(geodist)[is.na(geodist)]
+            nearby.weights <- 1 / rowSums( geodist < 25e3 )
+            pairwise.weights <- outer(nearby.weights,nearby.weights,"*")
 
-        med.resids <- apply(resids,1,weighted.median,w=nearby.weights)
+            med.resids <- apply(resids,1,weighted.median,w=nearby.weights)
 
-        ut <- upper.tri(pimat,diag=FALSE)
-        # weighted median abs( residual )
-        w.mad <- weighted.median( abs(resids)[ut], pairwise.weights[ut] )
-        w.mse <- sqrt( weighted.mean( resids[ut]^2, pairwise.weights[ut], na.rm=TRUE ) )
+            ut <- upper.tri(pimat,diag=FALSE)
+            # weighted median abs( residual )
+            w.mad <- weighted.median( abs(resids)[ut], pairwise.weights[ut] )
+            w.mse <- sqrt( weighted.mean( resids[ut]^2, pairwise.weights[ut], na.rm=TRUE ) )
+        } else {
+            w.mad <- w.mse <- NA
+        }
 
         return( list(
                 summary=basename(dirname(config.file)), 
