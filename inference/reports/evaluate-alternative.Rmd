@@ -59,7 +59,7 @@ pt.legend <- function (x,npts=8) {
 }
 interp.values <- function (x,refs) {
     # interpolate values seen at ref.points[refs] to everywhere else
-    tps <- fastTps( coordinates(ref.points)[refs,], x[refs], lambda=1e-8, theta=2e5 )
+    tps <- fastTps( coordinates(ref.points)[refs,], x, lambda=1e-8, theta=2e5 )
     return( mask(interpolate(nalayer,tps),nalayer) )
 }
 # and the alternative
@@ -159,7 +159,7 @@ layout(t(1:2))
 ph(z,zlim=c(0,max(10,max(z,na.rm=TRUE))),main="log10 mean hitting times")
 if (any(!accessible.refs)) { points(ref.points[!accessible.refs],cex=2,pch=21,col='red',lwd=2) }
 if (any(isolated.refs)) { points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2) }
-ph( z<6,col=c('red','white'),legend=FALSE)
+ph( z<6,col=c('red','white'),legend=FALSE,main="isolated areas")
 if (any(isolated.refs)) { points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2) }
 ```
 
@@ -245,11 +245,11 @@ here is the mean difference in resistance distance for each point averaged acros
 and then the maximum:
 ```{r relative_effects, echo=FALSE}
 sym <- function (x) { (x+t(x))/2 }
-mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[,alt.good.refs])
-max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[,alt.good.refs],1,max)
+mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs])
+max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs],1,max)
 diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
 layout(t(1:2))
-zlims <- c(-1,1)*max(abs(tdiffs))
+zlims <- c(-1,1)*max(abs(max.tdiffs))
 plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference", col=diff.cols, zlim=zlims )
 plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
 ```
@@ -261,8 +261,8 @@ More plots of pretty much the same thing
 This is an interpolated map of the mean differences in hitting times:
 ```{r relative_effects, echo=FALSE}
 which.max.diffs  <- apply((alt.hts-hts)[,alt.good.refs],1,which.max)
-to.diffs <- colMeans((alt.hts-hts)[ref.locs[alt.good.refs],])
-from.diffs <- rowMeans((alt.hts-hts)[ref.locs,alt.good.refs])
+to.diffs <- colMeans((alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs])
+from.diffs <- rowMeans((alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs])
 diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
 layout(t(1:2))
 zlims <- c(-1,1)*max(abs((alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs]))
@@ -277,8 +277,8 @@ plot( interp.values(from.diffs,alt.good.refs), main="mean difference from", col=
 
 This is the same thing, but dividing by hitting time
 ```{r ratio_effects, echo=FALSE}
-to.ratio <- colMeans( (alt.hts-hts)[ref.locs[alt.good.refs],] / ( 1+hts[ref.locs[alt.good.refs],] ) )
-from.ratio <- rowMeans( (alt.hts-hts)[ref.locs,alt.good.refs] / ( 1+hts[ref.locs,alt.good.refs] ) )
+to.ratio <- colMeans( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs] / ( 1+hts[ref.locs[alt.good.refs],alt.good.refs] ) )
+from.ratio <- rowMeans( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs] / ( 1+hts[ref.locs[alt.good.refs],alt.good.refs] ) )
 zlims <- c(-1,1)*max(pmin(5,abs(c(to.ratio,from.ratio))))
 layout(t(1:2))
 plot( interp.values(to.ratio,alt.good.refs), main="mean relative difference to", col=diff.cols, zlim=zlims )
@@ -433,4 +433,21 @@ plot( alt, main="worst isolation" )
 points( chunk.centers, pch=21, cex=sqrt(chunk.stats$worst.isolation/10), col=chunk.cols, bg=adjustcolor(chunk.cols,.5) )
 plot( alt, main="total reduction")
 points( chunk.centers, pch=21, cex=sqrt(chunk.stats$total.reduction/10), col=chunk.cols, bg=adjustcolor(chunk.cols,.5) )
+```
+
+Here are the plots above, specifically for each chunk
+```{r subchunk_plots}
+layout(t(1:2))
+for (k in seq_along(chunk.info.list)) {
+    with( list2env( chunk.info.list[[k]] ), {
+            mean.tdiffs <- rowMeans(sym((sub.alt.hts-sub.hts)))
+            max.tdiffs <- apply(sym((sub.alt.hts-sub.hts)),1,max)
+            zlims <- c(-1,1)*max(abs(max.tdiffs))
+            plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference", col=diff.cols, zlim=zlims )
+            plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
+            plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
+            plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
+        } )
+}
+
 ```
