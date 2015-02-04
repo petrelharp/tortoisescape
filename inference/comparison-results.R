@@ -22,23 +22,32 @@ outfile <- if (length(argvec)>2) { argvec[3] } else {
         gsub("inference-", "comparison-", infile) ) }
 outpng <- if (length(argvec)>3) { argvec[4] } else { gsub("[.]R[dD]ata$", ".png", outfile) }
 
-if (!file.exists(infile)){ stop(paste(infile,"doesn't exist.")) }
+if (!file.exists(infile)){ stop(paste(infile," doesn't exist.")) }
 load(infile)
 
 # setup for using *everyone*, on habitat only
 config.file <- file.path("summaries",summary.dir,"config.json")
-if (!file.exists(config.file)){ stop(paste(config.file,"doesn't exist.")) }
+if (!file.exists(config.file)){ stop(paste(config.file," doesn't exist.")) }
 config <- read.json.config(config.file)
-for (x in config$setup_files) { load(file.path(dirname(config.file),x)) }
+for (x in config$setup_files) { 
+    setup.file <- file.path(dirname(config.file),x)
+    if (!file.exists(setup.file)){ stop(paste(setup.file," doesn't exist.")) }
+    load(setup.file)
+}
 config$reference_inds <- row.names( sample.locs )
 
 # and for this model
+if (!file.exists(trust.optim$config.file)) { stop(paste(trust.optim$config.file)," doesn't exist.") }
 local.config <- read.json.config( trust.optim$config.file )
 layer.names <- local.config$layer_names
 paramvec(local.config) <- trust.optim$argument
 # get centering and scaling used for the layers (HACK)
 local.env <- new.env()
-for (x in config$setup_files) { load(x,envir=local.env) }
+for (x in local.config$setup_files) { 
+    setup.file <- file.path(dirname(trust.optim$config.file),x)
+    if (!file.exists(setup.file)){ stop(paste(setup.file," doesn't exist.")) }
+    load(setup.file,envir=local.env) 
+}
 layer.center <- get("layer.center",local.env)
 layer.scale <- get("layer.scale",local.env)
 
