@@ -79,6 +79,7 @@ valfn <- function (gamma) { ans <- layers[,1]*gamma[1]; for (k in (1:NCOL(layers
 
 ndelta <- ngamma <- length(layer.names)
 update.G <- function(params) {
+    stopifnot(length(params)==2+2*ncol(layers))
     beta <- params[1]
     gamma <- params[1+(1:ngamma)]
     delta <- params[1+ngamma+(1:ndelta)]
