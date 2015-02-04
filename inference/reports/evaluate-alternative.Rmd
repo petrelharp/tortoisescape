@@ -14,8 +14,8 @@ require(xtable)
 require(fields)  # for Tps (thin-plate spline, below)
 fig.dim <- 5
 opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
-opts_chunk$set(cache.path=paste("cache/",alt.file,"_",summary.dir,sep=""))
-opts_chunk$set(fig.path=paste("figure/",alt.file,"_",summary.dir,sep=""))
+opts_chunk$set(cache.path=paste("cache/",alt.file,"_",summary.dir,"_",sep=""))
+opts_chunk$set(fig.path=paste("figure/",alt.file,"_",summary.dir,"_",sep=""))
 ```
 ```{r setup, include=FALSE, cache=TRUE}
 # setup for using *everyone*, on habitat only

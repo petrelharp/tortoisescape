@@ -30,7 +30,7 @@ or
 fi
 
 RMD=$(readlink -f reports/evaluate-alternative.Rmd)
-OUTFILE="evaluate-${ALTNAME}.html"
+OUTFILE="evaluate-${ALTNAME}-${SUMMARY}.html"
 
 # note that despite the setwd() below, the .Rmd does *not* behave as if in $DIRNAME.
 ln -s -f $RMD $DIRNAME
