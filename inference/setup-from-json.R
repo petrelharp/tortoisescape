@@ -69,7 +69,7 @@ stopifnot(nrow(layers)==nrow(G))
 layers <- cbind( 1, layers )
 layer.center <- c(0,layer.center)
 layer.scale <- c(1,layer.scale)
-layer.names <- c( "constant", layer.names )
+layer.names <- names(layer.center) <- names(layer.scale) <- c( "constant", layer.names )
 
 # transfn <- exp
 transfn <- function (x) { 1/(1+exp(-x)) }

@@ -29,8 +29,9 @@ for (x in config$setup_files) { load(x,envir=local.env) }
 layer.center <- get("layer.center",local.env)
 layer.scale <- get("layer.scale",local.env)
 # get locally-specified layers in globally-specified way
-use.files <- layer.files[match(layer.names,layer.file.names)]
-names(use.files) <- layer.names
+layer.files <- file.path(base.dir,gsub(".*/geolayers/","geolayers/",layer.files))
+use.files <- layer.files[match(setdiff(layer.names,"constant"),layer.file.names)]
+names(use.files) <- setdiff(layer.names,"constant")
 ## find if other layers have additional NA values, and block these later
 new.nalayer <- nalayer
 for (lf in use.files) {
@@ -39,11 +40,10 @@ for (lf in use.files) {
 }
 block.these <- match( which( is.na(values(new.nalayer)) & ! is.na(values(nalayer)) ), nonmissing )
 # load up the layers
-if (length(layer.names)>0) { 
-    layers <- sapply( layer.names, function (ln) {
-                values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing]
+if (length(setdiff(layer.names,"constant"))>0) { 
+    layers <- sapply( use.files, function (ln) {
+                values( raster( ln ) )[nonmissing]
             } )
-    layers <- sweep(sweep(layers,2,layer.center,"-"),2,layer.scale,"/")
 } else {
     layers <- matrix(0,nrow=nrow(G),ncol=0)
 }
@@ -52,7 +52,9 @@ stopifnot(nrow(layers)==nrow(G))
 layers <- cbind( 1, layers )
 layer.names <- c( "constant", layer.names )
 ndelta <- ngamma <- length(layer.names)
-#
+# and do the scaling
+layers <- sweep(sweep(layers,2,layer.center,"-"),2,layer.scale,"/")
+# Load in previous results
 result.files <- list.files(pattern="inference-.*RData",full.names=TRUE)
 last.result <- result.files[ rev(order( file.info(result.files)$mtime )) ][1]
 load(last.result)
