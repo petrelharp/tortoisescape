@@ -1,11 +1,10 @@
 ```{r setup_packages, include=FALSE}
-####
-#
-# Before running this, have pre-loaded:
-#
-#   alt.file : name of alternative (e.g. "pref_alt" or "alt_1")
-#
-####
+usage <- 'Before running this, have pre-loaded:
+
+   alt.file    : name of alternative (e.g. "alt_pref_pda")
+   summary.dir : name of directory with general setup in ("all" or "habitat-only")
+'
+if (!exists("alt.file") | !exists("summary.dir")) { stop(usage) }
 base.dir <- gsub("tortoisescape/inference/.*","tortoisescape",getwd())
 source(file.path(base.dir,"inference","resistance-fns.R"))
 require(parallel)
@@ -17,9 +16,13 @@ fig.dim <- 5
 opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
 ```
 ```{r setup, include=FALSE, cache=TRUE}
+# setup for using *everyone*, on habitat only
+config.file <- file.path(base.dir,"inference/summaries",summary.dir,"config.json")
+config <- read.json.config(config.file)
+for (x in config$setup_files) { load(file.path(dirname(config.file),x)) }
 # load stuff
-config <- read.json.config("config.json")
-for (x in config$setup_files) { load(x) }
+local.config <- read.json.config("config.json")
+# for (x in config$setup_files) { load(x) }
 result.files <- list.files(pattern="inference-.*RData",full.names=TRUE)
 last.result <- result.files[ rev(order( file.info(result.files)$mtime )) ][1]
 load(last.result)
@@ -60,7 +63,7 @@ interp.values <- function (x,refs) {
     return( mask(interpolate(nalayer,tps),nalayer) )
 }
 # and the alternative
-alt <- crop( extend( raster(file.path(base.dir,"geolayers/alternatives",paste(alt.file,"_poly.tif",sep=''))), nalayer ), nalayer )
+alt <- crop( extend( raster(file.path(base.dir,"geolayers/alternatives",paste(alt.file,".tif",sep=''))), nalayer ), nalayer )
 stopifnot(compareRaster(alt,nalayer))
 orig.chunks <- lapply( unique(values(alt)), function (k) { match(which(values(alt)==k&!is.na(values(nalayer))),nonmissing) } )
 chunk.clumped <- clump( mask(nalayer,alt,inverse=TRUE), directions=4 )
