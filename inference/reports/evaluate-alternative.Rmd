@@ -5,7 +5,7 @@ usage <- 'Before running this, have pre-loaded:
    summary.dir : name of directory with general setup in ("all" or "habitat-only")
 '
 if (!exists("alt.file") | !exists("summary.dir")) { stop(usage) }
-base.dir <- gsub("tortoisescape/inference/.*","tortoisescape",getwd())
+base.dir <- gsub("tortoisescape/inference.*","tortoisescape",getwd())
 source(file.path(base.dir,"inference","resistance-fns.R"))
 require(parallel)
 require(colorspace)
@@ -13,9 +13,10 @@ require(raster)
 require(xtable)
 require(fields)  # for Tps (thin-plate spline, below)
 fig.dim <- 5
+run.id <- paste(alt.file,"_",summary.dir,"_",sep="")
 opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
-opts_chunk$set(cache.path=paste("cache/",alt.file,"_",summary.dir,"_",sep=""))
-opts_chunk$set(fig.path=paste("figure/",alt.file,"_",summary.dir,"_",sep=""))
+opts_chunk$set(cache.path=paste("cache/",run.id,sep=""))
+opts_chunk$set(fig.path=paste("figure/",run.id,sep=""))
 ```
 ```{r setup, include=FALSE, cache=TRUE}
 # setup for using *everyone*, on habitat only
@@ -367,19 +368,20 @@ summary.expr <- quote(
         pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
         neg.diffmat <- pmin(0,sub.alt.hts-sub.hts)
         dim(pos.diffmat) <- dim(neg.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
-        blocked <- attr(alt.hts,"blocked")
+        blocked <- attr(sub.alt.hts,"blocked")
         data.frame(
             "this chunk" = paste(sort(this.chunk),collapse=","),
             "cells removed" = sum( !is.na( values(nalayer)[ unique(c(blocked,which(values(alt)%in%this.chunk))) ] ) ),
             "references removed" = sum( newly.inaccessible.refs | newly.isolated.refs ),
             "max increase" = max( pos.diffmat ),
-            "max decgrease" = min( neg.diffmat ),
+            "max decrease" = min( neg.diffmat ),
             "mean increase" = mean( pos.diffmat ),
             "mean decrease" = mean( pos.diffmat ),
             "relative increase" = mean( pos.diffmat/(1+sub.hts) ),
             "relative decrease" = mean( neg.diffmat/(1+sub.hts) )
     ) } )
 sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
+attr(sub.alt.hts,"blocked") <- attr(alt.hts,"blocked")
 sub.hts <- hts[ref.locs[alt.good.refs],alt.good.refs]
 eval(summary.expr)
 ```
@@ -392,10 +394,10 @@ This alternative is broken up into `r length(chunk.labels)` pieces;
 we can compute the above things separately for each piece.
 First, we'll compute the necessary quantities:
 ```{r subchunk_computation, echo=FALSE}
-chunk.info.file <- paste(alt.file,"-subchunks",".RData",sep='')
+chunk.info.file <- paste(run.id,"subchunks",".RData",sep='')
 if (!file.exists(chunk.info.file)) {
     chunk.info.list <- lapply( chunk.labels, function (this.chunk) {
-            this.file <- paste(alt.file,"-subchunk-",paste(this.chunk,collapse="_"),".RData",sep='')
+            this.file <- paste(run.id,"subchunk-",paste(this.chunk,collapse="_"),".RData",sep='')
             if (!file.exists(this.file)) {
                 alt.hts <- chunk.hts(this.chunk)
                 in.chunk.refs <- in.chunk( this.chunk, ref.locs )
@@ -405,6 +407,7 @@ if (!file.exists(chunk.info.file)) {
                 newly.isolated.refs <- ( alt.isolated.refs & ! isolated.refs )
                 alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.refs ) ) 
                 sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
+                attr(sub.alt.hts,"blocked") <- attr(alt.hts,"blocked")
                 sub.hts <- hts[ref.locs[alt.good.refs],alt.good.refs]
                 save( this.chunk, 
                         sub.hts,
@@ -425,7 +428,7 @@ if (!file.exists(chunk.info.file)) {
                    sub.hts=sub.hts,
                    in.chunk.refs=in.chunk.refs, 
                    alt.accessible.refs=alt.accessible.refs, 
-                   newly.accessible.refs=newly.inaccessible.refs, 
+                   newly.inaccessible.refs=newly.inaccessible.refs, 
                    alt.isolated.refs=alt.isolated.refs, 
                    newly.isolated.refs=newly.isolated.refs, 
                    alt.good.refs=alt.good.refs 
@@ -438,7 +441,7 @@ chunk.stats <- do.call( rbind, lapply( chunk.info.list, function (chunk.info) {
             } ) )
 ```
 ```{r subchunk_results, results='asis'}
-xtab <- xtable(chunk.stats[order(chunk.stats$total.reduction),])
+xtab <- xtable(chunk.stats[order(chunk.stats$mean.increase),])
 print(xtab,type='html')
 ```
 
