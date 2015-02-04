@@ -54,15 +54,21 @@ Gjj <- p.to.j(G@p)
 
 if (length(layer.names)>0) { 
     layers <- sapply( layer.names, function (ln) {
-                scale( values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing] )
+                values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing]
             } )
+    layer.center <- apply(layers,2,mean,na.rm=TRUE)
+    layer.scale <- apply(layers,2,sd,na.rm=TRUE)
+    layers <- sweep(sweep(layers,2,layer.center,"-"),2,layer.scale,"/")
 } else {
     layers <- matrix(0,nrow=nrow(G),ncol=0)
+    layer.scale <- layer.center <- numeric(0)
 }
 stopifnot(nrow(layers)==nrow(G))
 
 # ADD the constant layer
 layers <- cbind( 1, layers )
+layer.center <- c(0,layer.center)
+layer.scale <- c(1,layer.scale)
 layer.names <- c( "constant", layer.names )
 
 # transfn <- exp

@@ -34,6 +34,11 @@ config$reference_inds <- row.names( sample.locs )
 local.config <- read.json.config( trust.optim$config.file )
 layer.names <- local.config$layer_names
 paramvec(local.config) <- trust.optim$argument
+# get centering and scaling used for the layers (HACK)
+local.env <- new.env()
+for (x in config$setup_files) { load(x,envir=local.env) }
+assign("layer.center",get("layer.center",local.env))
+assign("layer.scale",get("layer.scale",local.env))
 
 # get locally-specified layers in globally-specified way
 use.files <- layer.files[match(layer.names,layer.file.names)]
@@ -52,6 +57,7 @@ if (length(layer.names)>0) {
     layers <- sapply( layer.names, function (ln) {
                 scale( values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing] )
             } )
+    layers <- sweep(sweep(layers,2,layer.center,"-"),2,layer.scale,"/")
 } else {
     layers <- matrix(0,nrow=nrow(G),ncol=0)
 }
