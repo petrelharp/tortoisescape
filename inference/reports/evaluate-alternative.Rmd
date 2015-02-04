@@ -329,16 +329,20 @@ At least preliminarily, we will look at these summaries of the effect of the alt
 ```{r summary_fun,echo=FALSE}
 summary.expr <- quote( 
     { 
-        diffmat <- pmax(0,sub.alt.hts-sub.hts)
-        dim(diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
+        pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
+        neg.diffmat <- pmin(0,sub.alt.hts-sub.hts)
+        dim(pos.diffmat) <- dim(neg.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
         blocked <- attr(alt.hts,"blocked")
         data.frame(
             "this chunk" = paste(sort(this.chunk),collapse=","),
             "cells removed" = sum( !is.na( values(nalayer)[ unique(c(blocked,which(values(alt)%in%this.chunk))) ] ) ),
             "references removed" = sum( newly.inaccessible.refs | newly.isolated.refs ),
-            "worst isolation" = max( rowMeans( diffmat ) ),
-            "total reduction" = mean( diffmat ),
-            "relative reduction" = mean( diffmat/(1+sub.hts) )
+            "max increase" = max( pos.diffmat ),
+            "max decgrease" = min( neg.diffmat ),
+            "mean increase" = mean( pos.diffmat ),
+            "mean decrease" = mean( pos.diffmat ),
+            "relative increase" = mean( pos.diffmat/(1+sub.hts) ),
+            "relative decrease" = mean( neg.diffmat/(1+sub.hts) )
     ) } )
 sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
 sub.hts <- hts[ref.locs[alt.good.refs],alt.good.refs]
@@ -440,10 +444,10 @@ Here are the plots above, specifically for each chunk
 layout(t(1:2))
 for (k in seq_along(chunk.info.list)) {
     with( list2env( chunk.info.list[[k]] ), {
-            mean.tdiffs <- rowMeans(sym((sub.alt.hts-sub.hts)))
+            mean.tdiffs <- rowMeans(sym(pmax(0,(sub.alt.hts-sub.hts))))
             max.tdiffs <- apply(sym((sub.alt.hts-sub.hts)),1,max)
             zlims <- c(-1,1)*max(abs(max.tdiffs))
-            plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference", col=diff.cols, zlim=zlims )
+            plot( interp.values(mean.tdiffs,alt.good.refs), main="mean increase", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
             plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
