@@ -259,7 +259,7 @@ More plots of pretty much the same thing
 ----------------------------------------
 
 This is an interpolated map of the mean differences in hitting times:
-```{r relative_effects, echo=FALSE}
+```{r relative_effects_2, echo=FALSE}
 which.max.diffs  <- apply((alt.hts-hts)[,alt.good.refs],1,which.max)
 to.diffs <- colMeans((alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs])
 from.diffs <- rowMeans((alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs])
