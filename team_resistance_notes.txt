@@ -1,9 +1,0 @@
-1) have meeting
-2) get layers into workable format
-3) get lat/long from evan
-4) work on converting the raster coordinates to lat/long
-5) calc random walk times on heterogeneous landscapes
-6) feed layer to rand.walk.func and calculate walk times between them
-7) get that to work on multiple layers
-8) crank on inference
-9) making pretty figures

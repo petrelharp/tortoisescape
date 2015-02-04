@@ -12,6 +12,7 @@ require(parallel)
 require(colorspace)
 require(raster)
 require(xtable)
+require(fields)  # for Tps (thin-plate spline, below)
 fig.dim <- 5
 opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
 ```
@@ -52,6 +53,11 @@ pt.legend <- function (x,npts=8) {
     yvals <- seq(3.7e6,3.9e6,length.out=length(zvals))
     points( xvals, yvals, cex=2*abs(vals), col=ifelse(vals>0,"red","blue") )
     text( xvals + .2e5, yvals, labels=sprintf("%0.1e",zvals), pos=4 )
+}
+interp.values <- function (x,refs) {
+    # interpolate values seen at ref.points[refs] to everywhere else
+    tps <- fastTps( coordinates(ref.points)[refs,], x[refs], lambda=1e-8, theta=2e5 )
+    return( mask(interpolate(nalayer,tps),nalayer) )
 }
 # and the alternative
 alt <- crop( extend( raster(file.path(base.dir,"geolayers/alternatives",paste(alt.file,"_poly.tif",sep=''))), nalayer ), nalayer )
@@ -94,8 +100,16 @@ print(xtab,type='html')
 ```
 and the model looks like 
 ```{r model_plot,echo=FALSE}
+gamma <- params[2+(1:length(layer.names))]
+stationary.base <- rowSums( layers * gamma[col(layers)] )
+stationary.dist <- ( 1 + exp( -stationary.base ) )
 layout(t(1:2))
-plot.model(params,layer.names,layers,G,update.G,ph,xlim=xlims,ylim=ylims)
+delta <- params[2+length(layer.names)+(1:length(layer.names))]
+jump.base <- rowSums( layers * delta[col(layers)] )
+G@x <- update.G(params[-1])
+ph( (-1)*stationary.base, main="logit stationary distribution" )
+ph( jump.base, main="logit relative jump rate" )
+# plot.model(params,layer.names,layers,G,update.G,ph,xlim=xlims,ylim=ylims)
 ```
 
 
@@ -135,17 +149,19 @@ Here is a plot of $log_{10}$ values of the mean hitting times
 from each point on the landscape to the *accessible* reference points,
 and on the right those locations where this mean is greater than $10^6$;
 the inaccessible reference locations are marked with red circles,
-and isolated locations are marked with blue circles:
+and isolated locations are marked with blue circles (if any):
 ```{r mean_hts, echo=FALSE}
 z <- log10(1+rowMeans(hts[,accessible.refs]))
 layout(t(1:2))
-ph(z,zlim=c(0,max(z,na.rm=TRUE)),main="log10 mean hitting times")
-points(ref.points[!accessible.refs],cex=2,pch=21,col='red',lwd=2)
-points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2)
-ph(z>6,col=c('white','red'),legend=FALSE)
-points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2)
+ph(z,zlim=c(0,max(10,max(z,na.rm=TRUE))),main="log10 mean hitting times")
+if (any(!accessible.refs)) { points(ref.points[!accessible.refs],cex=2,pch=21,col='red',lwd=2) }
+if (any(isolated.refs)) { points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2) }
+ph( z<6,col=c('red','white'),legend=FALSE)
+if (any(isolated.refs)) { points(ref.points[isolated.refs],cex=1.5,pch=21,col='blue',lwd=2) }
 ```
 
+
+With these parameters, there are `r sum(!accessible.refs)` inaccessible reference locations and `r sum(isolated.refs)` isolated reference locations.
 We omit both inaccessible and isolated locations from the rest of the analysis.
 ```{r good_refs, echo=FALSE}
 good.refs <- ( accessible.refs & ! isolated.refs )
@@ -195,7 +211,7 @@ newly.isolated.refs <- ( alt.isolated.refs & ! isolated.refs )
 alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.refs ) ) 
 ```
 This has made 
-`r sum(alt.good.refs)` 
+`r sum(!alt.good.refs)` 
 additional reference points inaccessible and/or isolated.
 Here are a few hitting times, and how they change after removing the alternative:
 *(note: should mask inaccessible/isolated regions in plots?)*
@@ -220,21 +236,56 @@ for (k in plot.points) {
 }
 ```
 
+
 Removing these affects hitting times to and from each reference point;
-here, circle sizes show the sizes of these effects:
+here is the mean difference in resistance distance for each point averaged across all reference locations,
+and then the maximum:
+```{r relative_effects, echo=FALSE}
+sym <- function (x) { (x+t(x))/2 }
+mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[,alt.good.refs])
+max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[,alt.good.refs],1,max)
+diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
+layout(t(1:2))
+zlims <- c(-1,1)*max(abs(tdiffs))
+plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference", col=diff.cols, zlim=zlims )
+plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
+```
+
+
+More plots of pretty much the same thing
+----------------------------------------
+
+This is an interpolated map of the mean differences in hitting times:
 ```{r relative_effects, echo=FALSE}
 which.max.diffs  <- apply((alt.hts-hts)[,alt.good.refs],1,which.max)
 to.diffs <- colMeans((alt.hts-hts)[ref.locs[alt.good.refs],])
 from.diffs <- rowMeans((alt.hts-hts)[ref.locs,alt.good.refs])
+diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
 layout(t(1:2))
-ph( which.max.diffs, do.lims=FALSE,main="mean difference to", legend=FALSE)
-pt.legend( to.diffs )
-ph( which.max.diffs, do.lims=FALSE,main="mean difference from", legend=FALSE)
-pt.legend( from.diffs )
+zlims <- c(-1,1)*max(abs((alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs]))
+plot( interp.values(to.diffs,alt.good.refs), main="mean difference to", col=diff.cols, zlim=zlims )
+plot( interp.values(from.diffs,alt.good.refs), main="mean difference from", col=diff.cols, zlim=zlims )
+# ph( which.max.diffs, do.lims=FALSE,main="mean difference to", legend=FALSE)
+# pt.legend( to.diffs )
+# ph( which.max.diffs, do.lims=FALSE,main="mean difference from", legend=FALSE)
+# pt.legend( from.diffs )
 ```
 
 
-Here is the map of change in hitting time to the reference locations:
+This is the same thing, but dividing by hitting time
+```{r ratio_effects, echo=FALSE}
+to.ratio <- colMeans( (alt.hts-hts)[ref.locs[alt.good.refs],] / ( 1+hts[ref.locs[alt.good.refs],] ) )
+from.ratio <- rowMeans( (alt.hts-hts)[ref.locs,alt.good.refs] / ( 1+hts[ref.locs,alt.good.refs] ) )
+zlims <- c(-1,1)*max(pmin(5,abs(c(to.ratio,from.ratio))))
+layout(t(1:2))
+plot( interp.values(to.ratio,alt.good.refs), main="mean relative difference to", col=diff.cols, zlim=zlims )
+contour( !is.na(alt), col=adjustcolor('black',.2), add=TRUE, legend=FALSE )
+plot( interp.values(from.ratio,alt.good.refs), main="mean relative difference from", col=diff.cols, zlim=zlims )
+contour( !is.na(alt), col=adjustcolor('black',.2), add=TRUE, legend=FALSE )
+```
+
+
+Here are plots of almost the same thing, but for all locations, only "to":
 on the left is the mean across reference locations, the right is the maximum:
 ```{r mean_diff_plot, echo=FALSE}
 layout(t(1:2))
@@ -311,15 +362,25 @@ if (!file.exists(chunk.info.file)) {
                 alt.isolated.refs <- isolated(alt.hts, ref.locs, alt.accessible.refs )
                 newly.isolated.refs <- ( alt.isolated.refs & ! isolated.refs )
                 alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.refs ) ) 
-                save( this.chunk, alt.hts, in.chunk.refs, alt.accessible.refs, newly.inaccessible.refs, alt.isolated.refs, newly.isolated.refs, alt.good.refs, 
+                sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
+                sub.hts <- hts[ref.locs[alt.good.refs],alt.good.refs]
+                save( this.chunk, 
+                        sub.hts,
+                        sub.alt.hts, 
+                        in.chunk.refs, 
+                        alt.accessible.refs, 
+                        newly.inaccessible.refs, 
+                        alt.isolated.refs, 
+                        newly.isolated.refs, 
+                        alt.good.refs, 
                    file=this.file )
            } else { 
                this.ls <- load(this.file) 
                if ( ("chunk.label" %in% this.ls) && ! ("this.chunk" %in% this.ls) ) { this.chunk <- chunk.label } # ; save( list=c("this.chunk",setdiff(this.ls,"chunk.label")), file=this.file ) }
            }
            return( list( this.chunk=this.chunk, 
-                   sub.alt.hts=alt.hts[ref.locs[alt.good.refs],alt.good.refs], 
-                   sub.hts=hts[ref.locs[alt.good.refs],alt.good.refs], 
+                   sub.alt.hts=sub.alt.hts,
+                   sub.hts=sub.hts,
                    in.chunk.refs=in.chunk.refs, 
                    alt.accessible.refs=alt.accessible.refs, 
                    newly.accessible.refs=newly.inaccessible.refs, 
