@@ -66,7 +66,7 @@ block.these <- match( which( is.na(values(new.nalayer)) & ! is.na(values(nalayer
 # load up the layers
 if (length(layer.names)>0) { 
     layers <- sapply( layer.names, function (ln) {
-                scale( values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing] )
+                values( raster( paste(full.layer.prefix,ln,sep='') ) )[nonmissing]
             } )
 } else {
     layers <- matrix(0,nrow=nrow(G),ncol=0)

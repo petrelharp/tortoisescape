@@ -25,7 +25,7 @@ local.config <- read.json.config("config.json")
 layer.names <- local.config$layer_names
 local.env <- new.env()
 # get centering and scaling used for the layers (HACK)
-for (x in config$setup_files) { load(x,envir=local.env) }
+for (x in local.config$setup_files) { load(x,envir=local.env) }
 layer.center <- get("layer.center",local.env)
 layer.scale <- get("layer.scale",local.env)
 # get locally-specified layers in globally-specified way
