@@ -342,14 +342,25 @@ print(xtab,type='html')
 
 Wait, which chunk is which, again?
 Here are the locations and labels:
-```{r which_chunks, fig.width=fig.dim}
+```{r which_chunks, fig.width=2*fig.dim}
 chunk.centers.xy <- sapply( chunk.labels, function (k) { colMeans( xyFromCell( alt, which(values(alt)==k) ) ) } )
 chunk.centers <- SpatialPoints(coords=t( chunk.centers.xy),proj4string=CRS(proj4string(alt)),bbox=bbox(alt))
 chunk.cols <- rainbow(max(chunk.labels))[chunk.labels]
-eps <- c(0,4e4)
-plot(alt, xlim=c(327250,777200), ylim=c(3608100,4100000), col=rainbow(max(chunk.labels)))
+# for zooming in on various pieces:
+chunk.xylims <- list(
+      west=list( xlim=c(3.2e5,6e5), ylim=c(3.8e6,3.92e6) ),
+      north=list( xlim=c(3.2e5,6e5), ylim=c(3.9e6,4.1e6) ),
+      south=list( xlim=c(5.9e5,7.5e5), ylim=c(3.6e6,3.78e6) )
+  )
+layout(matrix(1:4,nrow=2))
+plot(alt, xlim=c(327250,777200), ylim=c(3.6e6,4.1e6), col=rainbow(max(chunk.labels)))
 text( chunk.centers, labels=chunk.labels )
 points( chunk.centers, pch=21, cex=3, col=chunk.cols )
+for (xylims in chunk.xylims) {
+    plot(alt, xlim=xylims[["xlim"]], ylim=xylims[["ylim"]], col=rainbow(max(chunk.labels)))
+    text( chunk.centers, labels=chunk.labels )
+    points( chunk.centers, pch=21, cex=3, col=chunk.cols )
+}
 ```
 and the effects above:
 ```{r isolation_stats}
