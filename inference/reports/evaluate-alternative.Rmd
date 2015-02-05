@@ -262,6 +262,7 @@ diff.zlims <- quantile( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs], c(
 ratio.zlims <- c(-1,1)*max(abs(quantile( ((alt.hts-hts)/(1+hts))[ref.locs[alt.good.refs],alt.good.refs], c(.01,.99) )))
 layout(t(1:3))
 for (k in plot.points) {
+    cat("point: ", k, "\n")
     ph( pmin(zlims[2],alt.hts[,k]), zlim=zlims, do.lims=FALSE, main="new hitting time" )
     points( ref.points[k], pch=8, cex=2 )
     plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
