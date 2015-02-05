@@ -16,7 +16,48 @@ for (k in which(!readable)) { warning(infiles[k], " does not exist.\n") }
 source("resistance-fns.R")
 require(raster)
 
-results <- lapply( infiles[readable], function (infile) {
+gmat <- function (geodist.tab,pimat) {
+    geodist <- pimat
+    geodist[] <- NA
+    geodist.inds <- cbind( match(geodist.tab[,1],rownames(geodist)), match(geodist.tab[,2],colnames(geodist)) )
+    usethese <- apply( !is.na(geodist.inds), 1, all )
+    geodist[ geodist.inds[usethese,] ] <- geodist.tab[usethese,3]
+    geodist[is.na(geodist)] <- t(geodist)[is.na(geodist)]
+    geodist
+}
+
+# null model fit
+null.config.file <- "summaries/all/config.json"
+null.config <- read.json.config(null.config.file)
+null.env <- new.env()
+load(file.path(dirname(null.config.file),null.config$setup_files),envir=null.env)
+assign("geodist.tab", read.csv( file.path(dirname(null.config.file),dirname(null.config$sample_locs),"geog_distance.csv"), header=TRUE, stringsAsFactors=FALSE ), null.env )
+assign("pcs", read.csv(file.path(dirname(null.config.file),dirname(null.config$divergence_file),"pcs.csv"),header=TRUE), null.env )
+assign("geodist", with(null.env, { gmat(geodist.tab,pimat) } ), null.env )
+null.results <- with( null.env, {
+            nearby.weights <- 1 / rowSums( geodist < 25e3 )
+            pairwise.weights <- outer(nearby.weights,nearby.weights,"*")
+            omit.comparisons <- ( pcs$PC1[match(rownames(pimat),pcs$etort)][row(pimat)] * pcs$PC1[match(colnames(pimat),pcs$etort)][col(pimat)] < 0 )
+            dup.inds <- match( c( "etort-296", "etort-297" ), rownames(pimat) )
+            omit.comparisons <- ( omit.comparisons | (row(pimat) %in% dup.inds) | (col(pimat) %in% dup.inds) )
+            # and omit self comparisons and ONLY UPPER TRIANGLE
+            omit.comparisons <- ( omit.comparisons | (row(pimat) < col(pimat))  )
+            resids <- resid( lm( pimat[!omit.comparisons] ~ geodist[!omit.comparisons] ) )
+            # weighted median abs( residual )
+            w.mad <- weighted.median( abs(resids), pairwise.weights[!omit.comparisons] )
+            w.mse <- sqrt( weighted.mean( resids^2, pairwise.weights[!omit.comparisons], na.rm=TRUE ) )
+            list( 
+                summary="null",
+                mad=w.mad, 
+                mse=w.mse, 
+                converged=NA,
+                n.refs=NA,
+                file=NA
+            )
+        } )
+
+
+results <- c( list(null.results), lapply( infiles[readable], function (infile) {
         load(infile)
         pcs <- read.csv(file.path(dirname(config.file),dirname(config$divergence_file),"pcs.csv"),header=TRUE)
         omit.comparisons <- ( pcs$PC1[match(rownames(pimat),pcs$etort)][row(pimat)] * pcs$PC1[match(colnames(pimat),pcs$etort)][col(pimat)] < 0 )
@@ -34,17 +75,9 @@ results <- lapply( infiles[readable], function (infile) {
             fitted[omit.comparisons] <- NA
 
             # weight residuals by 1 / number of other samples within 25km
-            geodist <- pimat
-            geodist[] <- NA
-            geodist.tab <- read.csv( file.path(dirname(config.file),dirname(config$sample_locs),"geog_distance.csv"), header=TRUE, stringsAsFactors=FALSE )
-            geodist.inds <- cbind( match(geodist.tab[,1],rownames(geodist)), match(geodist.tab[,2],colnames(geodist)) )
-            usethese <- apply( !is.na(geodist.inds), 1, all )
-            geodist[ geodist.inds[usethese,] ] <- geodist.tab[usethese,3]
-            geodist[is.na(geodist)] <- t(geodist)[is.na(geodist)]
+            geodist <- gmat(geodist.tab,pimat)
             nearby.weights <- 1 / rowSums( geodist < 25e3 )
             pairwise.weights <- outer(nearby.weights,nearby.weights,"*")
-
-            med.resids <- apply(resids,1,weighted.median,w=nearby.weights)
 
             ut <- upper.tri(pimat,diag=FALSE)
             # weighted median abs( residual )
@@ -62,7 +95,7 @@ results <- lapply( infiles[readable], function (infile) {
                 n.refs=length(local.config$reference_inds), 
                 file=infile 
             ) )
-    } )
+    } ) )
 
 cat("Saving results to ", outfile, "\n")
 
