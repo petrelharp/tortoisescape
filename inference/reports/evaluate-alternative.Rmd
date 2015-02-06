@@ -395,7 +395,7 @@ At least preliminarily, we will look at these summaries of the effect of the alt
 - (**mean decrease**) the mean decrease across reference locations of the commute time from the nearest 20% of reference locations, with increases counted as zero
 - (**relative increase**) the mean increase divided by the commute time without the alternative, with decreases counted as zero
 - (**relative decrease**) the mean decrease divided by the commute time without the alternative, with increases counted as zero
-```{r summary_fun,echo=FALSE}
+```{r summary_fun,echo=FALSE,results="asis"}
 summary.expr <- quote( 
     { 
         diffmat <- sub.alt.hts-sub.hts
@@ -481,7 +481,7 @@ chunk.stats <- do.call( rbind, lapply( chunk.info.list, function (chunk.info) {
                 eval( summary.expr, envir=list2env(chunk.info) )
             } ) )
 ```
-```{r subchunk_results, results='asis'}
+```{r subchunk_results, echo=FALSE, results='asis'}
 xtab <- xtable(chunk.stats[order(chunk.stats$mean.increase,decreasing=TRUE),])
 print.xtable(xtab,type='html',include.rownames=FALSE)
 ```
@@ -520,8 +520,8 @@ for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase,decreasing=
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
             dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
             nearby <- get.nearby(sub.hts,alt.good.refs)
-            pos.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
-            neg.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
+            pos.diffmat[ !nearby ] <- NA
+            neg.diffmat[ !nearby ] <- NA
             mean.tdiffs <- rowMeans(sym(pos.diffmat),na.rm=TRUE)
             max.tdiffs <- apply(sym((sub.alt.hts-sub.hts)),1,max,na.rm=TRUE)
             plot( interp.values(mean.tdiffs,alt.good.refs), main="mean increase", col=diff.cols, zlim=zlims )
@@ -531,4 +531,29 @@ for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase,decreasing=
         } ) )
 }
 
+```
+
+All the hitting times
+=====================
+
+For completeness, and debugging, here are all the hitting times:
+```{r all_hts, fig.width=3*fig.dim, echo=FALSE}
+zlims <- quantile( hts[ref.locs[alt.good.refs],alt.good.refs], c(0,.95) )
+diff.zlims <- c(-1,1)*max(abs( quantile( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs], c(.05,.95) ) ))
+ratio.zlims <- c(-1,1)*max(abs(quantile( ((alt.hts-hts)/(1+hts))[ref.locs[alt.good.refs],alt.good.refs], c(.01,.99) )))
+diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
+layout(t(1:3))
+for (k in which(alt.good.refs)) {
+    ph( pmin(zlims[2],alt.hts[,k]), zlim=zlims, do.lims=FALSE, main=paste("new hitting time to", k), legend.width=2 )
+    points( ref.points[k], pch=8, cex=2 )
+    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    ph( truncate((alt.hts[,k]-hts[,k]),diff.zlims), zlim=diff.zlims, col=diff.cols, do.lims=FALSE, main="difference", legend.width=2 )
+    points( ref.points[k], pch=8, cex=2 )
+    points( ref.points[alt.good.refs], cex=4*abs((sub.alt.hts[,k]-sub.hts[,k])[alt.good.refs])/max(abs((sub.alt.hts[,k]-sub.hts[,k])[alt.good.refs]),na.rm=TRUE), col=ifelse((alt.hts[,k]-hts[,k])[alt.good.refs]>0,"red","blue") )
+    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    ph( truncate((alt.hts[,k]-hts[,k])/(1+hts[,k]),ratio.zlims), zlim=ratio.zlims, col=diff.cols, do.lims=FALSE, main="ratio", legend.width=2 )
+    points( ref.points[k], pch=8, cex=2 )
+    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    # if ( interactive() && length(locator(1))==0) { break }
+}
 ```
