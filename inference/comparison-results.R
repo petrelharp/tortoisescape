@@ -106,13 +106,11 @@ fitted.asym[omit.comparisons] <- NA
 
 # weight residuals by 1 / number of other samples within 25km
 geodist.tab <- read.csv(file.path(dirname(config.file),dirname(config$divergence_file),"geog_distance.csv"),header=TRUE,stringsAsFactors=FALSE)
-g1 <- match(geodist.tab$etort1,rownames(pimat))
-g2 <- match(geodist.tab$etort2,rownames(pimat))
-g1 <- g1[!is.na(g1)]
-g2 <- g2[!is.na(g2)]
+geodist.tab <- subset( ( geodist.tab, etort1 %in% rownames(pimat) ) & ( geodist.tab, etort1 %in% colnames(pimat) ) )
+gg <- cbind( match(geodist.tab$etort1,rownames(pimat)), match(geodist.tab$etort2,rownames(pimat)) )
 geodist <- pimat
 geodist[] <- NA
-geodist[ cbind(g1,g2) ] <- geodist.tab[,3]
+geodist[ gg ] <- geodist.tab[,3]
 geodist[is.na(geodist)] <- t(geodist)[is.na(geodist)]
 nearby.weights <- 1 / rowSums( geodist$distance < 25e3 )
 
