@@ -422,8 +422,9 @@ summary.expr <- quote(
 sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
 attr(sub.alt.hts,"blocked") <- attr(alt.hts,"blocked")
 sub.hts <- hts[ref.locs[alt.good.refs],alt.good.refs]
-all.xtab <- xtable( eval(summary.expr) )
-all.xtab[,1] <- "all"
+results <- eval( summary.expr )
+results[,1] <- "all"
+all.xtab <- xtable( results )
 print.xtable(all.xtab,type='html',include.rownames=FALSE)
 ```
 
@@ -546,15 +547,15 @@ layout(t(1:3))
 for (k in which(alt.good.refs)) {
     ph( pmin(zlims[2],alt.hts[,k]), zlim=zlims, do.lims=FALSE, main=paste("new hitting time to", k), legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
-    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    plot( alt, col=adjustcolor('slategrey',.8), add=TRUE, legend=FALSE )
     ph( truncate((alt.hts[,k]-hts[,k]),diff.zlims), zlim=diff.zlims, col=diff.cols, do.lims=FALSE, main="difference", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
     z <- (sub.alt.hts-sub.hts)[,match(k,which(alt.good.refs))]
     points( ref.points[alt.good.refs], cex=4*abs(z)/max(abs(z),na.rm=TRUE), col=ifelse(z>0,"red","blue") )
-    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    plot( alt, col=adjustcolor('slategrey',.8), add=TRUE, legend=FALSE )
     ph( truncate((alt.hts[,k]-hts[,k])/(1+hts[,k]),ratio.zlims), zlim=ratio.zlims, col=diff.cols, do.lims=FALSE, main="ratio", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
-    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    plot( alt, col=adjustcolor('slategrey',.8), add=TRUE, legend=FALSE )
     # if ( interactive() && length(locator(1))==0) { break }
 }
 ```

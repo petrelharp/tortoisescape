@@ -112,7 +112,7 @@ geodist <- pimat
 geodist[] <- NA
 geodist[ gg ] <- geodist.tab[,3]
 geodist[is.na(geodist)] <- t(geodist)[is.na(geodist)]
-nearby.weights <- 1 / rowSums( geodist$distance < 25e3 )
+nearby.weights <- 1 / rowSums( geodist < 25e3 )
 
 med.resids <- apply(resids,1,weighted.median,w=nearby.weights)
 
