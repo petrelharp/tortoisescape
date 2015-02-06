@@ -13,7 +13,6 @@ source("resistance-fns.R")
 require(parallel)
 numcores<-getcores()
 require(raster)
-require(rgdal)
 
 infile <- argvec[1]
 summary.dir <- argvec[2]
@@ -90,10 +89,10 @@ save( infile, config.file, config, local.config, trust.optim.results, hts, pimat
 
 ## and, make a nice plot
 pcs <- read.csv(file.path(dirname(config.file),dirname(config$divergence_file),"pcs.csv"),header=TRUE)
-omit.comparisons <- ( pcs$PC1[match(rownames(pimat),pcs$etort)][row(pimat)] * pcs$PC1[match(colnames(pimat),pcs$etort)][col(pimat)] < 0 )
 pc.cols <- adjustcolor( ifelse( pcs$PC1[match(rownames(pimat),pcs$etort)][row(pimat)] < 0, "purple", "blue" ), 0.5 )
 # remove duplicates: these are (etort-156 / etort-296 ) and (etort-143 / etort-297)
 dup.inds <- match( c( "etort-296", "etort-297" ), rownames(pimat) )
+omit.comparisons <- ( pcs$PC1[match(rownames(pimat),pcs$etort)][row(pimat)] * pcs$PC1[match(colnames(pimat),pcs$etort)][col(pimat)] < 0 )
 omit.comparisons <- ( omit.comparisons | (row(pimat) %in% dup.inds) | (col(pimat) %in% dup.inds) )
 # and omit self comparisons
 omit.comparisons <- ( omit.comparisons | (row(pimat) == col(pimat))  )
@@ -106,8 +105,9 @@ fitted[omit.comparisons] <- NA
 fitted.asym[omit.comparisons] <- NA
 
 # weight residuals by 1 / number of other samples within 25km
-geodist <- pointDistance(sample.locs,lonlat=FALSE)
-nearby.weights <- 1 / rowSums( geodist < 25e3 )
+geodist.tab <- read.csv(file.path(dirname(config.file),dirname(config$divergence_file),"geog_distance.csv"),header=TRUE)
+# geodist <-  XXX
+nearby.weights <- 1 / rowSums( geodist$distance < 25e3 )
 
 med.resids <- apply(resids,1,weighted.median,w=nearby.weights)
 

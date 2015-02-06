@@ -381,7 +381,7 @@ summary.expr <- quote(
             "max increase" = max( pos.diffmat ),
             "max decrease" = min( neg.diffmat ),
             "mean increase" = mean( pos.diffmat ),
-            "mean decrease" = mean( pos.diffmat ),
+            "mean decrease" = mean( neg.diffmat ),
             "relative increase" = mean( pos.diffmat/(1+sub.hts) ),
             "relative decrease" = mean( neg.diffmat/(1+sub.hts) )
     ) } )
@@ -446,8 +446,8 @@ chunk.stats <- do.call( rbind, lapply( chunk.info.list, function (chunk.info) {
             } ) )
 ```
 ```{r subchunk_results, results='asis'}
-xtab <- xtable(chunk.stats[order(chunk.stats$mean.increase),])
-print(xtab,type='html')
+xtab <- xtable(chunk.stats[order(chunk.stats$mean.increase,decreasing=TRUE),])
+print.xtable(xtab,type='html',include.rownames(FALSE))
 ```
 
 
@@ -485,7 +485,7 @@ points( chunk.centers, pch=21, cex=sqrt(chunk.stats$total.reduction/10), col=chu
 Here are the plots above, specifically for each chunk
 ```{r subchunk_plots, echo=FALSE}
 layout(t(1:2))
-for (k in seq_along(chunk.info.list)) {
+for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase,decreasing=TRUE)]) {
     print( with( list2env( chunk.info.list[[k]] ), {
             cat("Chunk ", chunk.labels[k], ":\n")
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
