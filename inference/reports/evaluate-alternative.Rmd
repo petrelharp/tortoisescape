@@ -290,12 +290,12 @@ and then the maximum:
 sym <- function (x) { (x+t(x))/2 }
 # mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs])
 # max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs],1,max)
-get.nearby <- function (hts,good.refs) {
-    nearby <- ( sym(hts[ref.locs,]) < apply(sym(hts[ref.locs,]),1,quantile,.2) )  # average over nearest 20% of locations
+get.nearby <- function (sub.hts,good.refs) {
+    nearby <- ( sym(sub.hts) < apply(sym(sub.hts),1,quantile,.2) )  # average over nearest 20% of locations
     nearby[,!good.refs] <- FALSE
     return(nearby)
 }
-nearby <- get.nearby(hts,alt.good.refs)
+nearby <- get.nearby(hts[ref.locs,],alt.good.refs)
 mean.tdiffs <- ( rowSums( (sym((alt.hts-hts)[ref.locs,]) * nearby)[alt.good.refs,], na.rm=TRUE ) / rowSums(nearby[alt.good.refs,]) )
 max.tdiffs <- apply( (sym((alt.hts-hts)[ref.locs,]) * nearby)[alt.good.refs,], 1, max, na.rm=TRUE )
 diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
@@ -499,7 +499,7 @@ for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase,decreasing=
             cat("Chunk ", chunk.labels[k], ":\n")
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
             dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
-            nearby <- get.nearby(hts,alt.good.refs)
+            nearby <- get.nearby(sub.hts,alt.good.refs)
             pos.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
             neg.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
             mean.tdiffs <- rowMeans(sym(pos.diffmat),na.rm=TRUE)
