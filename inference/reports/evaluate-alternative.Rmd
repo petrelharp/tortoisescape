@@ -18,7 +18,7 @@ opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
 opts_chunk$set(cache.path=paste("cache/",run.id,sep=""))
 opts_chunk$set(fig.path=paste("figure/",run.id,sep=""))
 ```
-```{r setup, include=FALSE, cache=TRUE}
+```{r setup, include=FALSE}
 # setup for using *everyone*, on habitat only
 config.file <- file.path(base.dir,"inference/summaries",summary.dir,"config.json")
 config <- read.json.config(config.file)
@@ -35,6 +35,10 @@ layer.scale <- get("layer.scale",local.env)
 layer.files <- file.path(base.dir,gsub(".*/geolayers/","geolayers/",layer.files))
 use.files <- layer.files[match(setdiff(layer.names,"constant"),layer.file.names)]
 names(use.files) <- setdiff(layer.names,"constant")
+# reference points
+ref.pt.file <- file.path(base.dir,"geolayers/reference_points/all_ref_points.RData")
+```
+```{r layer_setup, cache=TRUE}
 ## find if other layers have additional NA values, and block these later
 new.nalayer <- nalayer
 for (lf in use.files) {
@@ -65,7 +69,6 @@ ref.inds <- trust.optim$ref.inds
 params <- trust.optim$argument
 G@x <- update.G(params[-1])
 # reference points
-ref.pt.file <- file.path(base.dir,"geolayers/reference_points/all_ref_points.RData")
 ref.pt.obj  <- load(ref.pt.file)
 ref.points <- get(ref.pt.obj)
 ref.locs <- unlist(get.neighborhoods( 1e-3, ref.points, nonmissing, nalayer ))
@@ -167,7 +170,7 @@ Under this model, some areas of the range may be inaccessible.
 The biggest hitting time we have estimated from divergence is $3.3\times 10^5$,
 so we'll treat anything that has mean hitting time larger than $10^6$ as *inacessible*.
 To figure out where these are, we first compute hitting times between each of the reference points,
-```{r get_hts, echo=FALSE, cache=TRUE, dependson="setup"}
+```{r get_hts, echo=FALSE, cache=TRUE, dependson="layer_setup"}
 hts <- hitting.analytic(ref.neighborhoods,G,blocked=block.these)
 ```
 then, identify the reference points whose median hitting time to the other points is larger than $10^6$.
@@ -230,7 +233,7 @@ Effects of removing the entire alternative
 ==========================================
 
 First we'll look at hitting times after removing the entire alternative.
-```{r alt_hts, include=FALSE, cache=TRUE, dependson="setup"}
+```{r alt_hts, include=FALSE, cache=TRUE, dependson="layer_setup"}
 this.chunk <- chunk.labels
 alt.hts <- chunk.hts(this.chunk)
 ```
