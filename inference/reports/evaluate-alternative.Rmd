@@ -499,12 +499,12 @@ for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase,decreasing=
             cat("Chunk ", chunk.labels[k], ":\n")
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
             dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
+            nearby <- get.nearby(hts,alt.good.refs)
             pos.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
             neg.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
             mean.tdiffs <- rowMeans(sym(pos.diffmat),na.rm=TRUE)
-            usethese <- !is.na(mean.tdiffs)
             max.tdiffs <- apply(sym((sub.alt.hts-sub.hts)),1,max,na.rm=TRUE)
-            plot( interp.values(mean.tdiffs[usethese],usethese&alt.good.refs), main="mean increase", col=diff.cols, zlim=zlims )
+            plot( interp.values(mean.tdiffs,alt.good.refs), main="mean increase", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
             plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
