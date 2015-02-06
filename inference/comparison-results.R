@@ -108,6 +108,8 @@ fitted.asym[omit.comparisons] <- NA
 geodist.tab <- read.csv(file.path(dirname(config.file),dirname(config$divergence_file),"geog_distance.csv"),header=TRUE,stringsAsFactors=FALSE)
 g1 <- match(geodist.tab$etort1,rownames(pimat))
 g2 <- match(geodist.tab$etort2,rownames(pimat))
+g1 <- g1[!is.na(g1)]
+g2 <- g2[!is.na(g2)]
 geodist <- pimat
 geodist[] <- NA
 geodist[ cbind(g1,g2) ] <- geodist.tab[,3]
