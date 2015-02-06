@@ -519,7 +519,7 @@ for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase,decreasing=
             cat("Chunk ", chunk.labels[k], ":\n")
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
             dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
-            nearby <- get.nearby(sub.hts,alt.good.refs)
+            nearby <- get.nearby(sub.hts,TRUE)
             pos.diffmat[ !nearby ] <- NA
             neg.diffmat[ !nearby ] <- NA
             mean.tdiffs <- rowMeans(sym(pos.diffmat),na.rm=TRUE)
