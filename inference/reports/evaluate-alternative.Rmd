@@ -538,6 +538,7 @@ All the hitting times
 
 For completeness, and debugging, here are all the hitting times:
 ```{r all_hts, fig.width=3*fig.dim, echo=FALSE}
+if (FALSE) {
 zlims <- quantile( hts[ref.locs[alt.good.refs],alt.good.refs], c(0,.95) )
 diff.zlims <- c(-1,1)*max(abs( quantile( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs], c(.05,.95) ) ))
 ratio.zlims <- c(-1,1)*max(abs(quantile( ((alt.hts-hts)/(1+hts))[ref.locs[alt.good.refs],alt.good.refs], c(.01,.99) )))
@@ -549,11 +550,13 @@ for (k in which(alt.good.refs)) {
     plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
     ph( truncate((alt.hts[,k]-hts[,k]),diff.zlims), zlim=diff.zlims, col=diff.cols, do.lims=FALSE, main="difference", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
-    points( ref.points[alt.good.refs], cex=4*abs((sub.alt.hts[,k]-sub.hts[,k])[alt.good.refs])/max(abs((sub.alt.hts[,k]-sub.hts[,k])[alt.good.refs]),na.rm=TRUE), col=ifelse((alt.hts[,k]-hts[,k])[alt.good.refs]>0,"red","blue") )
+    z <- (sub.alt.hts-sub.hts)[,match(k,which(alt.good.refs))]
+    points( ref.points[alt.good.refs], cex=4*abs(z)/max(abs(z),na.rm=TRUE), col=ifelse(z>0,"red","blue") )
     plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
     ph( truncate((alt.hts[,k]-hts[,k])/(1+hts[,k]),ratio.zlims), zlim=ratio.zlims, col=diff.cols, do.lims=FALSE, main="ratio", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
     plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
     # if ( interactive() && length(locator(1))==0) { break }
+}
 }
 ```
