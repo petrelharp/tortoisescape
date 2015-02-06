@@ -13,6 +13,7 @@ source("resistance-fns.R")
 require(parallel)
 numcores<-getcores()
 require(raster)
+require(rgdal)
 
 infile <- argvec[1]
 summary.dir <- argvec[2]
