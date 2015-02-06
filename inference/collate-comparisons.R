@@ -33,7 +33,7 @@ null.env <- new.env()
 load(file.path(dirname(null.config.file),null.config$setup_files),envir=null.env)
 assign("geodist.tab", read.csv( file.path(dirname(null.config.file),dirname(null.config$sample_locs),"geog_distance.csv"), header=TRUE, stringsAsFactors=FALSE ), null.env )
 assign("pcs", read.csv(file.path(dirname(null.config.file),dirname(null.config$divergence_file),"pcs.csv"),header=TRUE), null.env )
-assign("geodist", with(null.env, { gmat(get(geodist.tab,null.env),pimat) } ), null.env )
+assign("geodist", with(null.env, { gmat(get("geodist.tab",null.env),pimat) } ), null.env )
 null.results <- with( null.env, {
             nearby.weights <- 1 / rowSums( geodist < 25e3 )
             pairwise.weights <- outer(nearby.weights,nearby.weights,"*")
