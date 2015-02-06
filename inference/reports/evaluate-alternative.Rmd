@@ -18,6 +18,7 @@ opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
 opts_chunk$set(cache.path=paste("cache/",run.id,sep=""))
 opts_chunk$set(fig.path=paste("figure/",run.id,sep=""))
 ```
+
 ```{r setup, include=FALSE}
 # setup for using *everyone*, on habitat only
 config.file <- file.path(base.dir,"inference/summaries",summary.dir,"config.json")
@@ -38,7 +39,8 @@ names(use.files) <- setdiff(layer.names,"constant")
 # reference points
 ref.pt.file <- file.path(base.dir,"geolayers/reference_points/all_ref_points.RData")
 ```
-```{r layer_setup, cache=TRUE}
+
+```{r layer_setup, include=FALSE, cache=TRUE}
 ## find if other layers have additional NA values, and block these later
 new.nalayer <- nalayer
 for (lf in use.files) {
@@ -74,6 +76,7 @@ ref.points <- get(ref.pt.obj)
 ref.locs <- unlist(get.neighborhoods( 1e-3, ref.points, nonmissing, nalayer ))
 ref.neighborhoods <- get.neighborhoods( 15e3, ref.points, nonmissing, nalayer )
 ```
+
 ```{r setup_plots, include=FALSE}
 # layers for plotting
 habitat <- raster(file.path(base.dir,"geolayers/nussear/habitat-model/nussear.grd"))
@@ -176,7 +179,7 @@ To figure out where these are, we first compute hitting times between each of th
 hts <- hitting.analytic(ref.neighborhoods,G,blocked=block.these)
 ```
 then, identify the reference points whose median hitting time to the other points is larger than $2 \times 10^5$.
-```{r inaccessible_refs}
+```{r inaccessible_refs, echo=FALSE}
 accessible <- function (hts, ref.locs, cutoff=2e5) { return( apply(hts[ref.locs,],2,median,na.rm=TRUE) < cutoff ) }
 accessible.refs <- accessible(hts,ref.locs)
 ```
@@ -257,6 +260,7 @@ alt.good.refs <- ( ( ! in.chunk.refs ) & alt.accessible.refs & ( ! alt.isolated.
 This has made 
 `r sum(!alt.good.refs)` 
 additional reference points inaccessible and/or isolated.
+
 Here are a few hitting times, and how they change after removing the alternative:
 ```{r some_hts, fig.width=3*fig.dim, echo=FALSE, cache=TRUE, dependson="alt_hts"}
 # representative points to plot: maybe instead, numbers 181, 41, 188, 10, 15, 138 ?
@@ -301,10 +305,19 @@ max.tdiffs <- apply( (sym((alt.hts-hts)[ref.locs,]) * nearby)[alt.good.refs,], 1
 diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
 layout(t(1:2))
 zlims <- c(-1,1)*max(abs(max.tdiffs))
-plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference", col=diff.cols, zlim=zlims, legend.width=2 )
-points( ref.points[alt.good.refs], cex=scale(abs(mean.tdiffs)), col=ifelse(mean.tdiffs>0,"red","blue") )
-plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims, legend.width=2 )
-points( ref.points[alt.good.refs], cex=scale(abs(max.tdiffs)), col=ifelse(max.tdiffs>0,"red","blue") )
+plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference nearby", col=diff.cols, zlim=zlims, legend.width=2 )
+plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference nearby", col=diff.cols, zlim=zlims, legend.width=2 )
+```
+
+Here is the same thing, but with circles whose sizes are proportional to the values at the reference points,
+for scale:
+```{r relative_effects_again, echo=FALSE}
+layout(t(1:2))
+zlims <- c(-1,1)*max(abs(max.tdiffs))
+plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference nearby", col=diff.cols, zlim=zlims, legend.width=2 )
+points( ref.points[alt.good.refs], cex=4*abs(mean.tdiffs)/max(abs(mean.tdiffs),na.rm=TRUE), col=ifelse(mean.tdiffs>0,"red","blue") )
+plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference nearby", col=diff.cols, zlim=zlims, legend.width=2 )
+points( ref.points[alt.good.refs], cex=4*abs(max.tdiffs)/max(abs(max.tdiffs),na.rm=TRUE), col=ifelse(max.tdiffs>0,"red","blue") )
 ```
 
 
@@ -385,26 +398,33 @@ At least preliminarily, we will look at these summaries of the effect of the alt
 ```{r summary_fun,echo=FALSE}
 summary.expr <- quote( 
     { 
-        pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
-        neg.diffmat <- pmin(0,sub.alt.hts-sub.hts)
-        dim(pos.diffmat) <- dim(neg.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
-        pos.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
-        neg.diffmat[ !nearby[alt.good.refs,alt.good.refs] ] <- NA
+        diffmat <- sub.alt.hts-sub.hts
+        pos.diffmat <- pmax(0,diffmat)
+        neg.diffmat <- pmin(0,diffmat)
+        dim(diffmat) <- dim(pos.diffmat) <- dim(neg.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
+        nearby <- get.nearby( sub.hts, TRUE )
+        diffmat[ !nearby ] <- NA
+        pos.diffmat[ !nearby ] <- NA
+        neg.diffmat[ !nearby ] <- NA
         blocked <- attr(sub.alt.hts,"blocked")
         data.frame(
             "this chunk" = paste(sort(this.chunk),collapse=","),
             "cells removed" = sum( !is.na( values(nalayer)[ unique(c(blocked,which(values(alt)%in%this.chunk))) ] ) ),
+            "references increased" = sum( rowMeans( diffmat, na.rm=TRUE ) > 0, na.rm=TRUE ),
             "max increase" = max( pos.diffmat, na.rm=TRUE ),
             "max decrease" = min( neg.diffmat, na.rm=TRUE ),
             "mean increase" = mean( pos.diffmat, na.rm=TRUE ),
             "mean decrease" = mean( neg.diffmat, na.rm=TRUE ),
             "relative increase" = mean( pos.diffmat/(1+sub.hts), na.rm=TRUE ),
             "relative decrease" = mean( neg.diffmat/(1+sub.hts), na.rm=TRUE )
-    ) } )
+            )
+    } )
 sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
 attr(sub.alt.hts,"blocked") <- attr(alt.hts,"blocked")
 sub.hts <- hts[ref.locs[alt.good.refs],alt.good.refs]
-eval(summary.expr)
+all.xtab <- xtable( eval(summary.expr) )
+all.xtab[,1] <- "all"
+print.xtable(all.xtab,type='html',include.rownames=FALSE)
 ```
 
 
