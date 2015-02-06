@@ -258,21 +258,21 @@ Here are a few hitting times, and how they change after removing the alternative
 # representative points to plot
 plot.points <- which(alt.good.refs)[which.nonoverlapping( get.neighborhoods( 80e3, ref.points[alt.good.refs], nonmissing, nalayer ) )]
 zlims <- quantile( hts[ref.locs[alt.good.refs],alt.good.refs], c(0,.95) )
-diff.zlims <- quantile( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs], c(.05,.95) )
+diff.zlims <- c(-1,1)*max(abs( quantile( (alt.hts-hts)[ref.locs[alt.good.refs],alt.good.refs], c(.05,.95) ) ))
 ratio.zlims <- c(-1,1)*max(abs(quantile( ((alt.hts-hts)/(1+hts))[ref.locs[alt.good.refs],alt.good.refs], c(.01,.99) )))
+diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
 layout(t(1:3))
 for (k in plot.points) {
-    cat("point: ", k, "\n")
-    ph( pmin(zlims[2],alt.hts[,k]), zlim=zlims, do.lims=FALSE, main="new hitting time" )
+    ph( pmin(zlims[2],alt.hts[,k]), zlim=zlims, do.lims=FALSE, main=paste("new hitting time to", k), legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
     plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
-    ph( truncate((alt.hts[,k]-hts[,k]),diff.zlims), zlim=diff.zlims, do.lims=FALSE, main="difference" )
+    ph( truncate((alt.hts[,k]-hts[,k]),diff.zlims), zlim=diff.zlims, col=diff.cols, do.lims=FALSE, main="difference", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
     plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
-    ph( truncate((alt.hts[,k]-hts[,k])/(1+hts[,k]),ratio.zlims), zlim=ratio.zlims, do.lims=FALSE, main="ratio" )
+    ph( truncate((alt.hts[,k]-hts[,k])/(1+hts[,k]),ratio.zlims), zlim=ratio.zlims, col=diff.cols, do.lims=FALSE, main="ratio", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
     plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
-    if ( interactive() && length(locator(1))==0) { break }
+    # if ( interactive() && length(locator(1))==0) { break }
 }
 ```
 
@@ -282,13 +282,17 @@ here is the mean difference in resistance distance for each point averaged acros
 and then the maximum:
 ```{r relative_effects, echo=FALSE}
 sym <- function (x) { (x+t(x))/2 }
-mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs])
-max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs],1,max)
+# mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs])
+# max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs],1,max)
+usethese <- ( sym(hts[ref.locs,]) < apply(sym(hts[ref.locs,]),1,quantile,.2) )  # average over nearest 20% of locations
+usethese[!alt.good.refs,] <- usethese[,!alt.good.refs] <- FALSE
+mean.tdiffs <- ( rowSums( sym((alt.hts-hts)[ref.locs,]) * usethese ) / rowSums(usethese) )[alt.good.refs]
+max.tdiffs <- apply( sym((alt.hts-hts)[ref.locs,]) * usethese, 1, max )[alt.good.refs]
 diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
 layout(t(1:2))
 zlims <- c(-1,1)*max(abs(max.tdiffs))
-plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference", col=diff.cols, zlim=zlims )
-plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
+plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference", col=diff.cols, zlim=zlims, legend.width=2 )
+plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims, legend.width=2 )
 ```
 
 
