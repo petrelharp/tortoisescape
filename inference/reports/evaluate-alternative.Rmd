@@ -294,14 +294,14 @@ for (k in plot.points) {
 
 
 Removing these affects hitting times to and from each reference point;
-here is the mean difference in resistance distance for each point averaged across *the nearest 20%* of reference locations,
+here is the mean difference in resistance distance for each point averaged across *the nearest 40%* of reference locations,
 measured by commute times,
 and then the maximum:
 ```{r relative_effects, echo=FALSE}
 sym <- function (x) { (x+t(x))/2 }
 # mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs])
 # max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs],1,max)
-get.nearby <- function (sub.hts,good.refs,thresh=.2) {
+get.nearby <- function (sub.hts,good.refs,thresh=.4) {
     nearby <- ( sym(sub.hts) < apply(sym(sub.hts),1,quantile,thresh) )  # average over nearest 20% of locations
     nearby[,!good.refs] <- FALSE
     return(nearby)
@@ -525,14 +525,11 @@ zlims <- c(-1,1) * max( chunk.stats$max.increase )
 for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase.on.isolated.area,decreasing=TRUE)]) {
     print( with( list2env( chunk.info.list[[k]] ), {
             cat("Chunk ", chunk.labels[k], ":\n")
-            pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
-            dim(pos.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
-            nearby <- get.nearby(sub.hts,TRUE)
-            pos.diffmat[ !nearby ] <- NA
-            neg.diffmat[ !nearby ] <- NA
-            mean.tdiffs <- rowMeans(sym(pos.diffmat),na.rm=TRUE)
+            diffmat <- sym(sub.alt.hts-sub.hts)
+            nearby <- get.nearby(sub.hts,TRUE,nearby.thresh)
+            nearby.means <- rowSums( diffmat*nearby ) / rowSums(nearby)
             max.tdiffs <- apply(sym((sub.alt.hts-sub.hts)),1,max,na.rm=TRUE)
-            plot( interp.values(mean.tdiffs,alt.good.refs), main="mean increase", col=diff.cols, zlim=zlims )
+            plot( interp.values(nearby.means,alt.good.refs), main="mean increase", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
             plot( interp.values(max.tdiffs,alt.good.refs), main="maximum difference", col=diff.cols, zlim=zlims )
             plot( mask(alt,alt==chunk.labels[k],maskvalue=FALSE), col='slategrey', add=TRUE, legend=FALSE )
