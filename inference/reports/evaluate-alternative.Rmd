@@ -17,6 +17,8 @@ fig.dim <- 5
 opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
 opts_chunk$set(cache.path=paste("cache/",run.id,sep=""))
 opts_chunk$set(fig.path=paste("figure/",run.id,sep=""))
+## adjust divergence-to-time factor
+pi.fac <- (( 56575857 / 1898838430 ) / 2.01e-9)/(.018 * 1e8)
 ```
 
 ```{r setup, include=FALSE}
@@ -24,6 +26,7 @@ opts_chunk$set(fig.path=paste("figure/",run.id,sep=""))
 config.file <- file.path(base.dir,"inference/summaries",summary.dir,"config.json")
 config <- read.json.config(config.file)
 for (x in config$setup_files) { load(file.path(dirname(config.file),x)) }
+pimat <- pimat * pi.fac
 # and for this situation
 local.config <- read.json.config("config.json")
 layer.names <- local.config$layer_names
@@ -69,12 +72,16 @@ last.result <- result.files[ rev(order( file.info(result.files)$mtime )) ][1]
 load(last.result)
 ref.inds <- trust.optim$ref.inds
 params <- trust.optim$argument
+params[1] <- pi.fac * params[1]
 G@x <- update.G(params[-1])
 # reference points
 ref.pt.obj  <- load(ref.pt.file)
 ref.points <- get(ref.pt.obj)
 ref.locs <- unlist(get.neighborhoods( 1e-3, ref.points, nonmissing, nalayer ))
 ref.neighborhoods <- get.neighborhoods( 15e3, ref.points, nonmissing, nalayer )
+# the area associated with each point
+dpts <- apply( sapply( 1:length(ref.points), function (k) { values( distanceFromPoints(nalayer,ref.points[k]) ) } ), 1, which.min )
+point.area <- tapply( values(nalayer), dpts, sum, na.rm=TRUE )
 ```
 
 ```{r setup_plots, include=FALSE}
@@ -129,7 +136,7 @@ chunk.hts <- function (k,do.these=rep(TRUE,length(ref.neighborhoods))) {
     new.hts <- hitting.analytic(ref.neighborhoods[do.these],G,blocked=unique(c(chunk,blocked,block.these)))
     attr(new.hts,"blocked") <- blocked
     new.hts[unique(c(chunk,blocked,block.these)),] <- NA
-    return(new.hts)
+    return(pi.fac*new.hts)
 }
 ```
 
@@ -176,19 +183,19 @@ The biggest hitting time we have estimated from divergence is $3.3\times 10^5$,
 so we'll treat anything that has mean hitting time larger than $10^6$ as *inacessible*.
 To figure out where these are, we first compute hitting times between each of the reference points,
 ```{r get_hts, echo=FALSE, cache=TRUE, dependson="layer_setup"}
-hts <- hitting.analytic(ref.neighborhoods,G,blocked=block.these)
+hts <- pi.fac*hitting.analytic(ref.neighborhoods,G,blocked=block.these)
 ```
-then, identify the reference points whose median hitting time to the other points is larger than $2 \times 10^5$.
+then, identify the reference points whose median hitting time to the other points is larger than $10^6$.
 ```{r inaccessible_refs, echo=FALSE}
-accessible <- function (hts, ref.locs, cutoff=2e5) { return( apply(hts[ref.locs,],2,median,na.rm=TRUE) < cutoff ) }
+accessible <- function (hts, ref.locs, cutoff=1e6) { return( apply(hts[ref.locs,],2,median,na.rm=TRUE) < cutoff ) }
 accessible.refs <- accessible(hts,ref.locs)
 ```
 
 Furthermore there are reference points that are accessible, but *isolated*:
-a walk started there will take more than $10^6$ generations on average
+a walk started there will take more than $10^6$ years on average
 to hit another accessible point.
 ```{r isolated_refs, echo=FALSE}
-isolated <- function (hts,ref.locs,accessible.refs,cutoff=2e5) { x <- rowMeans(hts[ref.locs,accessible.refs],na.rm=TRUE) > cutoff; return(ifelse(is.na(x),TRUE,x))  }
+isolated <- function (hts,ref.locs,accessible.refs,cutoff=1e6) { x <- rowMeans(hts[ref.locs,accessible.refs],na.rm=TRUE) > cutoff; return(ifelse(is.na(x),TRUE,x))  }
 isolated.refs <- isolated(hts,ref.locs,accessible.refs)
 ```
 
@@ -294,8 +301,8 @@ and then the maximum:
 sym <- function (x) { (x+t(x))/2 }
 # mean.tdiffs <- rowMeans(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs])
 # max.tdiffs <- apply(sym((alt.hts-hts)[ref.locs,])[alt.good.refs,alt.good.refs],1,max)
-get.nearby <- function (sub.hts,good.refs) {
-    nearby <- ( sym(sub.hts) < apply(sym(sub.hts),1,quantile,.2) )  # average over nearest 20% of locations
+get.nearby <- function (sub.hts,good.refs,thresh=.2) {
+    nearby <- ( sym(sub.hts) < apply(sym(sub.hts),1,quantile,thresh) )  # average over nearest 20% of locations
     nearby[,!good.refs] <- FALSE
     return(nearby)
 }
@@ -387,36 +394,36 @@ plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
 Summarizing the impact of the alternative
 -----------------------------------------
 
-At least preliminarily, we will look at these summaries of the effect of the alternative on gene flow:
-- (**cells removed**) number of newly inaccessible or isolated raster cells in the alternative, or made inaccessible by it
-- (**max increase**) the largest increase across reference locations of the commute time from the nearest 20% of reference locations
-- (**max decrease**) the largest decrease across reference locations of the commute time from the nearest 20% of reference locations
-- (**mean increase**) the mean increase across reference locations of the commute time from the nearest 20% of reference locations, with decreases counted as zero
-- (**mean decrease**) the mean decrease across reference locations of the commute time from the nearest 20% of reference locations, with increases counted as zero
-- (**relative increase**) the mean increase divided by the commute time without the alternative, with decreases counted as zero
-- (**relative decrease**) the mean decrease divided by the commute time without the alternative, with increases counted as zero
+```{r summary_params}
+isolation.thresh <- 15000
+nearby.thresh <- 0.4
+```
+Here are some summaries of the effect of the alternative on gene flow:
+- (**area removed**) number of newly inaccessible (1 km$^2$) raster cells in the alternative, or made inaccessible by it
+- (**significantly isolated area**) total area associated with reference points whose mean commute time to their nearest `r floor(100*nearby.thresh)`% of reference locations has gone up by more than `r isolation.thresh`
+- (**mean increase on significantly isolated area**) the mean increase in commute time to the nearest `r floor(100*nearby.thresh)`% of reference locations, across those reference locations that this is more than `r isolation.thresh`
+- (**newly isolated area**) total area associated with reference points whose mean commute time to their nearest `r floor(100*nearby.thresh)`% of reference locations has increased
+- (**mean increase on isolated area**) the mean increase in commute time to the nearest `r floor(100*nearby.thresh)`% of reference locations, across those reference locations that this has increased
+- (**max increase**) the largest increase across reference locations of the commute time from the nearest `r floor(100*nearby.thresh)`% of reference locations
+- (**max decrease**) the largest decrease across reference locations of the commute time from the nearest `r floor(100*nearby.thresh)`% of reference locations
+- (**mean relative increase on isolated area**) same as the mean increase, but divided first by commute time before removing the chunks
 ```{r summary_fun,echo=FALSE,results="asis"}
 summary.expr <- quote( 
     { 
-        diffmat <- sub.alt.hts-sub.hts
-        pos.diffmat <- pmax(0,diffmat)
-        neg.diffmat <- pmin(0,diffmat)
-        dim(diffmat) <- dim(pos.diffmat) <- dim(neg.diffmat) <- c( sum(alt.good.refs), sum(alt.good.refs) )
-        nearby <- get.nearby( sub.hts, TRUE )
-        diffmat[ !nearby ] <- NA
-        pos.diffmat[ !nearby ] <- NA
-        neg.diffmat[ !nearby ] <- NA
+        diffmat <- sym(sub.alt.hts-sub.hts)
+        nearby <- get.nearby( sub.hts, TRUE, nearby.thresh )
         blocked <- attr(sub.alt.hts,"blocked")
+        nearby.means <- rowSums( diffmat*nearby ) / rowSums(nearby)
         data.frame(
             "this chunk" = paste(sort(this.chunk),collapse=","),
-            "cells removed" = sum( !is.na( values(nalayer)[ unique(c(blocked,which(values(alt)%in%this.chunk))) ] ) ),
-            "references increased" = sum( rowMeans( diffmat, na.rm=TRUE ) > 0, na.rm=TRUE ),
-            "max increase" = max( pos.diffmat, na.rm=TRUE ),
-            "max decrease" = min( neg.diffmat, na.rm=TRUE ),
-            "mean increase" = mean( pos.diffmat, na.rm=TRUE ),
-            "mean decrease" = mean( neg.diffmat, na.rm=TRUE ),
-            "relative increase" = mean( pos.diffmat/(1+sub.hts), na.rm=TRUE ),
-            "relative decrease" = mean( neg.diffmat/(1+sub.hts), na.rm=TRUE )
+            "area removed (km2)" = sum( !is.na( values(nalayer)[ unique(c(blocked,which(values(alt)%in%this.chunk))) ] ) ),
+            "significantly isolated area (km2)" = sum( point.area[nearby.means>isolation.thresh] ),
+            "mean increase on significantly isolated area" = mean(nearby.means[nearby.means>isolation.thresh]),
+            "isolated area (km2)" = sum( point.area[nearby.means>0] ),
+            "mean increase on isolated area" = mean(nearby.means[nearby.means>0]),
+            "max increase" = max( diffmat[nearby], na.rm=TRUE ),
+            "max decrease" = min( diffmat[nearby], na.rm=TRUE ),
+            "mean relative increase on isolated area" = mean( ( rowSums( diffmat*nearby/sym(1+sub.hts) )/rowSums(nearby) )[nearby.means>isolation.thresh])
             )
     } )
 sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
@@ -483,7 +490,7 @@ chunk.stats <- do.call( rbind, lapply( chunk.info.list, function (chunk.info) {
             } ) )
 ```
 ```{r subchunk_results, echo=FALSE, results='asis'}
-xtab <- xtable(chunk.stats[order(chunk.stats$mean.increase,decreasing=TRUE),])
+xtab <- xtable(chunk.stats[order(chunk.stats$mean.increase.on.isolated.area,decreasing=TRUE),])
 print.xtable(xtab,type='html',include.rownames=FALSE)
 ```
 
@@ -515,7 +522,7 @@ Here are the plots above, specifically for each chunk
 ```{r subchunk_plots, echo=FALSE}
 layout(t(1:2))
 zlims <- c(-1,1) * max( chunk.stats$max.increase )
-for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase,decreasing=TRUE)]) {
+for (k in seq_along(chunk.info.list)[order(chunk.stats$mean.increase.on.isolated.area,decreasing=TRUE)]) {
     print( with( list2env( chunk.info.list[[k]] ), {
             cat("Chunk ", chunk.labels[k], ":\n")
             pos.diffmat <- pmax(0,sub.alt.hts-sub.hts)
