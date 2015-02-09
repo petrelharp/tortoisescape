@@ -86,7 +86,7 @@ south.pops <- c("west","south","east")
 south.col <- "purple"
 north.col <- "blue"
 ns.cols <- c(north.col,south.col)[1+(names(pops) %in% south.pops)]
-for (k in seq_along(pops)) { points(pops[[k]],pch=20,col=ns.cols[k],cex=2) }
+for (k in seq_along(pops)) { points(pops[[k]],pch=20,col=ns.cols[k],cex=1) }
 both.south <- with(x, ( ( group1%in%south.pops ) & ( group2%in%south.pops ) ) )
 both.north <- with(x, ( (! group1%in%south.pops ) & (! group2%in%south.pops ) ) )
 # within
@@ -98,6 +98,7 @@ both.north <- with(x, ( (! group1%in%south.pops ) & (! group2%in%south.pops ) ) 
     points( pi ~ distance, data=subset(x,both.south), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(south.col,.25) )
     this.lm <- lm( pi ~ distance, data=subset(x,both.south|both.north) )
     abline( coef(this.lm), col='black' )
+    text( 3e2, 2.3e6, labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
     # south.lm <- lm( pi ~ distance, data=subset(x,both.south) )
     # abline( coef(south.lm), col=south.col )
     # north.lm <- lm( pi ~ distance, data=subset(x,both.north) )
@@ -108,6 +109,7 @@ both.north <- with(x, ( (! group1%in%south.pops ) & (! group2%in%south.pops ) ) 
         main="between groups",
         pch=20, cex=0.25, ylim=range(x$pi), xlim=c(0,max(x$distance)) )
     points( pi ~ distance, data=subset(x,!(both.south|both.north)), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col="black" )
-    between.lm <- lm( pi ~ distance, data=subset(x,!(both.south|both.north)) )
-    abline( coef(between.lm), col='black' )
+    this.lm <- lm( pi ~ distance, data=subset(x,!(both.south|both.north)) )
+    abline( coef(this.lm), col='black' )
+    text( 3e2, 2.3e6, labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
 dev.off()
