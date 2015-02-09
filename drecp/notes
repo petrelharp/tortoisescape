@@ -19,3 +19,13 @@ Monday:
 plots:
 - heatmap of resistance
 - interpolated heatmap of average of change in hitting time to and from
+
+
+
+Next steps:
+-----------
+
+- ditch reversibility
+- figure out what the continuum description of relative jump rates are and be consistent with this
+- add weights to tortoises in the fitting procedure
+- do SOMETHING for N/S to put this in model fit also
