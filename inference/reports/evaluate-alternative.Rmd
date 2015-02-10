@@ -18,7 +18,7 @@ opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
 opts_chunk$set(cache.path=paste("cache/",run.id,sep=""))
 opts_chunk$set(fig.path=paste("figure/",run.id,sep=""))
 ## adjust divergence-to-time factor
-pi.fac <- (( 56575857 / 1898838430 ) / 2.01e-9)/(.018 * 1e8)
+pi.fac <- (( 56575857 / 1898838430 ) / 2.01e-9)/(.018 * 1e8) / 2
 ```
 
 ```{r setup, include=FALSE}
@@ -179,15 +179,19 @@ Inaccessible locations?
 =======================
 
 Under this model, some areas of the range may be inaccessible.
-The biggest hitting time we have estimated from divergence is $3.3\times 10^5$,
-so we'll treat anything that has mean hitting time larger than $10^6$ as *inacessible*.
+The biggest hitting time we have estimated from divergence is `r max(pimat,na.rm=TRUE)`,
+so we'll treat anything that has mean hitting time larger than 
+`r 
+    default.cutoff <- 3e6
+`
+as *inacessible*.
 To figure out where these are, we first compute hitting times between each of the reference points,
 ```{r get_hts, echo=FALSE, cache=TRUE, dependson="layer_setup"}
 hts <- pi.fac*hitting.analytic(ref.neighborhoods,G,blocked=block.these)
 ```
 then, identify the reference points whose median hitting time to the other points is larger than $10^6$.
 ```{r inaccessible_refs, echo=FALSE}
-accessible <- function (hts, ref.locs, cutoff=1e6) { return( apply(hts[ref.locs,],2,median,na.rm=TRUE) < cutoff ) }
+accessible <- function (hts, ref.locs, cutoff=default.cutoff) { return( apply(hts[ref.locs,],2,median,na.rm=TRUE) < cutoff ) }
 accessible.refs <- accessible(hts,ref.locs)
 ```
 
@@ -195,7 +199,7 @@ Furthermore there are reference points that are accessible, but *isolated*:
 a walk started there will take more than $10^6$ years on average
 to hit another accessible point.
 ```{r isolated_refs, echo=FALSE}
-isolated <- function (hts,ref.locs,accessible.refs,cutoff=1e6) { x <- rowMeans(hts[ref.locs,accessible.refs],na.rm=TRUE) > cutoff; return(ifelse(is.na(x),TRUE,x))  }
+isolated <- function (hts,ref.locs,accessible.refs,cutoff=default.cutoff) { x <- rowMeans(hts[ref.locs,accessible.refs],na.rm=TRUE) > cutoff; return(ifelse(is.na(x),TRUE,x))  }
 isolated.refs <- isolated(hts,ref.locs,accessible.refs)
 ```
 

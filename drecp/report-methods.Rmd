@@ -194,6 +194,7 @@ Therefore, we used the above procedure to fit a large number of landscape models
 varying which landscape layers were used,
 which tortoises were used to fit the model,
 and which habitat mask was used.
+In all cases, we masked regions to the east of the Colorado river.
 
 Each model fitting procedure produced a set of parameters,
 which we evaluated in a common framework using all tortoises,
@@ -300,10 +301,11 @@ and had no two points within 10km of each other;
 this resulted in 202 points uniformly spread across the area of good habitat.
 We additionally removed those points predicted by our model to be in isolated areas,
 defined as the minimal set of reference points such that after removing them,
-all remaining mean 15km-commute times were smaller than $10^6$ years
-(the maximum observed divergence between any pair of samples was around $3 \times 10^5$,
-so distance of order $10^6$ would be equivalent to a separation of three times the width of the current range).
+all remaining mean 15km-commute times were smaller than $3 \times 10^6$ years
+(the maximum observed divergence between any pair of samples was slightly less than $1.5 \times 10^6$,
+so a distance of $3 \times 10^6$ would be equivalent to a separation of twice the width of the current range).
 
+<center> <img src="reference-points.png" style="width: 2.5in"\> </center>
 
 
 
