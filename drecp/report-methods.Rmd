@@ -334,7 +334,7 @@ Concretely, suppose that $\bar h_{i,j}$ is the commute time between reference lo
 ordered by proximity to location $i$, so that $\bar h_{i,1} \le \bar h_{i,2} \le \cdots \le \bar h_{i,202}$.
 Then, since $202 \times 0.4 = 80.8$, our measure of *isolation* of location $i$ is
 $$
-    I(i) = \frac{1}{80} \sum_{j=1}^80 \bar h_{i,j} .
+    I(i) = \frac{1}{80} \sum_{j=1}^{80} \bar h_{i,j} .
 $$
 
 
@@ -402,7 +402,7 @@ two tortoises are expected to have ancestors living nearby to each other more re
 However, note that there is a small "shadow" of increased distance (red) just on the other side of a nearby potential development area,
 reflecting the reduced regional gene flow in this area that would be induced by blocking off this piece of habitat.
 
-<center><img src="alt_pref_pda_habitat-only_some_hts-4.png"/></center>
+<center><img src="alt_pref_pda_habitat-only_some_hts-5.png"/></center>
 
 
 
