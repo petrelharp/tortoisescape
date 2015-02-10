@@ -20,3 +20,22 @@ par(mar=c(1,1,3,1)+.1)
 plot( crop(mask(nus,crew),bb), legend=FALSE,xaxt='n',yaxt='n',main='reference points')
 points(ref.points[-isolated.refs], pch=20, cex=0.25)
 dev.off()
+
+require(knitr)
+chunks <- read.csv("chunk-summaries.csv",header=TRUE)
+x <- chunks[order(chunks$mean,decreasing=TRUE),c("chunk","area","mean","max.incr")]
+x$mean <- round(x$mean)
+x$max.incr <- round(x$max.incr)
+colnames(x) <- c("chunk","isolated area","mean isolation","maximum isolation")
+x <- x[c(match("all",x[,1]),setdiff(1:nrow(x),match("all",x[,1]))),]
+
+kable( x, row.names=FALSE )
+
+alts <- read.csv("alternative-summaries.csv",header=TRUE)
+y <- alts[,c("alternative","area","mean","max.incr")]
+y$mean <- round(y$mean)
+y$max.incr <- round(y$max.incr)
+colnames(y) <- c("alternative","isolated area","mean isolation","maximum isolation")
+y$alternative <- c("preferred","alternative 1","alternative 2","alternative 3","alternative 4")
+
+kable(y,row.names=FALSE)

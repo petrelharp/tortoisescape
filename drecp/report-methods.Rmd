@@ -365,6 +365,23 @@ in each, all comparisons are shown in grey for ease of reference.
 
 
 
+Model fit
+---------
+
+The model with the best fit included the effects of only one layer:
+a binary layer that takes the value 1 if habiat quality (from [Nussear et al]) is greater than 0.3,
+and is zero otherwise.
+Concretely, this means that the model allows four rates of tortoise movement:
+on low quality habitat,
+on high quality habitat,
+from low to high quality habitat,
+and from high to low quality habitat.
+The weighted median residual value for this model was 21,333 years,
+while the same quantity for the linear regression of pairwise divergence against great-circle geographic distance was 18.7% greater.
+(The difference measured by weighted mean squared error was even stronger: a 53.7% difference.)
+
+
+
 Effect on gene flow of removing habitat
 ---------------------------------------
 
@@ -416,3 +433,84 @@ and interpolated it to the remainder of the map;
 the results are shown below.
 
 <center><img src="alt_pref_pda_habitat-only_relative_effects-1.png"/></center>
+
+Concretely, the darkest red areas are more distant from other, nearby portions of the range
+by 100,000-150,000 years.
+This is a very strong separation, because most parts of the range are separated by less than 100,000 years,
+as seen in the example commute time plots above.
+
+
+### Comparing total effects of each alternative
+
+Here are the total effects of each alternative:
+*isolated area* is the total amount of area on which the mean commute time to nearby areas has increased:
+*mean isolation* is the mean amount by which the commute time has increased to nearby areas,
+across those areas where it has increased,
+and *maximum isolation* is the largest isolation factor.
+The *mean isolation* is a good measure of the total effect of removing a given area,
+but note that the absolute size of the number is not necessarily reflecive of the overall effect,
+as it measures this piece, in isolation, without the effects of all other pieces.
+
+|alternative   | isolated area| mean isolation| maximum isolation|
+|:-------------|-------------:|--------------:|-----------------:|
+|preferred     |         75621|           7490|            162146|
+|alternative 1 |         62877|           6611|            221476|
+|alternative 2 |         94533|           9792|            149787|
+|alternative 3 |         71389|           9157|            312064|
+|alternative 4 |         78176|           7801|            197971|
+
+
+
+TODO: make this as one plot, with the same colors on each.
+
+<center><img src="alt_1_pda_habitat-only_relative_effects-1.png"/></center>
+<center><img src="alt_2_pda_habitat-only_relative_effects-1.png"/></center>
+<center><img src="alt_3_pda_habitat-only_relative_effects-1.png"/></center>
+<center><img src="alt_4_pda_habitat-only_relative_effects-1.png"/></center>
+
+
+### Effects of removing each chunk
+
+
+Here are the effects of removing each chunk: 
+
+
+|chunk | isolated area| mean isolation| maximum isolation|
+|:-----|-------------:|--------------:|-----------------:|
+|all   |         72078|           9490|            166691|
+|31    |           511|          26779|             27445|
+|32    |          1033|           1027|              2059|
+|25    |          3789|            319|              2221|
+|7     |         42271|            280|              4653|
+|13    |         91090|            160|              4059|
+|16    |         35754|            152|              4386|
+|14    |         40023|            145|              2667|
+|5     |         60095|            143|              2481|
+|27    |         35953|            131|              2165|
+|11    |         73520|            100|              2660|
+|4     |         54439|             76|              1811|
+|28    |         39569|             56|               997|
+|29    |         37480|             55|              1384|
+|17    |         60401|             53|               691|
+|18    |        100962|             49|               927|
+|30    |         40955|             38|               744|
+|22    |         34859|             26|               673|
+|8     |         86509|             20|               338|
+|15    |         22843|             19|               607|
+|20    |         71647|             17|               359|
+|3     |         33554|             14|               169|
+|9     |         22843|             11|               315|
+|12    |         58593|             10|               193|
+|10    |         35447|              9|               156|
+|21    |         99878|              7|                86|
+|23    |         50802|              6|                70|
+|24    |         33383|              5|               190|
+|35    |        105124|              0|                 7|
+|34    |         96331|              0|                 5|
+|2     |         38609|              0|                 1|
+|0     |             0|             NA|                 0|
+|1     |             0|             NA|                 0|
+|6     |             0|             NA|                 0|
+|19    |             0|             NA|                 0|
+|26    |             0|             NA|                 0|
+|33    |             0|             NA|                 0|

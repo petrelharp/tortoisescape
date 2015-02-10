@@ -10,7 +10,7 @@ pcs <- read.csv("pcs.csv")
 
 pi <- read.csv("all_angsd_snps.pwp.csv")
 # from Evan 1/31/15
-pi$pi <- pi$pi * ( 56575857 / 1898838430 ) / 2.01e-9
+pi$pi <- pi$pi * ( 56575857 / 1898838430 ) / 2.01e-9 / 2
 
 geog <- read.csv("geog_distance.csv")
 geog$distance <- geog$distance / 1000 # now in km
