@@ -4,6 +4,30 @@ Methods and Results
 Methods
 =======
 
+
+Estimation of pairwise sequence divergence
+------------------------------------------
+
+
+
+
+Conversion of sequence divergence to time since most recent common ancestor
+---------------------------------------------------------------------------
+
+The mean sequence divergence between two sequences
+provides an estimate of the mean time since most recent common ancestor between the sequences,
+averaged across the sequence,
+and multiplied by twice the substitution rate [Hudson].
+To make our results more interpretable,
+for the purposes of fitting models we converted sequence divergences to years
+by dividing by an estimate of twice the substitution rate.
+WE GOT THIS ESTIMATE FROM XXX.
+This estimate is probably not very close to the true mean substitution rate,
+but is at least within an order of magnitude,
+and so gives a rough idea of the time scales involved.
+
+
+
 Motivation 
 ----------
 
@@ -240,6 +264,50 @@ using only transformations of the ([Nussear et al]) habitat quality.
 
 
 
+
+
+Evaluation of alternatives
+--------------------------
+
+We then used the best-fitting model
+to evaluate how development of particular areas under the DRECP
+would affect gene flow between different areas of the tortoise range.
+To do this, we evaluated changes in gene flow between each pair of a large set of reference points
+spread uniformly across the range predicted by [Nussear et al];
+we then used these to quantify both the overall reduction in gene flow
+and the areas that would be most affected (more details below).
+
+To quantify gene flow,
+we used the mean commute time to $R$-neighborhoods,
+with $R=15$km,
+the same quantity used to fit the model.
+As discussed above, for a pair of points $x$ and $y$,
+this is equal to one-half the sum of the mean time for a walk from $x$ to get within $R$ of $y$,
+and the mean time for a walk from $y$ to get within $R$ of $x$.
+This can be concretely interpreted as the mean time since a tortoise at one location has inherited genetic material
+from a tortoise near the other location,
+along a particular lineage.
+Note that in particular, by using $R$-neighborhoods,
+this measure is made independent of population density.
+
+Our samples of tortoise tissue were not distributed uniformly across the range,
+so to evaluate the effects in an integrated way across the entire range,
+we chose uniformly spread reference locations as follows.
+First, we found the area with habitat quality at least 0.3 in the [Nussear et al] model.
+Then, we sampled 10,000 points uniformly from across the enclosing rectangle,
+and discarded all but a maximal set of points that fell within the area of high habitat quality
+and had no two points within 10km of each other;
+this resulted in 202 points uniformly spread across the area of good habitat.
+We additionally removed those points predicted by our model to be in isolated areas,
+defined as the minimal set of reference points such that after removing them,
+all remaining mean 15km-commute times were smaller than $10^6$ years
+(the maximum observed divergence between any pair of samples was around $3 \times 10^5$,
+so distance of order $10^6$ would be equivalent to a separation of three times the width of the current range).
+
+
+
+
+
 Results
 =======
 
@@ -253,3 +321,7 @@ Mean sequence divergence within and between the two PCA-defined groups.
 The map on the left shows sampling locations superimposed on elevation.
 The vertical axis is in years, using a substitution rate of $2.01 \times 10^{-9}$ substitutions per year;
 in each, all comparisons are shown in grey for ease of reference.
+
+
+
+
