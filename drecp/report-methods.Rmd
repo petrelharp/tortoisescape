@@ -291,6 +291,8 @@ along a particular lineage.
 Note that in particular, by using $R$-neighborhoods,
 this measure is made independent of population density.
 
+### Reference locations
+
 Our samples of tortoise tissue were not distributed uniformly across the range,
 so to evaluate the effects in an integrated way across the entire range,
 we chose uniformly spread reference locations as follows.
@@ -304,9 +306,46 @@ defined as the minimal set of reference points such that after removing them,
 all remaining mean 15km-commute times were smaller than $3 \times 10^6$ years
 (the maximum observed divergence between any pair of samples was slightly less than $1.5 \times 10^6$,
 so a distance of $3 \times 10^6$ would be equivalent to a separation of twice the width of the current range).
+The remaining points, shown on a map of habitat quality from [Nussear et el], is shown below.
 
-<center> <img src="reference-points.png" style="width: 2.5in"\> </center>
+<center> <img src="reference-points.png" style="width: 2.5in"/> </center>
 
+
+### Measure of isolation
+
+The mean commute times described above allow us to quantify the effect that particular development scenarios will have
+on gene flow between any pair of locations in the range.
+This is not yet a measure of *isolation*:
+we need to summarize the total effects on each location.
+Consider, for instance, what would happen if a valley were to be blocked off to tortoises from the outside:
+mean commute times between the valley and the outside would drastically increase,
+but mean commute times within the valley would decrease.
+Furthermore, as we will see below occurs in practice, 
+the act of removing a piece of habitat usually reduces commute times between distant locations,
+because there are fewer other locations for transiting tortoises to visit.
+For these reasons, 
+we say that a location becomes more isolated if mean commute time increases *to the bulk of the range*.
+We quantify this by identifying for each reference location
+the closest 40% of other reference locations, measured by commute time,
+and averaging the difference in commute time induced by removing a particular piece of habitat
+across those locations.
+
+Concretely, suppose that $\bar h_{i,j}$ is the commute time between reference locations $i$ and $j$,
+ordered by proximity to location $i$, so that $\bar h_{i,1} \le \bar h_{i,2} \le \cdots \le \bar h_{i,202}$.
+Then, since $202 \times 0.4 = 80.8$, our measure of *isolation* of location $i$ is
+$$
+    I(i) = \frac{1}{80} \sum_{j=1}^80 \bar h_{i,j} .
+$$
+
+
+
+Mapping methods
+---------------
+
+To interpolate values observed only on a subset of locations
+(e.g., the isolation values of the reference locations),
+we fit a thin plate spline model using the function `fastTps` in the `fields` package in R,
+which uses compactly supported kernels (with range 200km).
 
 
 
@@ -326,4 +365,54 @@ in each, all comparisons are shown in grey for ease of reference.
 
 
 
+Effect on gene flow of removing habitat
+---------------------------------------
 
+As discussed in the *Methods*,
+we quantify the effects on gene flow of removing particular pieces of habitat
+through the changes in mean time for the random walk that models tortoise lineages
+to travel between each pair of points,
+averaged across reference locations.
+
+### Effects on distance to single locations: examples
+
+For instance, in the left panel of the following figure, 
+each location is colored according to
+the mean time to reach the 15km circle surrounding the star in the lower right of the map,
+unsurprisingly showing that it takes longer to reach more distant locations.
+On this map, the potential development areas of the DRECP Preferred Alternative
+are shown in red;
+and these mean times have been computed after blocking these areas to possible movement.
+The middle panel shows how this differs from the scenario where these are not blocked:
+each area is colored according to the difference between the mean time to reach the starred area
+before removing the development areas and after;
+most parts of the range are around 40,000 years more distant (in red),
+while the nearby area that is also trapped between two potential development areas becomes closer (in blue).
+The right panel shows the relative change: 
+here, colors correspond to the difference (middle panel) divided by the mean time without the potential development areas removed.
+
+<center><img src="alt_pref_pda_habitat-only_some_hts-2.png"/></center>
+
+The following figure shows the same thing as the previous one,
+except it shows distances to a different reference location (near the center, marked with a star).
+In this figure, we see that most of the region actually becomes *closer* (blue in the center panel):
+this is because removing a portion of habitat means that there are fewer available locations for ancestors to live,
+and so all else being equal,
+two tortoises are expected to have ancestors living nearby to each other more recently.
+However, note that there is a small "shadow" of increased distance (red) just on the other side of a nearby potential development area,
+reflecting the reduced regional gene flow in this area that would be induced by blocking off this piece of habitat.
+
+<center><img src="alt_pref_pda_habitat-only_some_hts-4.png"/></center>
+
+
+
+### Combined effects on gene flow across the range
+
+To summarize the effects on gene flow of blocking off particular regions of the habitat,
+as discussed above, we average the difference in gene flow without and with the possible barriers,
+across the nearest 40% of the other reference locations.
+We computed this measure of isolation for each reference location
+and interpolated it to the remainder of the map;
+the results are shown below.
+
+<center><img src="alt_pref_pda_habitat-only_relative_effects-1.png"/></center>
