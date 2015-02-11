@@ -475,7 +475,7 @@ TODO: make this as one plot, with the same colors on each.
 Here are the effects of removing each chunk: 
 
 
-|chunk | isolated area (km${}^$2)| mean isolation (years)| maximum isolation (years)|
+|chunk | isolated area (km${}^2$)| mean isolation (years)| maximum isolation (years)|
 |:-----|-------------:|--------------:|-----------------:|
 |all   |         72078|           9490|            166691|
 |31    |           511|          26779|             27445|
