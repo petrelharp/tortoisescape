@@ -308,7 +308,7 @@ all remaining mean 15km-commute times were smaller than $3 \times 10^6$ years
 so a distance of $3 \times 10^6$ would be equivalent to a separation of twice the width of the current range).
 The remaining points, shown on a map of habitat quality from [Nussear et el], is shown below.
 
-<center> <img src="reference-points.png" style="width: 2.5in"/> </center>
+<center> <img src="reference-points.png" style="width: 4in"/> </center>
 
 
 ### Measure of isolation
@@ -360,7 +360,7 @@ Pairwise sequence divergence
 ![Divergence within, between](../tort_272_info/ibd-by-some-pops.png)
 Mean sequence divergence within and between the two PCA-defined groups.
 The map on the left shows sampling locations superimposed on elevation.
-The vertical axis is in years, using a substitution rate of $2.01 \times 10^{-9}$ substitutions per year;
+The vertical axis is in years, using a substitution rate of $2.06 \times 10^{-8}$ substitutions per year;
 in each, all comparisons are shown in grey for ease of reference.
 
 
@@ -376,7 +376,7 @@ on low quality habitat,
 on high quality habitat,
 from low to high quality habitat,
 and from high to low quality habitat.
-The weighted median residual value for this model was 21,333 years,
+The weighted median residual value for this model was 2,133 years,
 while the same quantity for the linear regression of pairwise divergence against great-circle geographic distance was 18.7% greater.
 (The difference measured by weighted mean squared error was even stronger: a 53.7% difference.)
 
@@ -430,7 +430,9 @@ as discussed above, we average the difference in gene flow without and with the 
 across the nearest 40% of the other reference locations.
 We computed this measure of isolation for each reference location
 and interpolated it to the remainder of the map;
-the results are shown below.
+this is shown on the left (*mean difference nearby*).
+On the right (*relative difference nearby*) is the mean over the same 40% of locations
+of the ratio of this difference in gene flow to the gene flow (commute time) in the original habitat (without barriers).
 
 <center><img src="alt_pref_pda-diffs.png" style="width: 80%"/></center>
 

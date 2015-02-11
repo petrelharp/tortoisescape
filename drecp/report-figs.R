@@ -32,7 +32,7 @@ x <- x[c(match("all",x[,1]),setdiff(1:nrow(x),match("all",x[,1]))),]
 kable( x, row.names=FALSE )
 
 
-##%%
+####
 # parse different alternatives
 
 alt.names <- c( alt_pref="alt_pref_pda", alt_1="alt_1_pda", alt_2="alt_2_pda", alt_3="alt_3_pda", alt_4="alt_4_pda" )

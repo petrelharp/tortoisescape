@@ -401,7 +401,7 @@ Summarizing the impact of the alternative
 -----------------------------------------
 
 ```{r summary_params}
-isolation.thresh <- 15000
+isolation.thresh <- 1500
 nearby.thresh <- 0.4
 ```
 Here are some summaries of the effect of the alternative on gene flow:
