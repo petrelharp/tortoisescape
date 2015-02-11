@@ -285,13 +285,13 @@ layout(t(1:3))
 for (k in plot.points) {
     ph( pmin(zlims[2],alt.hts[,k]), zlim=zlims, do.lims=FALSE, main=paste("new hitting time to", k), legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
-    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    plot( alt, col=adjustcolor('slategrey',.8), add=TRUE, legend=FALSE )
     ph( truncate((alt.hts[,k]-hts[,k]),diff.zlims), zlim=diff.zlims, col=diff.cols, do.lims=FALSE, main="difference", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
-    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    plot( alt, col=adjustcolor('slategrey',.8), add=TRUE, legend=FALSE )
     ph( truncate((alt.hts[,k]-hts[,k])/(1+hts[,k]),ratio.zlims), zlim=ratio.zlims, col=diff.cols, do.lims=FALSE, main="ratio", legend.width=2 )
     points( ref.points[k], pch=8, cex=2 )
-    plot( alt, col=adjustcolor('red',.8), add=TRUE, legend=FALSE )
+    plot( alt, col=adjustcolor('slategrey',.8), add=TRUE, legend=FALSE )
     # if ( interactive() && length(locator(1))==0) { break }
 }
 ```

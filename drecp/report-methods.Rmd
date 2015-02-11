@@ -1,3 +1,7 @@
+```{r setup, include=FALSE}
+require(pander)
+```
+
 Methods and Results
 ===================
 
@@ -445,23 +449,46 @@ as seen in the example commute time plots above.
 ### Comparing total effects of each alternative
 
 Here are the total effects of each alternative:
-*isolated area* is the total amount of area on which the mean commute time to nearby areas has increased:
-*mean isolation* is the mean amount by which the commute time has increased to nearby areas,
-across those areas where it has increased,
-and *maximum isolation* is the largest change in commute time between any pair of nearby reference locations.
-The *mean isolation* is a good measure of the total effect of removing a given area,
-but note that the absolute size of the number is not necessarily reflecive of the overall effect,
-as it measures this piece, in isolation, without the effects of all other pieces.
+  areas are given in in km${}^2$ and as a percentage of the total tortoise habitat;
 
-|              | habitat removed (km2)|(%)    | isolated (km2)|(%)     | isolation (years)| strongly isolated (km2)|(%)     | strong isolation (years)|relative isolation  |
-|:-------------|---------------------:|:------|--------------:|:-------|-----------------:|-----------------------:|:-------|------------------------:|:-------------------|
-|preferred     |                  5061|(3.7%) |          75652|(54.9%) |              7490|                    5515|(4.0%)  |                     7490|68%                 |
-|alternative 1 |                  2338|(1.7%) |          62906|(45.6%) |              6610|                    2867|(2.1%)  |                     6610|65%                 |
-|alternative 2 |                  6772|(4.9%) |          94534|(68.6%) |              9791|                   15069|(10.9%) |                     9791|74%                 |
-|alternative 3 |                  3401|(2.5%) |          71426|(51.8%) |              9156|                    5506|(4.0%)  |                     9156|112%                |
-|alternative 4 |                  4458|(3.2%) |          78204|(56.7%) |              7801|                    5250|(3.8%)  |                     7801|71%                 |
+- *habitat removed* is the total amount of area either in possible development areas or completely isolated from the rest of tortoise habitat under this alternative,
 
+- *isolated* is the total area on which the gene flow to nearby areas has increased,
 
+- *isolation* is the mean amount by which the commute time has increased to nearby areas across this area where it has increased,
+
+- *strongly isolated* is the total area to which gene flow has strongly decreased, i.e. mean commute time to nearby areas has decreased by at lesat 1,500 years,
+
+- *strong isolation* is the mean amount by which the commute time has increased across this area where it has strongly increased,
+
+- *relative isolation* is the ratio of the amount by which commute time has increased to the commute time without blocking any areas,
+  averaged over the same set of nearby locations.
+
+```{r alt_table, results="asis", echo=FALSE}
+alt.stats <- read.csv("alternative-summaries.csv",header=TRUE,row.names=1)
+alts <- data.frame(
+        "habitat removed (km2)"= floor(unlist(alt.stats["habitat area removed (km2)",])),
+        "(%)"=sprintf("(%0.1f%%)",
+                (100*unlist(alt.stats["percent habitat removed",]))
+            ),
+        "isolated (km2)"= floor(unlist(alt.stats["isolated area (km2)",])),
+        "(%)"=sprintf("(%0.1f%%)",
+                (100*unlist(alt.stats["percent isolated area",]))
+            ),
+        "isolation (years)"= floor(unlist(alt.stats["mean increase on isolated area",])),
+        "strongly isolated (km2)"= floor(unlist(alt.stats["significantly isolated area (km2)",])),
+        "(%)"=sprintf("(%0.1f%%)",
+                (100*unlist(alt.stats["percent significantly isolated area",]))
+            ),
+        "strong isolation (years)"= floor(unlist(alt.stats["mean increase on isolated area",])),
+        "relative isolation "=sprintf("%i%%",
+                floor(100*unlist(alt.stats["mean relative increase on isolated area",]))
+            ),
+        check.names=FALSE
+    )
+rownames(alts) <- c("preferred",paste("alternative",1:4))
+pander(alts,split.tables=Inf,justify=c("right","left","center")[c(2,1,2,1,2,1,1,2,1,1)])
+```
 
 
 <center><img src="alt_1_pda-diffs.png" style="width: 80%"/></center>
@@ -474,44 +501,43 @@ as it measures this piece, in isolation, without the effects of all other pieces
 
 
 Here are the effects of removing each chunk in the preferred alternative:
+The *mean isolation* is a good measure of the total effect of removing a given area,
+but note that the absolute size of the number is not necessarily reflecive of the overall effect,
+as it measures this piece, in isolation, without the effects of all other pieces.
 
 
-|chunk | isolated area (km${}^2$)| mean isolation (years)| maximum isolation (years)|
-|:-----|-------------:|--------------:|-----------------:|
-|all   |         72078|           9490|            166691|
-|31    |           511|          26779|             27445|
-|32    |          1033|           1027|              2059|
-|25    |          3789|            319|              2221|
-|7     |         42271|            280|              4653|
-|13    |         91090|            160|              4059|
-|16    |         35754|            152|              4386|
-|14    |         40023|            145|              2667|
-|5     |         60095|            143|              2481|
-|27    |         35953|            131|              2165|
-|11    |         73520|            100|              2660|
-|4     |         54439|             76|              1811|
-|28    |         39569|             56|               997|
-|29    |         37480|             55|              1384|
-|17    |         60401|             53|               691|
-|18    |        100962|             49|               927|
-|30    |         40955|             38|               744|
-|22    |         34859|             26|               673|
-|8     |         86509|             20|               338|
-|15    |         22843|             19|               607|
-|20    |         71647|             17|               359|
-|3     |         33554|             14|               169|
-|9     |         22843|             11|               315|
-|12    |         58593|             10|               193|
-|10    |         35447|              9|               156|
-|21    |         99878|              7|                86|
-|23    |         50802|              6|                70|
-|24    |         33383|              5|               190|
-|35    |        105124|              0|                 7|
-|34    |         96331|              0|                 5|
-|2     |         38609|              0|                 1|
-|0     |             0|             NA|                 0|
-|1     |             0|             NA|                 0|
-|6     |             0|             NA|                 0|
-|19    |             0|             NA|                 0|
-|26    |             0|             NA|                 0|
-|33    |             0|             NA|                 0|
+- *habitat removed* is the total amount of area either in possible development areas or completely isolated from the rest of tortoise habitat under this alternative,
+
+- *isolated* is the total area on which the gene flow to nearby areas has increased,
+
+- *isolation* is the mean amount by which the commute time has increased to nearby areas across this area where it has increased,
+
+- *max isolation* is the maximum amount by which the commute time has increased between any two nearby reference locations.
+
+
+```{r chunk_table, results="asis", echo=FALSE}
+this.alt <- "alt_pref"; this.alt.name <- "preferred"
+chunk.stats <- read.csv(file=paste(this.alt,"-chunk-summaries.csv",sep=''),header=TRUE,check.names=FALSE,row.names=1)
+colnames(chunk.stats) <- paste("chunk",colnames(chunk.stats))
+chunk.stats <- cbind( alt.stats[,this.alt], chunk.stats )
+colnames(chunk.stats)[1] <- this.alt.name
+
+chunks <- data.frame(
+        "habitat removed (km2)"= floor(unlist(chunk.stats["habitat area removed (km2)",])),
+        "(%)"=sprintf("(%0.1f%%)",
+                (100*unlist(chunk.stats["percent habitat removed",]))
+            ),
+        "isolated (km2)"= floor(unlist(chunk.stats["isolated area (km2)",])),
+        "(%)"=sprintf("(%0.1f%%)",
+                (100*unlist(chunk.stats["percent isolated area",]))
+            ),
+        "isolation (years)"= floor(unlist(chunk.stats["mean increase on isolated area",])),
+        "max isolation (years)"=floor(unlist(chunk.stats["max increase",])),
+        check.names=FALSE
+    )
+chunks <- chunks[order(chunks[,"isolation (years)"],decreasing=TRUE),]
+chunks <- chunks[ c(match(this.alt.name,rownames(chunks)),setdiff(1:nrow(chunks),match(this.alt.name,rownames(chunks)))), ]
+
+pander(chunks,split.tables=Inf,justify=c("right","left","center")[c(2,1,2,1,2,1,1)])
+```
+
