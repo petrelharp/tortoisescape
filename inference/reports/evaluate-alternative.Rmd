@@ -18,7 +18,7 @@ opts_chunk$set(fig.width=2*fig.dim,fig.height=fig.dim,fig.align='center')
 opts_chunk$set(cache.path=paste("cache/",run.id,sep=""))
 opts_chunk$set(fig.path=paste("figure/",run.id,sep=""))
 ## adjust divergence-to-time factor
-pi.fac <- (( 56575857 / 1898838430 ) / 2.01e-9)/(.018 * 1e8) / 2
+pi.fac <- (( 56575857 / 1898838430 ) /  2.064406e-8)/(.018 * 1e8) / 2
 ```
 
 ```{r setup, include=FALSE}

@@ -432,7 +432,7 @@ We computed this measure of isolation for each reference location
 and interpolated it to the remainder of the map;
 the results are shown below.
 
-<center><img src="alt_pref_pda_habitat-only_relative_effects-1.png"/></center>
+<center><img src="alt_pref_pda-diffs.png"/></center>
 
 Concretely, the darkest red areas are more distant from other, nearby portions of the range
 by 100,000-150,000 years.
@@ -451,22 +451,22 @@ The *mean isolation* is a good measure of the total effect of removing a given a
 but note that the absolute size of the number is not necessarily reflecive of the overall effect,
 as it measures this piece, in isolation, without the effects of all other pieces.
 
-|alternative   | isolated area (km${}^2$)| mean isolation (years)| maximum isolation (years)|
-|:-------------|-------------:|--------------:|-----------------:|
-|preferred     |         75621|           7490|            162146|
-|alternative 1 |         62877|           6611|            221476|
-|alternative 2 |         94533|           9792|            149787|
-|alternative 3 |         71389|           9157|            312064|
-|alternative 4 |         78176|           7801|            197971|
+|              | habitat removed (km2)|(%)    | isolated (km2)|(%)     | isolation (years)| strongly isolated (km2)|(%)     | strong isolation (years)|relative isolation  |
+|:-------------|---------------------:|:------|--------------:|:-------|-----------------:|-----------------------:|:-------|------------------------:|:-------------------|
+|preferred     |                  5061|(3.7%) |          75652|(54.9%) |              7490|                    5515|(4.0%)  |                     7490|68%                 |
+|alternative 1 |                  2338|(1.7%) |          62906|(45.6%) |              6610|                    2867|(2.1%)  |                     6610|65%                 |
+|alternative 2 |                  6772|(4.9%) |          94534|(68.6%) |              9791|                   15069|(10.9%) |                     9791|74%                 |
+|alternative 3 |                  3401|(2.5%) |          71426|(51.8%) |              9156|                    5506|(4.0%)  |                     9156|112%                |
+|alternative 4 |                  4458|(3.2%) |          78204|(56.7%) |              7801|                    5250|(3.8%)  |                     7801|71%                 |
 
 
 
 TODO: make this as one plot, with the same colors on each.
 
-<center><img src="alt_1_pda_habitat-only_relative_effects-1.png"/></center>
-<center><img src="alt_2_pda_habitat-only_relative_effects-1.png"/></center>
-<center><img src="alt_3_pda_habitat-only_relative_effects-1.png"/></center>
-<center><img src="alt_4_pda_habitat-only_relative_effects-1.png"/></center>
+<center><img src="alt_1_pda-diffs.png"/></center>
+<center><img src="alt_2_pda-diffs.png"/></center>
+<center><img src="alt_3_pda-diffs.png"/></center>
+<center><img src="alt_4_pda-diffs.png"/></center>
 
 
 ### Effects of removing each chunk
