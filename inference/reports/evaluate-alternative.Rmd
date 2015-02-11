@@ -427,12 +427,23 @@ summary.expr <- quote(
             "mean increase on isolated area" = mean(nearby.means[nearby.means>0]),
             "max increase" = max( diffmat[nearby], na.rm=TRUE ),
             "max decrease" = min( diffmat[nearby], na.rm=TRUE ),
+            "mean relative increase" = mean( ( rowSums( diffmat*nearby/sym(1+sub.hts) )/rowSums(nearby) )[nearby.means>0]),
             "mean relative increase on isolated area" = mean( ( rowSums( diffmat*nearby/sym(1+sub.hts) )/rowSums(nearby) )[nearby.means>isolation.thresh])
             )
     } )
 sub.alt.hts <- alt.hts[ref.locs[alt.good.refs],alt.good.refs]
 attr(sub.alt.hts,"blocked") <- attr(alt.hts,"blocked")
 sub.hts <- hts[ref.locs[alt.good.refs],alt.good.refs]
+save( this.chunk, 
+        sub.hts,
+        sub.alt.hts, 
+        in.chunk.refs, 
+        alt.accessible.refs, 
+        newly.inaccessible.refs, 
+        alt.isolated.refs, 
+        newly.isolated.refs, 
+        alt.good.refs, 
+   file=paste(run.id,"all_chunks",".RData",sep='') )
 results <- eval( summary.expr )
 results[,1] <- "all"
 all.xtab <- xtable( results )

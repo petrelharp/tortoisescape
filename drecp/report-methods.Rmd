@@ -446,12 +446,12 @@ Here are the total effects of each alternative:
 *isolated area* is the total amount of area on which the mean commute time to nearby areas has increased:
 *mean isolation* is the mean amount by which the commute time has increased to nearby areas,
 across those areas where it has increased,
-and *maximum isolation* is the largest isolation factor.
+and *maximum isolation* is the largest change in commute time between any pair of nearby reference locations.
 The *mean isolation* is a good measure of the total effect of removing a given area,
 but note that the absolute size of the number is not necessarily reflecive of the overall effect,
 as it measures this piece, in isolation, without the effects of all other pieces.
 
-|alternative   | isolated area| mean isolation| maximum isolation|
+|alternative   | isolated area (km${}^2$)| mean isolation (years)| maximum isolation (years)|
 |:-------------|-------------:|--------------:|-----------------:|
 |preferred     |         75621|           7490|            162146|
 |alternative 1 |         62877|           6611|            221476|
@@ -475,7 +475,7 @@ TODO: make this as one plot, with the same colors on each.
 Here are the effects of removing each chunk: 
 
 
-|chunk | isolated area| mean isolation| maximum isolation|
+|chunk | isolated area (km${}^$2)| mean isolation (years)| maximum isolation (years)|
 |:-----|-------------:|--------------:|-----------------:|
 |all   |         72078|           9490|            166691|
 |31    |           511|          26779|             27445|
