@@ -432,7 +432,7 @@ We computed this measure of isolation for each reference location
 and interpolated it to the remainder of the map;
 the results are shown below.
 
-<center><img src="alt_pref_pda-diffs.png"/></center>
+<center><img src="alt_pref_pda-diffs.png" style="width: 80%"/></center>
 
 Concretely, the darkest red areas are more distant from other, nearby portions of the range
 by 100,000-150,000 years.
@@ -461,18 +461,17 @@ as it measures this piece, in isolation, without the effects of all other pieces
 
 
 
-TODO: make this as one plot, with the same colors on each.
 
-<center><img src="alt_1_pda-diffs.png"/></center>
-<center><img src="alt_2_pda-diffs.png"/></center>
-<center><img src="alt_3_pda-diffs.png"/></center>
-<center><img src="alt_4_pda-diffs.png"/></center>
+<center><img src="alt_1_pda-diffs.png" style="width: 80%"/></center>
+<center><img src="alt_2_pda-diffs.png" style="width: 80%"/></center>
+<center><img src="alt_3_pda-diffs.png" style="width: 80%"/></center>
+<center><img src="alt_4_pda-diffs.png" style="width: 80%"/></center>
 
 
 ### Effects of removing each chunk
 
 
-Here are the effects of removing each chunk: 
+Here are the effects of removing each chunk in the preferred alternative:
 
 
 |chunk | isolated area (km${}^2$)| mean isolation (years)| maximum isolation (years)|

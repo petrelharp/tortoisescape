@@ -36,6 +36,7 @@ kable( x, row.names=FALSE )
 # parse different alternatives
 
 alt.names <- c( alt_pref="alt_pref_pda", alt_1="alt_1_pda", alt_2="alt_2_pda", alt_3="alt_3_pda", alt_4="alt_4_pda" )
+alt.full.names <- c( alt_pref="preferred", alt_1="alt #1", alt_2="alt #2", alt_3="alt #3", alt_4="alt #4" )
 alt.envs <- lapply( alt.names, function (aname) {
         aenv <- new.env()
         load(paste("../inference/habitat-only/nus_gt_three/",aname,"_habitat-only_all_chunks.RData",sep=''),envir=aenv)
@@ -116,7 +117,14 @@ kable(alts)
 
 ### figures
 require(colorspace)
+require(fields)
 diff.cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), power=0.65)
+interp.values <- function (x,refs) {
+    # interpolate values seen at ref.points[refs] to everywhere else
+    stopifnot( ( is.integer(refs) && length(x)==length(refs) ) || ( is.logical(refs) && length(x)==sum(refs) ) )
+    tps <- fastTps( coordinates(ref.points)[refs,], x, lambda=1e-8, theta=2e5 )
+    return( mask(interpolate(nalayer,tps),nalayer) )
+}
 
 tdiffs <- sapply( alt.envs, function (aenv) {
         with(aenv, {
@@ -138,15 +146,22 @@ reldiffs <- sapply( alt.envs, function (aenv) {
     } )
 ratio.zlims <- c(-1,1)*max(abs(reldiffs),na.rm=TRUE)
 
+# figures for each alternative
 for (k in seq_along(alt.names)) {
-    png(file=paste(alt.names[k],"-diffs.png",sep=''),width=5*288,height=5.5*288,pointsize=10)
-    layout(t(1;2))
+    png(file=paste(alt.names[k],"-diffs.png",sep=''),width=6*288,height=3*288,pointsize=10,res=288)
+    layout(t(1:2))
     par(mar=c(1,1,2,1)+.1)
     with( alt.envs[[k]], {
             layout(t(1:2))
-            zlims <- c(-1,1)*max(abs(max.tdiffs))
-            plot( interp.values(mean.tdiffs,alt.good.refs), main="mean difference nearby", col=diff.cols, zlim=zlims, legend.width=2 )
-            plot( interp.values(rel.tdiffs,alt.good.refs), main="relative difference nearby", col=diff.cols, zlim=ratio.zlims, legend.width=2 )
+            x <- tdiffs[,k]
+            plot( interp.values(x[alt.good.refs],alt.good.refs), main="mean difference nearby", col=diff.cols, zlim=zlims, 
+                legend.width=2, xaxt='n', yaxt='n', legend.mar=8.1 )
+            plot( alt, col="slategrey", add=TRUE, legend=FALSE )
+            mtext( alt.full.names[k], side=3, line=-1 )
+            y <- reldiffs[,k]
+            plot( interp.values(y[alt.good.refs],alt.good.refs), main="relative difference nearby", col=diff.cols, zlim=ratio.zlims, 
+                legend.width=2, xaxt='n', yaxt='n', legend.mar=5.1 )
+            plot( alt, col="lightslategrey", add=TRUE, legend=FALSE )
         } )
     dev.off()
 }
