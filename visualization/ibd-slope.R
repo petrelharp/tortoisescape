@@ -10,7 +10,8 @@ pcs <- read.csv("pcs.csv")
 
 pi <- read.csv("all_angsd_snps.pwp.csv")
 # from Evan 1/31/15
-pi$pi <- pi$pi * ( 56575857 / 1898838430 ) / 2.064406e-8 / 2
+pi$pi <- pi$pi * ( 56575857 / 1898838430 )
+pi$years <- pi$pi  / 2.064406e-8 / 2
 
 geog <- read.csv("geog_distance.csv")
 geog$distance <- geog$distance / 1000 # now in km
@@ -58,6 +59,7 @@ for (k in seq_along(pops)) { points(pops[[k]],pch=20,col=k,cex=2) }
 # legend("topleft",pch=20,cex=2,legend=names(pops),col=seq_along(pops))
 # plot( pi ~ distance, data=x, xlab='distance (km)', ylab='divergence', main='all',
 #    pch=20, cex=0.25, ylim=range(x$pi), xlim=c(0,max(x$distance)) )
+posfn <- function (eps) { (1-eps)*min(x$pi) + eps*max(x$pi) }
 for (j in 1:length(pops)) {
     for (k in j:length(pops)) {
         usethese <- with(x, ( ( group1==names(pops)[j] ) & ( group2==names(pops)[k] ) ) 
@@ -68,10 +70,10 @@ for (j in 1:length(pops)) {
             pch=20, cex=0.25, ylim=range(x$pi), xlim=c(0,max(x$distance)) )
         points( pi ~ distance, data=subset(x,usethese), xlab='distance (km)', ylab='divergence', 
             pch=20, cex=0.25 )
-        points( 3e2+c(-.2e2,0.2e2), c(2.2e6,2.2e6), pch=20, cex=4, col=c(j,k) )
+        points( 3e2+c(-.2e2,0.2e2), posfn(c(.05,.05)), pch=20, cex=4, col=c(j,k) )
         this.lm <- lm( pi ~ distance, data=subset(x,usethese) )
         abline( coef(this.lm) )
-        text( 3e2, 2.3e6, labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
+        text( 3e2, posfn(.15), labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
     }
 }
 dev.off()
@@ -90,26 +92,27 @@ for (k in seq_along(pops)) { points(pops[[k]],pch=20,col=ns.cols[k],cex=1) }
 both.south <- with(x, ( ( group1%in%south.pops ) & ( group2%in%south.pops ) ) )
 both.north <- with(x, ( (! group1%in%south.pops ) & (! group2%in%south.pops ) ) )
 # within
-    plot( pi ~ distance, data=x, xlab='distance (km)', ylab='mean divergence (years)', 
+posfn <- function (eps) { (1-eps)*min(x$years) + eps*max(x$years) }
+    plot( years ~ distance, data=x, xlab='distance (km)', ylab='mean divergence (years)', 
         col=adjustcolor("slategrey",.1),
         main="within groups",
-        pch=20, cex=0.25, ylim=range(x$pi), xlim=c(0,max(x$distance)) )
-    points( pi ~ distance, data=subset(x,both.north), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(north.col,.25) )
-    points( pi ~ distance, data=subset(x,both.south), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(south.col,.25) )
-    this.lm <- lm( pi ~ distance, data=subset(x,both.south|both.north) )
+        pch=20, cex=0.25, ylim=range(x$years), xlim=c(0,max(x$distance)) )
+    points( years ~ distance, data=subset(x,both.north), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(north.col,.25) )
+    points( years ~ distance, data=subset(x,both.south), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(south.col,.25) )
+    this.lm <- lm( years ~ distance, data=subset(x,both.south|both.north) )
     abline( coef(this.lm), col='black' )
     text( 3e2, 2.3e6, labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
-    # south.lm <- lm( pi ~ distance, data=subset(x,both.south) )
+    # south.lm <- lm( years ~ distance, data=subset(x,both.south) )
     # abline( coef(south.lm), col=south.col )
-    # north.lm <- lm( pi ~ distance, data=subset(x,both.north) )
+    # north.lm <- lm( years ~ distance, data=subset(x,both.north) )
     # abline( coef(north.lm), col=north.col )
 # between
-    plot( pi ~ distance, data=x, xlab='distance (km)', ylab='mean divergence (years)', 
+    plot( years ~ distance, data=x, xlab='distance (km)', ylab='mean divergence (years)', 
         col=adjustcolor("slategrey",.1),
         main="between groups",
-        pch=20, cex=0.25, ylim=range(x$pi), xlim=c(0,max(x$distance)) )
-    points( pi ~ distance, data=subset(x,!(both.south|both.north)), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col="black" )
-    this.lm <- lm( pi ~ distance, data=subset(x,!(both.south|both.north)) )
+        pch=20, cex=0.25, ylim=range(x$years), xlim=c(0,max(x$distance)) )
+    points( years ~ distance, data=subset(x,!(both.south|both.north)), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col="black" )
+    this.lm <- lm( years ~ distance, data=subset(x,!(both.south|both.north)) )
     abline( coef(this.lm), col='black' )
     text( 3e2, 2.3e6, labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
 dev.off()
