@@ -60,28 +60,26 @@ dists$group2 <- pop.df$group[match(dists$etort2,pop.df$etort)]
 
 png(file="ibd-by-pops.png",width=10*288,height=10*288,pointsize=10,res=288)
 #pdf(file="ibd-by-pops.pdf",width=10,height=10,pointsize=10)
+pifac <- 1000  # in kb
 layout(matrix(1:16,nrow=4))
 par(mar=c(3,3,3,1)+.1,mgp=c(2.2,1,0))
 plot(dem,legend=FALSE,xaxt='n',yaxt='n')
 for (k in seq_along(pops)) { points(pops[[k]],pch=20,col=k,cex=2) }
-# legend("topleft",pch=20,cex=2,legend=names(pops),col=seq_along(pops))
-# plot( pi ~ distance, data=dists, xlab='distance (km)', ylab='divergence', main='all',
-#    pch=20, cex=0.25, ylim=range(dists$pi), xlim=c(0,max(dists$distance)) )
-posfn <- function (eps) { (1-eps)*min(dists$pi) + eps*max(dists$pi) }
+posfn <- function (eps) { pifac*((1-eps)*min(dists$pi) + eps*max(dists$pi)) }
 for (j in 1:length(pops)) {
     for (k in j:length(pops)) {
         usethese <- with(dists, ( ( group1==names(pops)[j] ) & ( group2==names(pops)[k] ) ) 
             | ( ( group1==names(pops)[k] ) & ( group2==names(pops)[j] ) ) )
-        plot( pi ~ distance, data=dists, xlab='distance (km)', ylab='divergence', 
+        plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='divergence', 
             col=adjustcolor("slategrey",.1),
             main=paste(names(pops)[c(j,k)],collapse='-'), 
-            pch=20, cex=0.25, ylim=range(dists$pi), xlim=c(0,max(dists$distance)) )
-        points( pi ~ distance, data=subset(dists,usethese), xlab='distance (km)', ylab='divergence', 
+            pch=20, cex=0.25, ylim=pifac*range(dists$pi), xlim=c(0,max(dists$distance)) )
+        points( pifac*pi ~ distance, data=subset(dists,usethese), xlab='distance (km)', ylab='divergence', 
             pch=20, cex=0.25 )
         points( 3e2+c(-.2e2,0.2e2), posfn(c(.05,.05)), pch=20, cex=4, col=c(j,k) )
         this.lm <- lm( pi ~ distance, data=subset(dists,usethese) )
-        abline( coef(this.lm) )
-        text( 3e2, posfn(.15), labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
+        abline( pifac*coef(this.lm) )
+        text( 3e2, posfn(.15), labels=sprintf("y = %0.4f x + %0.4f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
     }
 }
 dev.off()
@@ -110,16 +108,16 @@ posfn <- function (eps) { pifac*( (1-eps)*min(dists$pi) + eps*max(dists$pi) ) }
     points( pifac*pi ~ distance, data=subset(dists,both.south), pch=20, cex=0.25, col=adjustcolor(south.col,.25) )
     this.lm <- lm( pi ~ distance, data=subset(dists,both.south|both.north) )
     abline( pifac*coef(this.lm), col='black' )
-    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
+    text( 3e2, posfn(.1), labels=sprintf("y = %0.4f x + %0.4f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
 # between
     plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (years)', 
         col=adjustcolor("slategrey",.1),
         main="between groups",
         pch=20, cex=0.25, ylim=pifac*range(dists$pi), xlim=c(0,max(dists$distance)) )
     points( pifac*pi ~ distance, data=subset(dists,!(both.south|both.north)), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col="black" )
-    this.lm <- lm( pifac*pi ~ distance, data=subset(dists,!(both.south|both.north)) )
+    this.lm <- lm( pi ~ distance, data=subset(dists,!(both.south|both.north)) )
     abline( pifac*coef(this.lm), col='black' )
-    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
+    text( 3e2, posfn(.1), labels=sprintf("y = %0.4f x + %0.4f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
 dev.off()
 
 png(file="ibd-by-some-pops-years.png",width=6.5*288,height=2.4*288,pointsize=10,res=288)
@@ -226,7 +224,7 @@ yfac <- 1000
             xlab="geographic distance (km)", ylab="genetic distance (per Kb)") )
     title( main="Isolation by Distance", line=1 )
     abline( yfac*coef( ivanpah.lm ), col='red' )
-    text( 25, posfn(.1), labels=sprintf("y = %0.3f x + %0.2f", yfac*coef(ivanpah.lm)[2], yfac*coef(ivanpah.lm)[1]) )
+    text( 25, posfn(.1), labels=sprintf("y = %0.4f x + %0.4f", yfac*coef(ivanpah.lm)[2], yfac*coef(ivanpah.lm)[1]) )
     par(mar=c(5,0,3,1)+.1)
     plot(dem, xlim=infl(ivanpah.locs@bbox["coords.x1",],1.2), ylim=infl(ivanpah.locs@bbox["coords.x2",]), xaxt='n', yaxt='n', 
         smallplot=c(0.68,0.71,0.2845,0.8155), 
