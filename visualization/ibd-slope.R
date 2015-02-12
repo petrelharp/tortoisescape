@@ -87,12 +87,11 @@ for (j in 1:length(pops)) {
 dev.off()
 
 
-stop('here')
 
 png(file="ibd-by-some-pops.png",width=6.5*288,height=2.4*288,pointsize=10,res=288)
 layout(t(1:3))
 par(mar=c(3,3,3,1)+.1,mgp=c(2.2,1,0))
-plot(dem,legend=FALSE,xaxt='n',yaxt='n')
+plot(dem,legend=FALSE,xaxt='n',yaxt='n',main='sample locations')
 south.pops <- c("west","south","east")
 south.col <- "purple"
 north.col <- "blue"
@@ -100,30 +99,27 @@ ns.cols <- c(north.col,south.col)[1+(names(pops) %in% south.pops)]
 for (k in seq_along(pops)) { points(pops[[k]],pch=20,col=ns.cols[k],cex=1) }
 both.south <- with(dists, ( ( group1%in%south.pops ) & ( group2%in%south.pops ) ) )
 both.north <- with(dists, ( (! group1%in%south.pops ) & (! group2%in%south.pops ) ) )
+pifac <- 1000  # in kb
 # within
-posfn <- function (eps) { (1-eps)*min(dists$years) + eps*max(dists$years) }
-    plot( years ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (years)', 
+posfn <- function (eps) { pifac*( (1-eps)*min(dists$pi) + eps*max(dists$pi) ) }
+    plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (per Kb)', 
         col=adjustcolor("slategrey",.1),
         main="within groups",
-        pch=20, cex=0.25, ylim=range(dists$years), xlim=c(0,max(dists$distance)) )
-    points( years ~ distance, data=subset(dists,both.north), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(north.col,.25) )
-    points( years ~ distance, data=subset(dists,both.south), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(south.col,.25) )
-    this.lm <- lm( years ~ distance, data=subset(dists,both.south|both.north) )
-    abline( coef(this.lm), col='black' )
-    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
-    # south.lm <- lm( years ~ distance, data=subset(dists,both.south) )
-    # abline( coef(south.lm), col=south.col )
-    # north.lm <- lm( years ~ distance, data=subset(dists,both.north) )
-    # abline( coef(north.lm), col=north.col )
+        pch=20, cex=0.25, ylim=pifac*range(dists$pi), xlim=c(0,max(dists$distance)) )
+    points( pifac*pi ~ distance, data=subset(dists,both.north), pch=20, cex=0.25, col=adjustcolor(north.col,.25) )
+    points( pifac*pi ~ distance, data=subset(dists,both.south), pch=20, cex=0.25, col=adjustcolor(south.col,.25) )
+    this.lm <- lm( pi ~ distance, data=subset(dists,both.south|both.north) )
+    abline( pifac*coef(this.lm), col='black' )
+    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
 # between
-    plot( years ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (years)', 
+    plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (years)', 
         col=adjustcolor("slategrey",.1),
         main="between groups",
-        pch=20, cex=0.25, ylim=range(dists$years), xlim=c(0,max(dists$distance)) )
-    points( years ~ distance, data=subset(dists,!(both.south|both.north)), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col="black" )
-    this.lm <- lm( years ~ distance, data=subset(dists,!(both.south|both.north)) )
-    abline( coef(this.lm), col='black' )
-    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
+        pch=20, cex=0.25, ylim=pifac*range(dists$pi), xlim=c(0,max(dists$distance)) )
+    points( pifac*pi ~ distance, data=subset(dists,!(both.south|both.north)), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col="black" )
+    this.lm <- lm( pifac*pi ~ distance, data=subset(dists,!(both.south|both.north)) )
+    abline( pifac*coef(this.lm), col='black' )
+    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
 dev.off()
 
 png(file="ibd-by-some-pops-years.png",width=6.5*288,height=2.4*288,pointsize=10,res=288)
