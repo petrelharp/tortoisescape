@@ -8,13 +8,19 @@ dem <- raster("../visualization/dem_30.gri")
 
 pcs <- read.csv("pcs.csv")
 
-pi <- read.csv("all_angsd_snps.pwp.csv")
+pi <- read.csv("all_angsd_snps.pwp.csv",stringsAsFactors=FALSE)
 # from Evan 1/31/15
 pi$pi <- pi$pi * ( 56575857 / 1898838430 )
 pi$years <- pi$pi  / 2.064406e-8 / 2
 
+torts <- unique( c(pi$etort1, pi$etort2) )
+torts <- torts[ order(as.numeric(gsub(" .*","",gsub("^[^0-9]*","",torts)))) ]
+pi$etort1 <- factor(pi$etort1,levels=torts)
+pi$etort2 <- factor(pi$etort2,levels=torts)
+
 geog <- read.csv("geog_distance.csv")
 geog$distance <- geog$distance / 1000 # now in km
+
 
 x <- merge( geog, pi, by=c("etort1","etort2") )
 x$dpc <- abs(pcs$PC1[match(x$etort1,pcs$etort)] - pcs$PC1[match(x$etort2,pcs$etort)])
@@ -101,7 +107,7 @@ posfn <- function (eps) { (1-eps)*min(x$years) + eps*max(x$years) }
     points( years ~ distance, data=subset(x,both.south), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col=adjustcolor(south.col,.25) )
     this.lm <- lm( years ~ distance, data=subset(x,both.south|both.north) )
     abline( coef(this.lm), col='black' )
-    text( 3e2, 2.3e6, labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
+    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
     # south.lm <- lm( years ~ distance, data=subset(x,both.south) )
     # abline( coef(south.lm), col=south.col )
     # north.lm <- lm( years ~ distance, data=subset(x,both.north) )
@@ -114,5 +120,36 @@ posfn <- function (eps) { (1-eps)*min(x$years) + eps*max(x$years) }
     points( years ~ distance, data=subset(x,!(both.south|both.north)), xlab='distance (km)', ylab='divergence', pch=20, cex=0.25, col="black" )
     this.lm <- lm( years ~ distance, data=subset(x,!(both.south|both.north)) )
     abline( coef(this.lm), col='black' )
-    text( 3e2, 2.3e6, labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
+    text( 3e2, posfn(.1), labels=sprintf("y = %2.0f x + %2.0f", coef(this.lm)[2], coef(this.lm)[1]) )
+dev.off()
+
+
+
+dups <- list(
+        "etort-156"=c("etort-156","etort-296"),
+        "etort-143"=c("etort-143","etort-297")
+    )
+
+resids <- lapply( dups, function (xx) {
+        d1 <- with( subset(pi,etort1==xx[1] | etort2==xx[1]), data.frame(
+                etort=factor(torts[ifelse(etort1==xx[1],etort2,etort1)],levels=torts),
+                pi1=pi ) )
+        d2 <- with( subset(pi,etort1==xx[2] | etort2==xx[2]), data.frame(
+                etort=factor(torts[ifelse(etort1==xx[2],etort2,etort1)],levels=torts),
+                pi2=pi ) )
+        d12 <- merge(d1,d2)
+        return( d12 )
+    } )
+
+lapply( resids, function (z) { summary( z$pi2-z$pi1 ) } )
+lapply( resids, function (z) { sd( z$pi2-z$pi1 ) } )
+
+pdf(file="duplicates.pdf",width=6,height=6,pointsize=10)
+layout(matrix(1:4,nrow=2))
+lapply( seq_along(resids), function (k) { 
+        plot( resids[[k]]$pi1,resids[[k]]$pi2, xlab=dups[[k]][1], ylab=dups[[k]][2] )
+        abline(0,1,col='red')
+        hist( resids[[k]]$pi2-resids[[k]]$pi1, breaks=40, xlab=paste("residuals,",names(resids)[k]), main="" ) 
+        abline(v=0,col='red',lwd=2)
+    } )
 dev.off()
