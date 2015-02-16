@@ -1,12 +1,18 @@
 # for recording how stuff got made:
 #
 
+tort_272_info/pcs-PC-maps.pdf tort_272_info/pcs-maps-with-PCs.pdf : tort_272_info/pcs.csv
+	cd tort_272_info; Rscript  ../vizualization/plot-pcs.R pcs.csv
 
-tort_272_info/pcs.csv : tort_272_info/covariance.csv
-	Rscript covmat/write-PCs.R tort_272_info/covariance.csv tort_272_info/pcs.csv
+tort_272_info/pcs.csv : tort_272_info/covariance.csv tort_272_info/weights-nodups.csv
+	Rscript covmat/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights-nodups.csv
 
-tort_272_info/covariance.csv : tort_276_info/276torts.covar
-	# did some stuff in R here
+tort_272_info/weighted-pcs.csv : tort_272_info/covariance.csv tort_272_info/weights.csv
+	Rscript covmat/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights.csv
+
+tort_272_info/covariance.csv : covmat/allSNPs-cpp_labeled.txt
+	# did some stuff in R here 2/16/2015:
+	#   added etort IDs
 
 tort_272_info/all_angsd_snps.pwp.csv : pairwisePi/allSNPs.pwp
 	# did some stuff in R here
