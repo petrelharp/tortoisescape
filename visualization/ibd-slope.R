@@ -84,12 +84,17 @@ for (j in 1:length(pops)) {
 }
 dev.off()
 
-
+require(rgdal)
+county.lines.obj <- load("../visualization/county_lines.Robj") 
+assign("county.lines", spTransform(get(county.lines.obj),  CRSobj=CRS(proj4string(dem)) ) )
+roads <- spTransform( readOGR("../visualization","moj_maj_road"), CRSobj=CRS(proj4string(dem)) )
 
 png(file="ibd-by-some-pops.png",width=6.5*288,height=2.4*288,pointsize=10,res=288)
 layout(t(1:3))
 par(mar=c(3,3,3,1)+.1,mgp=c(2.2,1,0))
 plot(dem,legend=FALSE,xaxt='n',yaxt='n',main='sample locations')
+lines(county.lines,col=adjustcolor("slategrey",0.5))
+lines(roads, col=adjustcolor("darkslategrey",0.5),lwd=0.5)
 south.pops <- c("west","south","east")
 south.col <- "purple"
 north.col <- "blue"
@@ -124,6 +129,8 @@ png(file="ibd-by-some-pops-years.png",width=6.5*288,height=2.4*288,pointsize=10,
 layout(t(1:3))
 par(mar=c(3,3,3,1)+.1,mgp=c(2.2,1,0))
 plot(dem,legend=FALSE,xaxt='n',yaxt='n')
+lines(county.lines,col=adjustcolor("slategrey",0.5))
+lines(roads, col=adjustcolor("darkslategrey",0.5),lwd=0.5)
 south.pops <- c("west","south","east")
 south.col <- "purple"
 north.col <- "blue"
