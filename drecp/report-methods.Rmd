@@ -480,7 +480,7 @@ alts <- data.frame(
         "(%)"=sprintf("(%0.1f%%)",
                 (100*unlist(alt.stats["percent significantly isolated area",]))
             ),
-        "strong isolation (years)"= floor(unlist(alt.stats["mean increase on isolated area",])),
+        "strong isolation (years)"= floor(unlist(alt.stats["mean increase on significantly isolated area",])),
         "relative isolation "=sprintf("%i%%",
                 floor(100*unlist(alt.stats["mean relative increase on isolated area",]))
             ),
