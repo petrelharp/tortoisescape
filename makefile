@@ -1,14 +1,27 @@
 # for recording how stuff got made:
 #
 
+## PCs, all sites
+
+tort_272_info/allSites_pcs-PC-maps.pdf tort_272_info/allSites_pcs-maps-with-PCs.pdf : tort_272_info/allSites_pcs.csv
+	cd tort_272_info; Rscript  ../visualization/plot-pcs.R allSites_pcs.csv
+
+tort_272_info/allSites_pcs.csv : tort_272_info/allSites_covar.csv tort_272_info/weights-nodups.csv
+	Rscript covmat/write-PCs.R $< $@ tort_272_info/weights-nodups.csv
+
+## PCs, polymorphic sites
+
 tort_272_info/pcs-PC-maps.pdf tort_272_info/pcs-maps-with-PCs.pdf : tort_272_info/pcs.csv
-	cd tort_272_info; Rscript  ../vizualization/plot-pcs.R pcs.csv
+	cd tort_272_info; Rscript  ../visualization/plot-pcs.R pcs.csv
 
 tort_272_info/pcs.csv : tort_272_info/covariance.csv tort_272_info/weights-nodups.csv
 	Rscript covmat/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights-nodups.csv
 
 tort_272_info/weighted-pcs.csv : tort_272_info/covariance.csv tort_272_info/weights.csv
 	Rscript covmat/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights.csv
+
+tort_272_info/weights.csv tort_272_info/weights-nodups.csv : 
+	cd tort_272_info; Rscript make-weights.R
 
 tort_272_info/covariance.csv : covmat/allSNPs-cpp_labeled.txt
 	# did some stuff in R here 2/16/2015:
