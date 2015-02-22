@@ -33,7 +33,7 @@ weights <- if (!is.null(weight.file)) {
 
 
 pmat <- diag(length(inds)) - 1/length(inds)
-eig.covmat <- eigen( (pmat %*% covmat %*% pmat) * outer(weights,weights,"*") )
+eig.covmat <- eigen( (pmat %*% covmat %*% t(pmat)) * outer(weights,weights,"*") )
 
 # proportion of variance explained
 # eig.covmat$values / sum(eig.covmat$values)

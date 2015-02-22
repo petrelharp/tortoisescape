@@ -7,7 +7,7 @@ tort_272_info/allSites_pcs-PC-maps.pdf tort_272_info/allSites_pcs-maps-with-PCs.
 	cd tort_272_info; Rscript  ../visualization/plot-pcs.R allSites_pcs.csv
 
 tort_272_info/allSites_pcs.csv : tort_272_info/allSites_covar.csv tort_272_info/weights-nodups.csv
-	Rscript covmat/write-PCs.R $< $@ tort_272_info/weights-nodups.csv
+	Rscript visualization/write-PCs.R $< $@ tort_272_info/weights-nodups.csv
 
 ## PCs, polymorphic sites
 
@@ -15,10 +15,10 @@ tort_272_info/pcs-PC-maps.pdf tort_272_info/pcs-maps-with-PCs.pdf : tort_272_inf
 	cd tort_272_info; Rscript  ../visualization/plot-pcs.R pcs.csv
 
 tort_272_info/pcs.csv : tort_272_info/covariance.csv tort_272_info/weights-nodups.csv
-	Rscript covmat/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights-nodups.csv
+	Rscript visualization/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights-nodups.csv
 
 tort_272_info/weighted-pcs.csv : tort_272_info/covariance.csv tort_272_info/weights.csv
-	Rscript covmat/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights.csv
+	Rscript visualization/write-PCs.R tort_272_info/covariance.csv $@ tort_272_info/weights.csv
 
 tort_272_info/weights.csv tort_272_info/weights-nodups.csv : 
 	cd tort_272_info; Rscript make-weights.R
