@@ -7,6 +7,9 @@ dups <- list(
         c("etort-143","etort-297")
     )
 
+# geographic distance on which weights decay (meters)
+weight.scale <- 25e3
+
 sample.info <- read.csv("sample_metadata.csv",header=TRUE,stringsAsFactors=FALSE)
 geodist.tab <- read.csv("geog_distance.csv",header=TRUE,stringsAsFactors=FALSE)
 geodist <- matrix(NA,nrow=nrow(sample.info),ncol=nrow(sample.info))
@@ -16,7 +19,7 @@ usethese <- apply( !is.na(geodist.inds), 1, all )
 geodist[ geodist.inds[usethese,] ] <- geodist.tab[usethese,3]
 geodist[is.na(geodist)] <- t(geodist)[is.na(geodist)]
 
-weights <- 1 / rowSums( geodist < 25e3 )
+weights <- 1/rowSums( exp(-geodist/weight.scale) )
 for (dup in dups) {
     dup <- dup[ dup %in% names(weights) ]
     cat("Downweighting ", paste(dup,collapse=" and "), ".\n")
