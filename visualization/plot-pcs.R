@@ -25,12 +25,12 @@ sample.coords <- coordinates(sample.locs)
 
 colorize <- function (x,alpha=1) { diverge_hcl(128, h=c(225,0), c=100, l=c(60,95), alpha=alpha)[cut(x,128)] }
 
-plot.vec <- function (x,...) {
+plot.vec <- function (x,cex=2,...) {
     plot(dem,legend=FALSE,...)
     lines(county_lines)
     x.fac <- cut(x,128)
     cols <- diverge_hcl(128, h=c(225,0), c=100, l=c(60,95))
-    points(sample.locs,pch=21,cex=2,col=grey(.2), bg=cols[as.numeric(x.fac)] )
+    points(sample.locs,pch=21,cex=cex,col=grey(.2), bg=cols[as.numeric(x.fac)] )
     tmp <- dem; tmp[] <- NA
     tmp[1:length(unique(cols))] <- tapply( x, x.fac, mean )
     plot( tmp, legend.only=TRUE, legend.width=2,
