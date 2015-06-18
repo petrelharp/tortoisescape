@@ -453,5 +453,94 @@ This is equivalent to adding in an extra layers that has the constant value 1,
 if $g(x,y) = x+y$.
 
 
+
+%%%%%%
+\section{Diffusion approximation}
+
+The operator $G$ is a discrete approximation to the following second-order differential operator:
+If, as above,
+\begin{align}
+  \gamma L_x &:= \gamma_1 L^1_x \cdots + \gamma_m L^m_x  \\
+  \delta L_x &:= \delta_1 L^1_x \cdots + \delta_m L^m_x  \\
+  G_{xy} &= e^\beta \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) \quad \text{for $x \sim y$} \\
+  G_{xx} &= - e^\beta \sum_{y \sim x} \rho( \gamma L_x ) g( \delta L_x, \delta L_y ) ,
+\end{align}
+then if we're on a grid with spacing $\epsilon$,
+letting $\epsilon_1 = (\epsilon,0)$ and $\epsilon_2 = (0,\epsilon)$,
+\begin{align}
+  Gf(x) &= \sum_{y \sim x} G(x,y) (f(y)-f(x)) \\
+  &= 
+    e^\beta \rho(\gamma L_{x}) 
+    \left( 
+      g(\delta L_x,\delta L_{x+\epsilon_1}) (f(x+\epsilon_1)-f(x))
+      \right. \\ &\qquad \left. {}
+      + g(\delta L_x,\delta L_{x-\epsilon_1}) (f(x-\epsilon_1)-f(x))
+      \right. \\ &\qquad \left. {}
+      + g(\delta L_x,\delta L_{x+\epsilon_2}) (f(x+\epsilon_2)-f(x))
+      \right. \\ &\qquad \left. {}
+      + g(\delta L_x,\delta L_{x-\epsilon_2}) (f(x-\epsilon_2)-f(x))
+    \right) \\
+  &\approx
+    e^\beta \rho(\gamma L_{x}) 
+    \left( 
+      g(\delta L_x,\delta L_{x+\epsilon_1}) (\epsilon \partial_{x_1} f(x) + \epsilon^2/2 \partial_{x_1}^2 f(x))
+      \right. \\ &\qquad \left. {}
+      + g(\delta L_x,\delta L_{x-\epsilon_1}) (- \epsilon \partial_{x_1} f(x) + \epsilon^2/2 \partial_{x_1}^2 f(x)) 
+      \right. \\ &\qquad \left. {}
+      + g(\delta L_x,\delta L_{x+\epsilon_2}) (\epsilon \partial_{x_2} f(y) + \epsilon^2/2 \partial_{x_2}^2 f(y))
+      \right. \\ &\qquad \left. {}
+      + g(\delta L_x,\delta L_{x-\epsilon_2}) (-\epsilon \partial_{x_2} f(y) + \epsilon^2/2 \partial_{x_2}^2 f(y))
+    \right) \\
+  &=
+    e^\beta \rho(\gamma L_{x})  \\
+    &\qquad {} \times \left[
+    \epsilon \left\{ 
+        \left(
+          g(\delta L_x,\delta L_{x+\epsilon_1}) - g(\delta L_x,\delta L_{x-\epsilon_1}) 
+        \right) \partial_{x_1} f(x) 
+      \right. \right. \\ &\qquad \qquad \left. \left. {}
+        + \left(
+          g(\delta L_x,\delta L_{x+\epsilon_2}) - g(\delta L_x,\delta L_{x-\epsilon_2}) 
+        \right) \partial_{x_2} f(x) 
+      \right\} \right. \\ &\qquad \left. {}
+    + \epsilon^2/2 \left\{
+        \left(
+          g(\delta L_x,\delta L_{x+\epsilon_1}) + g(\delta L_x,\delta L_{x-\epsilon_1}) 
+        \right) \partial_{x_1}^2 f(x) 
+      \right. \right. \\ &\qquad \qquad \left. \left. {}
+      + \left(
+        g(\delta L_x,\delta L_{x+\epsilon_2}) + g(\delta L_x,\delta L_{x-\epsilon_2}) 
+      \right) \partial_{x_2}^2 f(x) 
+    \right\}
+    \right] \\
+  &\approx \epsilon^2 \times
+    e^\beta \rho(\gamma L_{x})  \\
+    &\qquad {} \times \left[
+    \left\{ 
+        2 \delta (\partial_{x_1} L_x) g'(\delta L_x, \delta L_x) \partial_{x_1} f(x) 
+      \right. \right. \\ &\qquad \qquad \qquad \left. \left. {}
+        + 2 \delta (\partial_{x_2} L_x) g'(\delta L_x, \delta L_x) \partial_{x_2} f(x) 
+      \right\} \right. \\ &\qquad \qquad \left. {}
+    + \left\{
+          g(\delta L_x,\delta L_x) \left( \partial_{x_1}^2 f(x)  + \partial_{x_2}^2 f(x)  \right)
+    \right\}
+    \right] \\
+  &= 2 \epsilon^2 e^\beta \rho(\gamma L_x)
+    \left[
+        \delta g'(\delta L_x, \delta L_x) \nabla L_x \cdot \nabla f(x)
+        + \frac{1}{2} g(\delta L_x, \delta L_x) \Delta f(x)
+        \right] \\
+  &= 2 \epsilon^2 e^\beta \rho(x)
+    \left[
+        \nabla g(x) \cdot \nabla f(x)
+        + \frac{1}{2} g(x) \Delta f(x)
+        \right] \\
+  &= \epsilon^2 e^\beta \rho(x)
+  \nabla \cdot \left[ g(x) \nabla f(x) \right] \quad \text{EXCEPT FOR A FACTOR OF 2??}.
+\end{align}
+if $\rho(x) := \rho(\gamma L_x)$
+and $g(x) := g(\delta L_x, \delta L_x)$.
+
+
 \end{document}
 
