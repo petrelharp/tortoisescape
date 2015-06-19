@@ -524,22 +524,27 @@ letting $\epsilon_1 = (\epsilon,0)$ and $\epsilon_2 = (0,\epsilon)$,
     + \left\{
           g(\delta L_x,\delta L_x) \left( \partial_{x_1}^2 f(x)  + \partial_{x_2}^2 f(x)  \right)
     \right\}
-    \right] \\
+    \right]  \\
   &= 2 \epsilon^2 e^\beta \rho(\gamma L_x)
     \left[
         \delta g'(\delta L_x, \delta L_x) \nabla L_x \cdot \nabla f(x)
         + \frac{1}{2} g(\delta L_x, \delta L_x) \Delta f(x)
-        \right] \\
+        \right] .
+\end{align}
+If we define $\rho(x) := \rho(\gamma L_x)$
+and $g(x) := g(\delta L_x, \delta L_x)$, 
+then this is just
+\begin{align}
+  G f(x)
   &= 2 \epsilon^2 e^\beta \rho(x)
     \left[
         \nabla g(x) \cdot \nabla f(x)
         + \frac{1}{2} g(x) \Delta f(x)
         \right] \\
+  &= \text{WHICH I WANT TO BE} \\
   &= \frac{\epsilon^2}{2} e^\beta \rho(x)
-    e^{-2g(x)} \nabla \cdot \left( e^{2g(x)} \nabla f(x) \right)
+    \nabla \cdot \left( g(x) \nabla f(x) \right).
 \end{align}
-if $\rho(x) := \rho(\gamma L_x)$
-and $g(x) := g(\delta L_x, \delta L_x)$.
 
 
 \end{document}
