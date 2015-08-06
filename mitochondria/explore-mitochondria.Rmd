@@ -1,0 +1,168 @@
+---
+title: "Tortoise mitochondria"
+date: "`r date()`"
+---
+
+```{r setup, include=FALSE}
+fig.dim <- 5
+knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+```
+
+Here's some exploratory plots for etort-100.
+"6-mer entropy" is the entropy of the distribution of 6mers in windows of length 500.
+
+
+```{r single_tort, cache=TRUE, fig.height=2*fig.dim}
+## a single tortoise
+counts <- read.table("etort-100_test.counts.gz", header=TRUE)
+major <- apply(counts,1,which.max)
+coverages <- rowSums(counts)
+corrects <- counts[ cbind(1:nrow(counts),major) ]
+errors <- coverages-corrects
+
+fasta <- do.call( paste, c( as.list(scan("gopherus_agassizii_mtgenome.fasta",skip=1,what="char",sep="")), list(sep='') ) )
+
+chop <- function (string, win) {
+    nwins <- floor(nchar(string)/win)
+    breaks <- seq(1,by=win,length.out=nwins+1)
+    substring(string,first=breaks[-length(breaks)],last=breaks[-1]-1)
+}
+
+winlen <- 500
+winbreaks <- seq(1,by=winlen,length.out=floor(nchar(fasta)/winlen)+1)
+winmids <- winbreaks[-1] - diff(winbreaks)/2
+klen <- 6
+
+kmers <- lapply( lapply( chop(fasta,winlen), chop, win=klen ), table )
+plogp <- function (p) { ifelse(p==0|p==1,0,-p*log(p)) }
+entropies <- sapply( kmers, function (x) { sum(plogp(table(x)/sum(x))) } )
+
+#pdf(file="etort-100_viz.pdf",width=10,height=10)
+layout(matrix(c(1,2,1,3),nrow=2))
+plot(coverages,type='l')
+lines(errors,col='red')
+lines(winmids,entropies*mean(coverages),col='green',pch=20,type='b')
+legend("topleft",lty=1,col=c("black","red","green"),legend=c("coverage","nonmajor allele count","6mer entropy"))
+plot(jitter(corrects),jitter(errors),xlab='major allele counts',ylab='nonmajor allele counts',pch=20,cex=0.5,col=adjustcolor("black",0.25))
+abline(0,1)
+acf(errors/coverages,lag.max=500)
+#dev.off()
+```
+
+All the torts
+=============
+
+Read in the data:
+```{r read_counts, cache=TRUE}
+counts <- read.table("mt272.counts.gz",header=TRUE)
+nsamples <- ncol(counts)/4
+bases <- c("A","C","G","T")
+clist <- lapply(c(A=1,C=2,G=3,T=4),function(shift){counts[,shift+seq(0,by=4,length.out=nsamples)]})
+indivs <- lapply( clist, function (x) sapply( strsplit(colnames(x),"_"), "[", 1 ) )
+stopifnot( 
+    isTRUE(all.equal( indivs[[1]], indivs[[2]] )) 
+    && isTRUE(all.equal( indivs[[1]], indivs[[3]] )) 
+    && isTRUE(all.equal( indivs[[1]], indivs[[4]] )) 
+    )
+colnames(clist$A) <- colnames(clist$C) <- colnames(clist$G) <- colnames(clist$T) <- indivs <- indivs[[1]]
+coverage <- clist$A + clist$C + clist$G + clist$T
+mean.coverage <- colMeans(coverage)
+```
+
+Here are the coverages:
+```{r coverages,fig.width=4*fig.dim}
+barplot(do.call(rbind,lapply(clist,colSums)),las=2, main="nucleotide counts")
+barplot(do.call(rbind,lapply(clist,function(x)colSums(x)/colSums(coverage))),las=2, main="nucleotide frequencies")
+```
+There's one slightly wierd base composition in there, sample *`r indivs[which.max(colSums(clist[[4]])/colSums(coverage))]`*; the rest look good.
+
+I'm going to **omit the torts with mean coverage below 15** to make subsequent plots nicer.
+```{r omit_torts,cache=TRUE,depends="read_counts"}
+use.torts <- (mean.coverage >= 15)
+omitted.torts <- indivs[!use.torts]
+cat("Omitting",paste(omitted.torts,collapse=' '),"\n")
+counts <- counts[,rep(use.torts,each=4)]
+coverage <- coverage[,use.torts]
+for (k in 1:4) { clist[[k]] <- clist[[k]][,use.torts] }
+indivs <- indivs[use.torts]
+nsamples <- sum(use.torts)
+mean.coverage <- mean.coverage[use.torts]
+rm(use.torts)
+```
+
+
+OK, let's pick the major allele at each site,
+then count up how many minors each tort has
+```{r major_minor, cache=TRUE, depends="omit_torts"}
+total <- do.call(cbind,lapply(clist,rowSums))
+total.coverage <- rowSums(coverage)
+major.allele <- apply(total,1,which.max)
+iseq <- seq(0,by=4,length.out=nsamples)
+majors <- counts[ cbind( rep(1:nrow(counts),nsamples), as.vector(outer(major.allele,iseq,"+")) ) ]
+dim(majors) <- c( nrow(counts), nsamples )
+colnames(majors) <- indivs
+minors <- coverage-majors
+minor.freqs <- rowSums(minors)/total.coverage
+table(bases[major.allele])
+```
+
+First let's see how these lie along the chromosome.
+Here's, a plot of coverage normalized by mean coverage for the tortoise,
+and then minor allele frequency:
+```{r plot_majors, fig.width=4*fig.dim, cache=TRUE, depends="major_minor"}
+matplot(sweep(coverage,2,mean.coverage,"/"),type='l',lty=1,col=adjustcolor(rainbow(32),0.5),main="coverage")
+matplot(minors/coverage,type='l',lty=1,col=adjustcolor(rainbow(32),0.5),main="minor allele(s) frequency")
+```
+The outliers are the tortoises with really low coverage.
+
+and then let's see if a there's a pattern in the errors,
+by looking at the counts for each other base, split up by which is the major allele.
+```{r error_pattern, fig.width=3*fig.dim}
+layout(t(1:3))
+for (k in 1:4) {
+    usethese <- which(major.allele==k)
+    for (j in setdiff(1:4,k)) {
+        plot( rowSums(total)[usethese], total[usethese,j], main=paste("major:",bases[k],"other:",bases[j]), xlab="coverage", ylab=paste(bases[j],"count") )
+    }
+}
+```
+
+This pretty clearly shows the sites at which polymorphism is common.
+First, here's the CDF of the minor allele frequency (in the whole dataset!),
+and then a plot of the minor allele frequency against the proportion of individuals
+in which that site is polymorphic:
+```{r minor_CDF}
+poly <- rowSums( coverage>0 & minors>0 )/rowSums( coverage>0 )
+layout(t(1:2))
+plot( ecdf(minor.freqs) )
+plot( ecdf(poly), col='red', add=TRUE, pch=NA )
+legend("bottomright",lty=1,col=c("black","red"),legend=c("minor allele frequency","proportion of polymorphic samples"))
+plot( minor.freqs, poly, xlab="minor allele frequency", ylab="proportion of polymorphic samples" )
+```
+Gee, I was hoping a lot of those sites would be polymorphic in no-one.
+
+We'll pull out the sites with minor allele frequency (in the whole dataset!) above 1% and see where they are
+(this is `r sum(rowSums(minors)/total.coverage>0.01)` sites, or `r mean(rowSums(minors)/rowSums(coverage)>0.01)` of the sites).
+```{r poly_sites, cache=TRUE, depends="major_minor", fig.width=fig.dim}
+poly.sites <- which( minor.freqs > 0.01 )
+plot( total.coverage/mean(total.coverage), lwd=2, col=adjustcolor("black",0.5), ylim=c(0,1.4), type='l', ylab="" )
+points( poly.sites, minor.freqs[poly.sites], pch=20, cex=2 )
+segments( x0=poly.sites, y0=0, y1=minor.freqs[poly.sites] )
+legend("topleft",lty=c(1,NA),pch=c(NA,20),legend=c("total relative coverage","total minor allele frequency"))
+```
+
+
+Error rates
+===========
+
+OK, to get to the bottom of which ones are suprising we need to look at error rates.
+If we suppose that all non-major reads are in error,
+then here's the distribution of error rates by tortoise:
+```{r estimate_error, cache=TRUE, depends='major_minor', fig.width=fig.dim}
+first.error <- colSums(minors)/colSums(coverage)
+hist(first.error,breaks=25)
+```
+The mean is `r mean(first.error)`.
+So, let's use that to see which sites
+have a suprising number of minor allele reads
+The log-likelihood under a uniform-error model at each site can be split up
