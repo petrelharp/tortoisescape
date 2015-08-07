@@ -4,6 +4,8 @@ date: "`r date()`"
 ---
 
 ```{r setup, include=FALSE}
+library(pander)
+options(scipen=3)
 fig.dim <- 5
 knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 ```
@@ -54,7 +56,7 @@ All the torts
 
 Read in the data:
 ```{r read_counts, cache=TRUE}
-counts <- read.table("mt272.counts.gz",header=TRUE)
+counts <- as.matrix(read.table("mt272.counts.gz",header=TRUE))
 nsamples <- ncol(counts)/4
 bases <- c("A","C","G","T")
 clist <- lapply(c(A=1,C=2,G=3,T=4),function(shift){counts[,shift+seq(0,by=4,length.out=nsamples)]})
@@ -90,79 +92,192 @@ mean.coverage <- mean.coverage[use.torts]
 rm(use.torts)
 ```
 
+The coverages per individual are pretty close to Poisson, but a bit overdispersed;
+here are plots for a few samples;
+lines are the Poisson distribution with matching mean;
+but total coverages are very overdispersed (last plot):
+```{r some_coverages}
+layout(t(1:2))
+for (k in sample(seq_along(indivs),4)) {
+    plot( table(coverage[,k]), main=paste("coverages:", indivs[k]) )
+    lines(0:100,dpois(0:100,mean(coverage[,k]))*nrow(coverage),col='red')
+}
+layout(1)
+ch <- hist( rowSums(coverage), breaks=50, main="total coverage" )
+lines( ch$mids, diff( ppois( ch$breaks, mean(rowSums(coverage)) )*nrow(coverage) ), col='red' )
+```
+This is as we would expect since coverages between individuals, across sites, is correlated.
+
 
 OK, let's pick the major allele at each site,
+**for each tortoise**,
 then count up how many minors each tort has
 ```{r major_minor, cache=TRUE, depends="omit_torts"}
 total <- do.call(cbind,lapply(clist,rowSums))
 total.coverage <- rowSums(coverage)
-major.allele <- apply(total,1,which.max)
-iseq <- seq(0,by=4,length.out=nsamples)
-majors <- counts[ cbind( rep(1:nrow(counts),nsamples), as.vector(outer(major.allele,iseq,"+")) ) ]
+total.major.allele <- apply(total,1,which.max)
+major.allele <- ifelse( 
+    pmax(clist[[1]],clist[[2]]) >= pmax(clist[[3]],clist[[4]]),
+        ifelse( clist[[1]] >= clist[[2]], 1, 2 ),
+        ifelse( clist[[3]] >= clist[[4]], 3, 4 ) )
+majors <- counts[ cbind( rep(1:nrow(counts),nsamples), as.vector(major.allele+4*(col(major.allele)-1)) ) ]
 dim(majors) <- c( nrow(counts), nsamples )
 colnames(majors) <- indivs
 minors <- coverage-majors
 minor.freqs <- rowSums(minors)/total.coverage
+# give zero-coverage sites a major allele of NA
+major.allele[majors==0] <- NA
+# tabulate the nucleotide usage
 table(bases[major.allele])
 ```
 
-First let's see how these lie along the chromosome.
-Here's, a plot of coverage normalized by mean coverage for the tortoise,
-and then minor allele frequency:
+Polymorphic sites?
+------------------
+
+Now, let's get an idea of how many truly polymorphic sites there are, i.e., those having more than one different major allele across individuals.
+For instance, here is the table of how many sites have how many individuals with a different major allele:
+```{r npoly_table}
+pander( table(rowSums(major.allele != total.major.allele)) )
+```
+Immediately, we see that there is (probably) a haplotype differing by 30 SNPs shared by 118 of the individuals.
+Let's look at those `r sum(rowSums(major.allele != total.major.allele) == 1)` sites where only one individual had a different major allele.
+Are those mostly errors or not?
+```{r examine_singletons}
+singletons <- which( rowSums(major.allele != total.major.allele) == 1 )
+others <- sapply( singletons, function (k) { which(major.allele[k,]!=total.major.allele[k]) } )
+# frequency spectrum of singletons by individual
+table(table(others))
+singleton.coverages <- cbind( major=majors[cbind(singletons,others)], minor=minors[cbind(singletons,others)] )
+plot(singleton.coverages,main="major/minor coverages at singleton sites")
+```
+These all look pretty well supported, actually.
+
+
+
+Errors?
+-------
+
+Now, feeling pretty good about assuming that the major allele at each site is the true site, except for maybe a couple of cases,
+let's see how mismatches to the major allele look.
+First, let's look at the error spectrum, i.e. the counts for each other base, split up by which is the major allele.
+```{r error_pattern}
+error.mat <- sapply( 1:4, function (k) {
+        sapply( 1:4, function (j) {
+                sum( clist[[k]][major.allele==j], na.rm=TRUE )
+            } )
+    } )
+dimnames(error.mat) <- list( paste("major:",bases,sep=''), bases )
+# raw counts
+pander(error.mat)
+# probabilities
+pander(error.mat/rowSums(error.mat))
+```
+
+Mitochondrial pseudogenes
+-------------------------
+
+Now, let's see how these lie along the chromosome.
+Here's a plot of coverage normalized by mean coverage for the tortoise,
+and then minor allele frequency, with sites with coverage less than 10 masked out:
 ```{r plot_majors, fig.width=4*fig.dim, cache=TRUE, depends="major_minor"}
 matplot(sweep(coverage,2,mean.coverage,"/"),type='l',lty=1,col=adjustcolor(rainbow(32),0.5),main="coverage")
-matplot(minors/coverage,type='l',lty=1,col=adjustcolor(rainbow(32),0.5),main="minor allele(s) frequency")
-```
-The outliers are the tortoises with really low coverage.
-
-and then let's see if a there's a pattern in the errors,
-by looking at the counts for each other base, split up by which is the major allele.
-```{r error_pattern, fig.width=3*fig.dim}
-layout(t(1:3))
-for (k in 1:4) {
-    usethese <- which(major.allele==k)
-    for (j in setdiff(1:4,k)) {
-        plot( rowSums(total)[usethese], total[usethese,j], main=paste("major:",bases[k],"other:",bases[j]), xlab="coverage", ylab=paste(bases[j],"count") )
-    }
-}
+minorfreq <- minors/coverage
+minorfreq[coverage<10] <- NA
+matplot(minorfreq,type='l',lty=1,col=adjustcolor(rainbow(32),0.5),main="minor allele(s) frequency")
 ```
 
-This pretty clearly shows the sites at which polymorphism is common.
-First, here's the CDF of the minor allele frequency (in the whole dataset!),
-and then a plot of the minor allele frequency against the proportion of individuals
+More usefully, here's a plot of *total* minor allele frequency:
+```{r plot_mionrs, fig.width=4*fig.dim, cache=TRUE, depends="major_minor"}
+plot(rowSums(minors)/rowSums(coverage),pch=20)
+abline(h=1/mean(coverage))
+```
+So, in certain regions, at certain sites, there are consistently the same alleles popping up in around 4% of the reads.
+Since we have nuclear coverage of about 1x,
+that's about right for nuclear copies sneaking in
+(the horizontal line is at 1/mean(coverage) = `r 1/mean(coverage)`).
+
+
+Complementing this, here is a plot of the minor allele frequency against the proportion of individuals
 in which that site is polymorphic:
-```{r minor_CDF}
+```{r minor_CDF, fig.width=fig.dim}
 poly <- rowSums( coverage>0 & minors>0 )/rowSums( coverage>0 )
-layout(t(1:2))
-plot( ecdf(minor.freqs) )
-plot( ecdf(poly), col='red', add=TRUE, pch=NA )
-legend("bottomright",lty=1,col=c("black","red"),legend=c("minor allele frequency","proportion of polymorphic samples"))
 plot( minor.freqs, poly, xlab="minor allele frequency", ylab="proportion of polymorphic samples" )
 ```
-Gee, I was hoping a lot of those sites would be polymorphic in no-one.
+This curve cries out for an explanation; it probably has to do with SNPs of varying frequency in the nuclear copies.
 
-We'll pull out the sites with minor allele frequency (in the whole dataset!) above 1% and see where they are
-(this is `r sum(rowSums(minors)/total.coverage>0.01)` sites, or `r mean(rowSums(minors)/rowSums(coverage)>0.01)` of the sites).
-```{r poly_sites, cache=TRUE, depends="major_minor", fig.width=fig.dim}
-poly.sites <- which( minor.freqs > 0.01 )
-plot( total.coverage/mean(total.coverage), lwd=2, col=adjustcolor("black",0.5), ylim=c(0,1.4), type='l', ylab="" )
-points( poly.sites, minor.freqs[poly.sites], pch=20, cex=2 )
-segments( x0=poly.sites, y0=0, y1=minor.freqs[poly.sites] )
-legend("topleft",lty=c(1,NA),pch=c(NA,20),legend=c("total relative coverage","total minor allele frequency"))
+
+Errors?!?
+---------
+
+What proportion of the minor allele reads come from the nuclear copies?
+Well, here is the distribution of total number of minor alleles seen,
+both in counts and in frequencies.
+```{r table_nonmajor}
+layout(t(1:2))
+plot( table( rowSums(minors) ), xlim=c(0,100), main="number of sites with minor frequency", xlab="minor allele count" )
+plot( table( rowSums(minors) )/nrow(minors), xlim=c(0,100), main="frequency of sites", xlab="minor allele count" )
 ```
+So, there are `r sum(rowSums(minors)==1)` sites where all but one read agreed, 
+which is `r mean(rowSums(minors)==1)` of the sites.
+
+Let's see how estimation of error rate is affected by those duplicates.
+The mean proportion of minor alleles is 
+`r sum(minors)/sum(coverage)`,
+while if we omit the sites with minor allele frequency above 1% (likely due to nuclear duplicates),
+thus dropping only a fraction
+`r nondups <- (rowSums(minors)/rowSums(coverage)<.01); mean(nondups)`
+of the sites,
+this drops substantially to
+`r sum(minors[nondups,])/sum(coverage[nondups,])`.
+So, the duplicated regions account for a substantial fraction of the read-based heterozygosity.
 
 
 Error rates
 ===========
 
-OK, to get to the bottom of which ones are suprising we need to look at error rates.
-If we suppose that all non-major reads are in error,
-then here's the distribution of error rates by tortoise:
-```{r estimate_error, cache=TRUE, depends='major_minor', fig.width=fig.dim}
-first.error <- colSums(minors)/colSums(coverage)
-hist(first.error,breaks=25)
+What to do for estimating the basic, per-read error rate?
+Well, there's a region of 1Kb from 1801--2800 that doesn't appear to have any mismapped reads:
+```{r show_goodregion}
+goodregion <- seq(1801,2800)
+plot(rowSums(minors)/rowSums(coverage),pch=20,xlim=range(goodregion))
+muhat <- sum(minors[goodregion,])/sum(coverage[goodregion,])
 ```
-The mean is `r mean(first.error)`.
-So, let's use that to see which sites
-have a suprising number of minor allele reads
-The log-likelihood under a uniform-error model at each site can be split up
+... so we could get an overall estimate of per-read error rate from there.
+That works out to
+$$
+\hat \mu = `r muhat` ,
+$$
+with a 95% confidence interval of `r muhat + c(-2,2)*sqrt(muhat*(1-muhat)/sum(coverage[goodregion,]))`
+which seems amazingly low?
+
+But, we'd really like to get at per-individual heterogeneity.
+Here's the breakdown of total number of minor and major counts in this region by individual,
+along with the $y = \hat \mu x$ line
+and the 0.1% and 99.9% quantiles for the Poisson($\hat \mu x$) distributions.
+```{r plot_goodregion, fig.width=fig.dim}
+goodcounts <- data.frame( coverage=colSums(coverage[goodregion,]), minor=colSums(minors[goodregion,]) )
+cov.vals <- with(goodcounts, { seq(min(coverage),max(coverage),length.out=50) } )
+quants <- sapply( c(.001,.999), function (q) { qpois( q, cov.vals*muhat ) } )
+plot( minor ~ coverage, xlab="total coverage per individual", ylab="minor allele count per individual", data=goodcounts )
+abline(0, muhat)
+matplot( cov.vals, quants, lty=3, type='l', add=TRUE )
+```
+That some of the `r nsamples` individuals fall outside of these quantiles
+indicates that there is significant heterogeneity in error rate.
+
+To check on the replicability of this, let's do this for another good region,
+from 4500--5500:
+```{r show_goodregion_2}
+goodregion.2 <- seq(4500,5500)
+plot(rowSums(minors)/rowSums(coverage),pch=20,xlim=range(goodregion.2))
+muhat.2 <- sum(minors[goodregion.2,])/sum(coverage[goodregion.2,])
+```
+Here we get $\hat \mu = `r muhat.2`$, 
+with a 95% confidence interval of `r muhat.2 + c(-2,2)*sqrt(muhat.2*(1-muhat.2)/sum(coverage[goodregion.2,]))`
+Now we can plot the error estimates per individual in the two regions against each other:
+```{r compare_regions}
+goodcounts.2 <- data.frame( coverage=colSums(coverage[goodregion.2,]), minor=colSums(minors[goodregion.2,]) )
+plot( with(goodcounts,minor/coverage), with(goodcounts.2,minor/coverage), xlab="region 1", ylab="region 2" )
+```
+The correlation between them is 
+`r cor( with(goodcounts.2,minor/coverage), with(goodcounts,minor/coverage) )` (and significant).
