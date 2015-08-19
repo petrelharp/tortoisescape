@@ -12,7 +12,6 @@ rmd <- '
     layer.files <- list.files(pattern="[.]((grd)|(tif)|(asc))$")
     layer.names <- gsub("[.]((grd)|(tif)|(asc))$","",layer.files)
     tort.loc.obj <- load(file.path(gsub("tortoisescape.*","tortoisescape",normalizePath(getwd())),"tort_272_info/geog_coords.RData"))
-    assign("tort.locs",get(tort.loc.obj))
     dem.name <- list.files("../expanded/64x",pattern="dem_30.grd",full.names=TRUE)
     do.contour <- ( length(dem.name) > 0 )
     if (do.contour) { dem <- raster(dem.name[1]) }
@@ -20,12 +19,13 @@ rmd <- '
 ```{r plot_layers, echo=FALSE, warning=FALSE}
     for (k in seq_along(layer.files)) {
         layer <- raster(layer.files[k])
+        tort.locs <- spTransform(get(tort.loc.obj),CRSobj=CRS(proj4string(layer)))
         if (!compareRaster(layer,dem,stopiffalse=FALSE)) {
             dem <- projectRaster(dem,layer)
         }
         contour(dem,col=adjustcolor("black",0.2),main=layer.names[k])
         plot(layer,add=TRUE)
-        points(tort.locs,pch=20,cex=0.5)
+        points(tort.locs,pch=20,cex=0.5,col='red')
     }
 ```
 '
