@@ -3,18 +3,20 @@ library(methods)  # required for get( ) below... ???
 
 usage <- "Makes many images for a single data frame of pairwise comparisons: one for each thing being compared.
 Usage:
-    Rscript distance-maps.R (distance file) (sample info directory) (output directory)
+    Rscript distance-maps.R (geog distance file) (genetic distance file) (sample info directory) (output directory)
 "
 
 argvec <- if (interactive()) { scan(what="char") } else { commandArgs(TRUE) }
 
-if (length(argvec)<3) { stop(usage) }
+if (length(argvec)<4) { stop(usage) }
 
-dist.file <- argvec[1]
-indir <- argvec[2]
-outdir <- argvec[3]
+dist1.file <- argvec[1]
+dist2.file <- argvec[2]
+indir <- argvec[3]
+outdir <- argvec[4]
 
-dist <- read.csv(dist.file,header=TRUE,stringsAsFactors=FALSE)
+dist1 <- read.csv(dist1.file,header=TRUE,stringsAsFactors=FALSE)
+dist2 <- read.csv(dist2.file,header=TRUE,stringsAsFactors=FALSE)
 dir.create(outdir,showWarnings=FALSE)
 
 # locations
@@ -43,29 +45,32 @@ tour <- solve_TSP( etsp, method="linkern" )
 tour.labels <- t(outer(letters,letters,paste,sep=''))[seq_len(length(tour))]
 
 png( file=file.path(outdir,"plot-order.png"), width=4*144, height=4*144, pointsize=10, res=144 )
-player("tour")
-segments(x0=xy[tour,1],x1=xy[c(tour[-1],tour[1]),1],
-    y0=xy[tour,2],y1=xy[c(tour[-1],tour[1]),2])
+    player("tour")
+    segments(x0=xy[tour,1],x1=xy[c(tour[-1],tour[1]),1],
+        y0=xy[tour,2],y1=xy[c(tour[-1],tour[1]),2])
 dev.off()
 
 
 
 # First plot self-comparisons
-png( file=file.path(outdir,"self-comparisons.png"), width=8*144, height=4*144, pointsize=10, res=144 )
-layout(t(1:2))
-par(mar=c(1,1,2,1))
-usethese <- ( dist$etort1 == dist$etort2 )
-thiscolors <- pc.cols[ match(dist$etort1,tort.ids) ]
-x <- dist[usethese,3]
-player("self-similarities")
-points(coords,pch=20,col=pc.cols,cex=3/(1+exp((x-min(x))/sd(x))))
-player("self-distances")
-points(coords,pch=20,col=pc.cols,cex=(x-min(x))/(2*sd(x)))
+png( file=file.path(outdir,"self-comparisons.png"), width=12*144, height=4*144, pointsize=10, res=144 )
+    layout(t(1:3))
+    opar <- par(mar=c(1,1,2,1))
+    usethese <- ( dist2$etort1 == dist2$etort2 )
+    thiscolors <- pc.cols[ match(dist2$etort1,tort.ids) ]
+    x <- dist2[usethese,3]
+    player("self-similarities")
+    points(coords,pch=20,col=pc.cols,cex=3/(1+exp((x-min(x))/sd(x))))
+    player("self-distances")
+    points(coords,pch=20,col=pc.cols,cex=(x-min(x))/(2*sd(x)))
+    par(opar)
+    plot( dist1[,3], dist2[,3], pch=20, cex=.5, 
+        col=adjustcolor("black",.25), xlab=dist1.file, ylab=dist2.file )
 dev.off()
 
-relatives <- ( (dist$etort1==dist$etort2) | ( dist[,3] < quantile(subset(dist,etort1==etort2)[,3],0.75) ) )
-mindist <- min(dist[!relatives,3])
-sddist <- sd(dist[!relatives,3])
+relatives <- ( (dist2$etort1==dist2$etort2) | ( dist2[,3] < quantile(subset(dist2,etort1==etort2)[,3],0.75) ) )
+mindist <- min(dist2[!relatives,3])
+sddist <- sd(dist2[!relatives,3])
 sfn <- function (x,max.cex=7) {
     max.cex/( 1 + exp( (x-mindist)/sddist ) )
 }
@@ -77,17 +82,21 @@ dfn <- function (x) {
 for (k in seq_along(tort.ids)) {
     tid <- tort.ids[tour[k]]
     cat(tid,"\n")
-  png( file=file.path(outdir,paste(tour.labels[k], "_",gsub("[^0-9a-z-]","_",tid),".png",sep='')), width=8*144, height=4*144, pointsize=10, res=144 )
-    layout(t(1:2))
-    par(mar=c(1,1,2,1))
-    usethese <- ( dist$etort1 != dist$etort2 ) & ( ( dist$etort1 == tid ) | ( dist$etort2 == tid ) )
-    otherone <- ifelse( dist$etort1[usethese] == tid, dist$etort2[usethese], dist$etort1[usethese] )
+  png( file=file.path(outdir,paste(tour.labels[k], "_",gsub("[^0-9a-z-]","_",tid),".png",sep='')), width=12*144, height=4*144, pointsize=10, res=144 )
+    layout(t(1:3))
+    opar <- par(mar=c(1,1,2,1))
+    usethese <- ( dist2$etort1 != dist2$etort2 ) & ( ( dist2$etort1 == tid ) | ( dist2$etort2 == tid ) )
+    otherone <- ifelse( dist2$etort1[usethese] == tid, dist2$etort2[usethese], dist2$etort1[usethese] )
     thiscolors <- pc.cols[ match(otherone,tort.ids) ]
     player(paste(tid," similarities"))
-    points(coords[match(otherone,pcs$etort)],pch=20,cex=sfn(dist[,3][usethese]),col=thiscolors)
+    points(coords[match(otherone,tort.ids)],pch=20,cex=sfn(dist2[,3][usethese]),col=thiscolors)
     points(coords[match(tid,tort.ids)],pch="*",cex=2)
     player(paste(tid," distances"))
-    points(coords[match(otherone,tort.ids)],pch=20,cex=dfn(dist[,3][usethese]),col=thiscolors)
+    points(coords[match(otherone,tort.ids)],pch=20,cex=dfn(dist2[,3][usethese]),col=thiscolors)
     points(coords[match(tid,tort.ids)],pch="*",cex=2)
+    par(opar)
+    plot( dist1[,3], dist2[,3], pch=20, cex=.5, 
+        col=adjustcolor("black",.25), xlab=dist1.file, ylab=dist2.file )
+    points( dist1[,3][usethese], dist2[,3][usethese], pch=20, col=thiscolors, cex=1.5 )
   dev.off()
 }

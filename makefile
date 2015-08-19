@@ -47,7 +47,11 @@ tort_272_info/all_sites_pwp_minus_het_pngs : tort_272_info/geog_distance.csv tor
 	cd tort_272_info; Rscript ../visualization/plot-pwp-pngs.R geog_distance.csv all_sites_minus_het.pwp.csv . all_sites_pwp_minus_het_pngs
 
 tort_272_info/all_angsd_snps_distance_maps : tort_272_info/all_angsd_snps.pwp.csv
-	cd tort_272_info; Rscript ../visualization/distance-maps.R all_angsd_snps.pwp.csv . all_angsd_snps_distance_maps
+	cd tort_272_info; Rscript ../visualization/distance-maps.R geog_distance.csv all_angsd_snps.pwp.csv . all_angsd_snps_distance_maps
+
+%_distance_maps : %.pwp.csv
+	cd tort_272_info; Rscript ../visualization/distance-maps.R geog_distance.csv $(notdir $<) . $(notdir $@)
+	make $@/index.html
 
 %/index.html :
 	R --vanilla -e "dirname=\"../$*\";knitr::knit(\"visualization/index.Rmd\",output=\"$*/index.md\")"
