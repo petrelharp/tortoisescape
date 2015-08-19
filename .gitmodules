@@ -1,0 +1,3 @@
+[submodule "pairwisePi/msarg"]
+	path = pairwisePi/msarg
+	url = git@github.com:petrelharp/msarg

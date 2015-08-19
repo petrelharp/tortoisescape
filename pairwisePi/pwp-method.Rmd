@@ -1,26 +1,102 @@
+---
+Title: "Robust, unbiased estimates of mean pairwise divergence"
+author: "Peter Ralph"
+date: "`r date()`"
+---
+
+
 ```{r setup, include=FALSE}
+library(pander)
 fig.dim <- 5
-knitr::opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 ```
 
-Simulated data
-==============
+Simulated data: geography
+=========================
 
-Here's a function to simulate data:
+To simulate genotypes, we will use `msarg`, 
+on a 50 x 50 grid of populations with a barrier up the middle:
+```{r msarg_sim}
+source("msarg/msarg.R")
+nrow <- 50                # width of grid
+ncol <- 50                # height of grid
+barrier.time <- 3         # time ago the barrier ended (in units of Ne)
+rejoin.time <- 5          # time ago the barrier began
+barrier.rows <- c(25)  # locations of the barrier
+dem <- demography( grid_array(nlayers=1,nrow=nrow,ncol=ncol,N=1,mig.rate=1) )
+dem <- add_to_demography( dem, tnew=barrier.time, fn=add_barrier, layer=1, rows=barrier.rows )
+dem <- add_to_demography( dem, tnew=rejoin.time, pop=dem[[1]] )
+```
+We will sample four samples (two diploids) from each of 10 random locations:
+```{r sample_locs, fig.width=fig.dim}
+nsamps <- 10
+sample.config <- sort_sample_config( cbind(
+        row=sample.int(nrow,nsamps),
+        col=sample.int(ncol,nsamps),
+        layer=rep(1,nsamps),
+        n=rep(4,nsamps)
+    ) )
+plot_sample_config(dem[[1]],sample.config)
+abline(v=25)
+```
+and use this to run `ms`:
+```{r run_ms}
+ms.output <- run_ms( dem, nsamp=sample.config, theta=0.01, nreps=3 )
+ms.run <- read_msrun(ms.output)
+ms.seq <- msseq(ms.run,nloci=1000)
+ms.seq[[1]]
+```
+The output is stored in the directory `r ms.output`.
+Now, let's write the sequences out to fasta (in the same directory),
+and simulate reads from them (this uses Bernard Haubold's [sequencer](http://guanine.evolbio.mpg.de/bioBox/))
+```{r output_sequence}
+# output to fasta
+fastas <- to_fasta(ms.seq,file=file.path(ms.output,"indiv_%.fa"))
+readfiles <- sample_reads( fastas, coverage=10, error.prob=0.005  )
+```
+
+Here is the true matrix of pairwise divergences, across all loci:
+```{r show_pimat}
+sim.pimat <- pimat(ms.seq)
+pander(as.matrix(sim.pimat))
+```
+
+
+
+Simpler simulations
+===================
+
+
+The simulation has the following parameters:
+-  $p_\text{seg}$ : overall density of segregating sites
+-  $p_i$ : the mean heterozygosity of the $i^\text{th}$ individual
+-  $c_i$ : the mean coverage of the $i^\text{th}$ individual
+-  $\epsilon$ : the error probability per read
+Then, each site is independently segregating with probability $p_\text{seg}$;
+each individual is independently heterozygous at each segregating site with probability $p_i/p_\text{seg}$;
+the coverage of the $i^\text{th}$ individual at the $\ell^\text{th}$ site is independently Poisson with mean $c_i$;
+and read counts are drawn from a Binomial with the appropriate parameters.
+
+Here's a function that simulates this, returning (locus x individuals) matrices of coverages, and major allele counts:
 ```{r setup_params}
 siminds <- function (dhet,phet,coverage,nloci=1e6,perr=0.01) {
     # dhet is density of segregegating sites
-    # phet and coverage are vectors
-    stopifnot(all(phet<=dhet))
+    # phet is a vector of heterozygosities per sample
+    # coverage is a vector of coverages per individual
+    # phet/dhet is the probability that a sample is heterozygous given the site is segregating
+    stopifnot(all(phet<=dhet))  
     nsamples <- length(coverage)
-    # same segregating sites between torts
+    # choose which sites are truly segregating
     het.sites <- rbinom( nloci, size=1, prob=dhet )
+    # and choose at which of these each sample is truly heterozygous
     hets <- do.call( cbind, lapply( 1:nsamples, function (k) { 
                 rbinom( nloci, size=1, prob=ifelse(het.sites,phet[k]/dhet,0) )
             } ) )
+    # sample coverages
     coverages <- do.call( cbind, lapply( 1:nsamples, function (k) { 
                 rpois( nloci, coverage[k] ) 
             } ) )
+    # and finally sample allele counts
     counts <- sapply( 1:nsamples, function (k) {
             rbinom( nloci, size=coverages[,k], prob=ifelse(hets[,k],1/2,perr) )
         } )
@@ -28,8 +104,34 @@ siminds <- function (dhet,phet,coverage,nloci=1e6,perr=0.01) {
 }
 ```
 
-
-And here's a function to compute heterozygosities:
+Let $C_{i,\ell}$ be the coverage of individual $i$ at site $\ell$,
+and $N_{i,\ell}$ be the number of observed reads with the allele we are counting.
+We then estimate raw heterozygosity (which includes errors!)
+by first defining the weights
+$$ W_{i,j,\ell} = C_{i,\ell} ( C_{j,\ell} - \delta_{i,j} ) $$
+where $\delta_{i,j} = 1$ if $i=j$ and is zero otherwise,
+and then computing the weighted probability that randomly chosen reads differ.
+For $i \neq j$, this is
+$$ 
+\hat \pi_{i,j} 
+= 
+\frac{ 
+    \sum_{\ell} W_{i,j,\ell} \left( N_{i,\ell}(C_{j,\ell}-N_{j,\ell}) - N_{j,\ell}(C_{i,\ell}-N_{i,\ell}) \right) 
+    }{ 
+    \sum_\ell W_{i,j,\ell}
+}  
+$$
+and for $i=j$, this is
+$$ 
+\hat \pi_{i,i} 
+= 
+\frac{ 
+    \sum_{\ell:C_{i,\ell>0} W_{i,i,\ell} 2 N_{i,\ell}(C_{i,\ell}-N_{i,\ell})
+    }{ 
+    \sum_{\ell:C_i>0} W_{i,i,\ell}
+}  .
+$$
+Here is a function to compute this:
 ```{r pwp_fn}
 pwp <- function (counts,coverages) {
     pwp <- numeric( ncol(coverages)^2 )
