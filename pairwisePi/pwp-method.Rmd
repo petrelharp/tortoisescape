@@ -1,6 +1,6 @@
 ```{r setup, include=FALSE}
 fig.dim <- 5
-opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
+knitr::opts_chunk$set(fig.width=2*fig.dim,fig.align='center')
 ```
 
 Simulated data
