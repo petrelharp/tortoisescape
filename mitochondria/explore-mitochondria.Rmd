@@ -8,6 +8,10 @@ library(pander)
 options(scipen=3)
 fig.dim <- 5
 knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+# locations and labels
+coord.obj <- load(file.path("../tort_272_info","geog_coords.RData"))
+coords <- get(coord.obj)
+tort.ids <- row.names(coords)
 ```
 
 Here's some exploratory plots for etort-100.
@@ -60,13 +64,9 @@ counts <- as.matrix(read.table("mt272.counts.gz",header=TRUE))
 nsamples <- ncol(counts)/4
 bases <- c("A","C","G","T")
 clist <- lapply(c(A=1,C=2,G=3,T=4),function(shift){counts[,shift+seq(0,by=4,length.out=nsamples)]})
-indivs <- lapply( clist, function (x) sapply( strsplit(colnames(x),"_"), "[", 1 ) )
-stopifnot( 
-    isTRUE(all.equal( indivs[[1]], indivs[[2]] )) 
-    && isTRUE(all.equal( indivs[[1]], indivs[[3]] )) 
-    && isTRUE(all.equal( indivs[[1]], indivs[[4]] )) 
-    )
-colnames(clist$A) <- colnames(clist$C) <- colnames(clist$G) <- colnames(clist$T) <- indivs <- indivs[[1]]
+stopifnot( length(tort.ids) == nsamples )
+indivs <- tort.ids
+colnames(clist$A) <- colnames(clist$C) <- colnames(clist$G) <- colnames(clist$T) <- indivs
 coverage <- clist$A + clist$C + clist$G + clist$T
 mean.coverage <- colMeans(coverage)
 ```
@@ -135,22 +135,39 @@ Polymorphic sites?
 ------------------
 
 Now, let's get an idea of how many truly polymorphic sites there are, i.e., those having more than one different major allele across individuals.
+In total, there are 
+`r sum( rowSums(major.allele!=total.major.allele,na.rm=TRUE)>0 )`
+such sites,
+which is a proportion 
+`r sum( rowSums(major.allele!=total.major.allele,na.rm=TRUE)>0 )/NROW(major.allele)` of the total.
 For instance, here is the table of how many sites have how many individuals with a different major allele:
 ```{r npoly_table}
 pander( table(rowSums(major.allele != total.major.allele)) )
 ```
 Immediately, we see that there is (probably) a haplotype differing by 30 SNPs shared by 118 of the individuals.
-Let's look at those `r sum(rowSums(major.allele != total.major.allele) == 1)` sites where only one individual had a different major allele.
+Let's look at those `r sum(rowSums(major.allele != total.major.allele,na.rm=TRUE) == 1)` sites where only one individual had a different major allele.
 Are those mostly errors or not?
 ```{r examine_singletons}
 singletons <- which( rowSums(major.allele != total.major.allele) == 1 )
 others <- sapply( singletons, function (k) { which(major.allele[k,]!=total.major.allele[k]) } )
-# frequency spectrum of singletons by individual
-table(table(others))
 singleton.coverages <- cbind( major=majors[cbind(singletons,others)], minor=minors[cbind(singletons,others)] )
-plot(singleton.coverages,main="major/minor coverages at singleton sites")
+plot(jitter(singleton.coverages,factor=0.5),main="major/minor coverages at singleton sites")
 ```
-These all look pretty well supported, actually.
+These mostly look pretty well supported, but I don't know what's going on with the sites with high coverage for two alleles.
+By individual, these break down as follows:
+```{r singleton_indivs}
+# frequency spectrum of singletons by individual
+pander(table(table(names(others))))
+```
+For instance, 
+`r sum(table(others)==1)` 
+individuals have only one site at which their major allele differs from everyone else's,
+while  tortoise
+`r names(table(names(others))[which.max(table(names(others)))])`
+has
+`r max(table(names(others)))`
+such sites.
+
 
 
 
@@ -225,7 +242,7 @@ The mean proportion of minor alleles is
 `r sum(minors)/sum(coverage)`,
 while if we omit the sites with minor allele frequency above 1% (likely due to nuclear duplicates),
 thus dropping only a fraction
-`r nondups <- (rowSums(minors)/rowSums(coverage)<.01); mean(nondups)`
+`r nondups <- (rowSums(minors)/rowSums(coverage)<.01); mean(1-nondups)`
 of the sites,
 this drops substantially to
 `r sum(minors[nondups,])/sum(coverage[nondups,])`.
@@ -248,7 +265,7 @@ $$
 \hat \mu = `r muhat` ,
 $$
 with a 95% confidence interval of `r muhat + c(-2,2)*sqrt(muhat*(1-muhat)/sum(coverage[goodregion,]))`
-which seems amazingly low?
+which seems reassuringly low.
 
 But, we'd really like to get at per-individual heterogeneity.
 Here's the breakdown of total number of minor and major counts in this region by individual,
@@ -260,10 +277,10 @@ cov.vals <- with(goodcounts, { seq(min(coverage),max(coverage),length.out=50) } 
 quants <- sapply( c(.001,.999), function (q) { qpois( q, cov.vals*muhat ) } )
 plot( minor ~ coverage, xlab="total coverage per individual", ylab="minor allele count per individual", data=goodcounts )
 abline(0, muhat)
-matplot( cov.vals, quants, lty=3, type='l', add=TRUE )
+matlines( cov.vals, quants, lty=3, type='l', col='red')
 ```
 That some of the `r nsamples` individuals fall outside of these quantiles
-indicates that there is significant heterogeneity in error rate.
+indicates that there is (statistically) significant heterogeneity in error rate.
 
 To check on the replicability of this, let's do this for another good region,
 from 4500--5500:
@@ -274,10 +291,12 @@ muhat.2 <- sum(minors[goodregion.2,])/sum(coverage[goodregion.2,])
 ```
 Here we get $\hat \mu = `r muhat.2`$, 
 with a 95% confidence interval of `r muhat.2 + c(-2,2)*sqrt(muhat.2*(1-muhat.2)/sum(coverage[goodregion.2,]))`
-Now we can plot the error estimates per individual in the two regions against each other:
+Now we can plot the error estimates per individual in the two regions against each other
+(the line is $y=x$)
 ```{r compare_regions}
 goodcounts.2 <- data.frame( coverage=colSums(coverage[goodregion.2,]), minor=colSums(minors[goodregion.2,]) )
 plot( with(goodcounts,minor/coverage), with(goodcounts.2,minor/coverage), xlab="region 1", ylab="region 2" )
+abline(0,1)
 ```
 The correlation between them is 
 `r cor( with(goodcounts.2,minor/coverage), with(goodcounts,minor/coverage) )` (and significant).
