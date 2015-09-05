@@ -3,7 +3,7 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{graphicx}
 \usepackage{natbib}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 
 \renewcommand{\P}{\mathbb{P}}
 \newcommand{\E}{\mathbb{E}}
@@ -141,6 +141,121 @@ Therefore, $D$ estimates
 \end{align}
 
 It might be possible to esimate $q_k$, $\pi$, and $\nu$ by looking at mean divergence as a function of coverage.
+
+
+%%%%%%%%%%%%%%%%%%
+\section*{Variance in heterozygosity}
+
+Let $X$ and $Y$ be independent pairs of alleles sampled from a diploid individual
+with overall heterozygosity $\pi$;
+so, $X$ and $Y$ are each Bernoulli($P$), where $P=1/2$ with probability $\pi$
+and $P=\epsilon$ otherwise.
+Then,
+\begin{align}
+    \cov[X,Y] &= \frac{\pi}{4} + \epsilon(1-\pi) - \left( \frac{\pi}{2} + \epsilon(1-\pi) \right)^2 \\
+        &= \pi (1-\pi) \left(\epsilon-\frac{1}{2}\right)^2 .
+\end{align}
+More generally,
+\begin{align}
+    \cov[X,Y] = \var[P] ,
+\end{align}
+which includes variation in error rate across sites.
+
+
+\section*{Covariance of heterozygosity}
+
+Consider a pair of haploid individuals, $x$ and $y$.
+At each site $i$ on the genome, we can pick a random allele from each individuals' genotypes;
+let $H_i(x,y)=1$ if the two differ (i.e., are heterozygous) and $H_i(x,y)=0$ otherwise.
+We are then interested in the autocorrelation function of $H$.
+This is similar to Lynch et al (\url{http://www.ncbi.nlm.nih.gov/pubmed/24948778}).
+
+We actually have diploid individuals: pairs of haploids $(x_1,x_2)$ and $(y_1,y_2)$.
+Heterozygosity is then $H(x,y) = (H(x_1,y_1)+H(x_1,y_2)+H(x_2,y_1)+H(x_2,y_2))/4$,
+and 
+\begin{align}
+    \cov[H_i(x,y), H_j(x,y)] = \frac{1}{16} \sum_{abcd} \cov[H_i(x_a,y_b),H_j(x_c,y_d)],
+\end{align}
+where the sum is over choices of $a$, $b$, $c$, and $d$ from $\{1,2\}$.
+Only four of the 16 terms are covariances in heterozygosities
+between the same pair of chromosomes,
+but the others will give us information to the extent that
+the two chromosomes of an individual tend to coalesce before they coalesce with another.
+(Also, since they're at the same place in space, coalescent times are correlated.)
+
+Now fix $x$ and $y$.
+Define
+\begin{align}
+    \pi = \frac{1}{L} \sum_i H_i .
+\end{align}
+We want to estimate
+\begin{align}
+    A(d) = \frac{1}{L-d} \sum_{i=1}^L (H_{i}-\pi)(H_{i+d}-\pi) .
+\end{align}
+
+We know already that
+\begin{align}
+    \E\left[ 1 - \sum_a Y_i(a) \right] = H_i ,
+\end{align}
+independently of $C_i$,
+where $Y$ is as above and should be replaced by $Z$ if $x=y$.
+The natural thing is to proceed as above,
+using the weighted estimator
+\begin{align}
+    A_{xy}(d) = \frac{ \sum_{i=1}^L C_i^x C_i^y C_{i+d}^x C_{i+d}^y (1-\sum_a Y_i(a)-D)(1-\sum_a Y_{i+d}(a)-D)  }{\sum_{i=1}^L C_i^x C_i^y C_{i+d}^x C_{i+d}^y }. 
+\end{align}
+where $D$ is the estimate of $\pi$ from above.
+We only need to modify this if $x=y$ and/or $d=0$.
+
+If $x=y$ and $d>0$ then we can replace $Y$ with $Z$.
+
+If $x=y$ and $d=0$, then we need to replace $Y_i(a)$ with
+the probability that two different pairs of alleles each differ
+(requiring $C_i \ge 4$),
+which is 
+$(1-\sum_a p_i(a)^2)^2$.
+If we define
+\begin{align}
+    U_i &= \left(1 - \sum_a \frac{ N_i(a) (N_i(a)-1) }{ N_i (N_i-1) } \right)^2 
+        + \sum_a \left\{ 
+            \left( \frac{ N_i(a) (N_i(a)-1) }{ N_i (N_i-1) } \right)^2
+            - \frac{ N_i(a) (N_i(a)-1) (N_i(a)-2) (N_i(a)-3) }{ N_i (N_i-1) (N_i-2) (N_i-3) } 
+        \right\} \\
+        &= \left(1 - \sum_a \frac{ N_i(a) (N_i(a)-1) }{ N_i (N_i-1) } \right)^2 
+        + \sum_a \left( \frac{ N_i(a) (N_i(a)-1) }{ N_i (N_i-1) } \right)
+        \left( \frac{ N_i(a) (N_i(a)-1) }{ N_i (N_i-1) } - \frac{ (N_i(a)-2) (N_i(a)-3) }{ (N_i-2) (N_i-3) }  \right)
+\end{align}
+then
+\begin{align}
+    \E[ U_i ] = (1-\sum_a p_i(a)^2)^2 ,
+\end{align}
+and so we estimate $A_{xx}(0)$ with
+\begin{align}
+    A_{xx}(0) = \frac{ \sum_{i=1}^L C_i (C_i-1) (C_i-2) (C_i-3) (U_i-D^2)  }{ \sum_{i=1}^L C_i (C_i-1) (C_i-2) (C_i-3) }. 
+\end{align}
+
+If $x \neq y$ but $d=0$
+then we want to estimate $(1-\sum_a p_i(a)^2)(1-\sum_a p_j(a)^2)$,
+the chance that two independent pairs of alleles both differ,
+in each pair having one allele from $x$ and the other from $y$.
+This is estimated by
+\begin{align}
+    V_i &= \left(1 - \sum_a \frac{ N^x_i(a) N^2_i(a) }{ N^x_i N^y_i } \right)^2
+    + \sum_a 
+        \left( \frac{ N^x_i(a) N^y_i(a) }{ N^x_i N^y_i } \right)
+        \left(
+            \frac{ N^x_i(a) N^y_i(a) }{ N^x_i N^y_i } 
+            - \frac{ (N^x_i(a)-1) (N^y_i(a)-1) }{ (N^x_i-1) (N^y_i-1) } 
+        \right)
+\end{align}
+and so we estimate $A_{xy}(0)$ with
+\begin{align}
+    A_{xy}(0) = \frac{ \sum_{i=1}^L C^x_i (C^x_i-1) C^y_i (C^y_i-1) (V_i-D^2) }{ \sum_{i=1}^L C^x_i (C^x_i-1) C^y_i (C^y_i-1) }. 
+\end{align}
+
+This is ignoring corrections due to the fact that $D$ is an estimator itself,
+but those will be tiny.
+
 
 
 \end{document}

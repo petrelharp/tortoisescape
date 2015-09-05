@@ -1,0 +1,143 @@
+---
+title: "Geographic distribution of SNPs"
+date: "`r date()`"
+---
+
+
+```{r setup, include=FALSE}
+library(pander)
+options(scipen=3)
+fig.dim <- 5
+knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+### set-up as in explore-mitochondria.Rmd
+# locations and labels
+coord.obj <- load(file.path("../tort_272_info","geog_coords.RData"))
+coords <- get(coord.obj)
+tort.ids <- row.names(coords)
+## read in data
+counts.header <- scan("../../angsd-counts/272torts_snp1e6_minmapq20minq30.counts.gz",nlines=1,what="char")
+counts <- scan("../../angsd-counts/272torts_snp1e6_minmapq20minq30.counts.gz",skip=1)
+colnames(counts) <- counts.header
+nsamples <- ncol(counts)/4
+bases <- c("A","C","G","T")
+# counts by base
+clist <- lapply(c(A=1,C=2,G=3,T=4),function(shift){counts[,shift+seq(0,by=4,length.out=nsamples)]})
+stopifnot( length(tort.ids) == nsamples )
+indivs <- tort.ids
+colnames(clist$A) <- colnames(clist$C) <- colnames(clist$G) <- colnames(clist$T) <- indivs
+# coverage by tort and site
+coverage <- clist$A + clist$C + clist$G + clist$T
+# mean coverage by tort
+mean.coverage <- colMeans(coverage)
+# total coverage by site and tort
+total <- do.call(cbind,lapply(clist,rowSums))
+# total coverage by site
+total.coverage <- rowSums(coverage)
+# major allele overall
+total.major.allele <- apply(total,1,which.max)
+# major allele by tort
+major.allele <- ifelse( 
+    pmax(clist[[1]],clist[[2]]) >= pmax(clist[[3]],clist[[4]]),
+        ifelse( clist[[1]] >= clist[[2]], 1, 2 ),
+        ifelse( clist[[3]] >= clist[[4]], 3, 4 ) )
+majors <- counts[ cbind( rep(1:nrow(counts),nsamples), as.vector(major.allele+4*(col(major.allele)-1)) ) ]
+dim(majors) <- c( nrow(counts), nsamples )
+colnames(majors) <- indivs
+# non-major allele counts by tort and site
+minors <- coverage-majors
+minor.freqs <- rowSums(minors)/total.coverage
+# give zero-coverage sites a major allele of NA
+major.allele[majors==0] <- NA
+```
+
+```{r raster_setup, include=FALSE}
+library(raster)
+library(maptools)
+layer <- raster("../visualization/dem_30")
+player <- function (main='') { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",yaxt="n",legend.mar=0,box=FALSE,main=main) }
+# read in other info
+pcs <- read.csv(file.path("../tort_272_info","pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
+stopifnot( all( tort.ids %in% pcs$etort ) )
+pc.cols <- adjustcolor( ifelse( pcs$PC1[match(tort.ids,pcs$etort)] > 0, "blue", "purple" ), .75 )
+```
+
+Geographic distribution of segregating sites
+============================================
+
+Let's see what the geographic distribution of the SNPs on the mitochondria look like.
+First, we need to find them.
+Here are the allele frequencies and locations on the genome of the segregating sites,
+i.e. the ones where some tortoise's major allele differs from the total major allele:
+```{r segregating_sites}
+# for each tortoise, does their major allele match the overall major allele?
+ismajor <- ( major.allele == total.major.allele )
+segregating <- which( apply(!ismajor,1,any,na.rm=TRUE) )
+segfreqs <- 1-rowMeans(ismajor[segregating,],na.rm=TRUE)
+plot( segregating, segfreqs, xlab="position", ylab="minor allele frequency" )
+```
+There are `r length(segregating)` such sites,
+of which `r sum(segfreqs>0.2)` are at minor allele frequency above 20%.
+
+Here are maps of those 58 sites;
+alleles more common in northern tortoises than in southern ones are colored black.
+```{r seg_maps, fig.width=3*fig.dim}
+northern.torts <- (pcs$PC1>0)
+northern.freqs <- rowMeans( ismajor[segregating,northern.torts], na.rm=TRUE )
+southern.freqs <- rowMeans( ismajor[segregating,!northern.torts], na.rm=TRUE )
+northern.alleles <- ismajor[segregating,]
+northern.alleles[(northern.freqs>southern.freqs),] <- !northern.alleles[(northern.freqs>southern.freqs),]
+layout(t(1:3))
+for (k in segregating[segfreqs>0.2]) {
+    kk <- match(k,segregating)
+    player(paste("site",k))
+    points(coords, pch=19,
+            col=adjustcolor(ifelse(northern.alleles[kk,],"blue","purple"),0.5), cex=1)
+    # if (interactive() && is.null(locator(1))) break
+}
+```
+
+The SNPs themselves
+===================
+
+Here is an image of all alleles seen in at least three tortoises,
+with individuals ordered by their projection on PC1,
+and SNPs in order along the chromosome;
+blue is alleles common in the north but not the south;
+purple is an allele common in the south but not the north;
+and red is an allele common nowhere.
+```{r show_data, fig.width=4*fig.dim, fig.height=2*fig.dim}
+nall <- (northern.alleles[rowSums(northern.alleles,na.rm=TRUE)>2,])[,order(pcs$PC1)]
+colmat <- matrix(ifelse(nall,"blue","purple"),nrow=nrow(nall),ncol=ncol(nall))
+rare.alleles.1 <- (rowMeans(nall,na.rm=TRUE)<0.25)
+rare.alleles.2 <- (rowMeans(nall,na.rm=TRUE)>0.75)
+colmat[rare.alleles.1,] <- ifelse(nall[rare.alleles.1,],"red","grey")
+colmat[rare.alleles.2,] <- ifelse(nall[rare.alleles.2,],"grey","red")
+par(mar=c(7,4,1,1))
+plot( col(nall), row(nall), 
+        col=adjustcolor(colmat,0.75),
+        pch=20, xlab='', xaxt='n', ylab='' )
+axis(1, at=seq_along(tort.ids), labels=tort.ids[order(pcs$PC1)], cex=0.25, las=3 )
+```
+
+Trees
+=====
+
+```{r tree_setup, include=FALSE}
+require(phangorn)
+require(Biostrings)
+seqs <- BStringSet( apply( major.allele, 2, function (x) { 
+            x[is.na(x)] <- 5
+            paste(c(bases,"N")[x],collapse='')
+        } ) )
+Biostrings::writeXStringSet(seqs,"mitochondria-segsites.fasta")
+```
+
+A fasta file of the sequences at the segregating sites has been written to [mitochondria-segsites.fasta](mitochondria-segsites.fasta).
+
+```{r build_tree}
+seqs <- read.phyDat("mitochondria-segsites.fasta",format="fasta",type="DNA")
+treeNJ <- NJ(dist.dna(as.DNAbin(seqs)))
+plot(treeNJ)
+# fit <- pml(treeNJ,data=seqs)
+# mltree <- optim.pml(fit,TRUE)
+```
