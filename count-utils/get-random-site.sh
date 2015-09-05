@@ -23,7 +23,7 @@ NSITES=${5:-1}  # defaults to 1
 MAFINFO=$(zcat $MAFFILE | nl | awk -v minfreq=$MINFREQ -v maxfreq=$MAXFREQ '$6>minfreq && $6<maxfreq' | shuf -n $NSITES | sort)
 
 SITES=$(echo "$MAFINFO" | cut -f 1)  # line numbers added by nl
-AWKPAT=$(echo $(for x in $SITES; do echo "NR==$x ||"; done) | sed -e 's/||$//'; echo ";")
+AWKPAT=$(echo $(for x in $SITES; do echo "NR==$x ||"; done) | sed -e 's/||$/;/')
 
 if [ -z "$SITES" ]
 then
