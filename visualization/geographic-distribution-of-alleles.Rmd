@@ -21,11 +21,11 @@ First, let's pull out some random alleles
 So that we have plenty, let's say 100 alleles
 for each decile of frequency:
 ```{r get_counts, cache=TRUE}
-count.list <- parallel::mclapply( ((0:9)*10)/100, function (pmin) {
-        system( paste("../count-utils/get-random-site.sh",
-                      "../../angsd-counts/272torts_snp1e6_minmapq20minq30.mafs.gz",
-                      "../../angsd-counts/272torts_snp1e6_minmapq20minq30.counts.gz",
-                      pmin, pmin+0.1, 100), intern=TRUE )
+count.list <- parallel::mclapply( ((0:5)*10)/100, function (pmin) {
+        system( paste("bash -c '../count-utils/get-random-site.sh",
+                      "<(zcat ../../angsd-counts/272torts_snp1e6_minmapq20minq30.mafs.gz | head -n 100001 | gzip -c)",
+                      "<(zcat ../../angsd-counts/272torts_snp1e6_minmapq20minq30.counts.gz | head -n 100000 | gzip -c)",
+                      pmin, pmin+0.1, 100, "'"), intern=TRUE )
     }, mc.cores=8 )
 ```
 
