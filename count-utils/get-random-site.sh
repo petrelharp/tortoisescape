@@ -31,4 +31,5 @@ then
     exit 1
 fi
 
-paste <(echo "$MAFINFO" | cut -f 2-) <(zcat $COUNTFILE | awk -f <(echo "$AWKPAT"))
+# note that COUNTFILE has a header; remove it.
+paste <(echo "$MAFINFO" | cut -f 2-) <(zcat $COUNTFILE | tail -n +2 | awk -f <(echo "$AWKPAT"))
