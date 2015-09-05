@@ -14,7 +14,24 @@ knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
 coord.obj <- load(file.path("../tort_272_info","geog_coords.RData"))
 coords <- get(coord.obj)
 tort.ids <- row.names(coords)
+```
+
+First, let's pull out some random alleles
+(and cache these, since it takes a while).
+So that we have plenty, let's say 100 alleles
+for each decile of frequency:
+```{r get_counts, cache=TRUE}
+count.list <- parallel::mclapply( ((0:9)*10)/100, function (pmin) {
+        system( paste("../count-utils/get-random-site.sh",
+                      "../../angsd-counts/272torts_snp1e6_minmapq20minq30.mafs.gz",
+                      "../../angsd-counts/272torts_snp1e6_minmapq20minq30.counts.gz",
+                      pmin, pmin+0.1, 100), intern=TRUE )
+    }, mc.cores=8 )
+```
+
+```{r read_data}
 ## read in data
+
 counts.header <- scan("../../angsd-counts/272torts_snp1e6_minmapq20minq30.counts.gz",nlines=1,what="char")
 counts <- scan("../../angsd-counts/272torts_snp1e6_minmapq20minq30.counts.gz",skip=1)
 colnames(counts) <- counts.header
