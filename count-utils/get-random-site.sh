@@ -25,7 +25,7 @@ MAFINFO=$(zcat $MAFFILE | nl | awk -v minfreq=$MINFREQ -v maxfreq=$MAXFREQ '$6>m
 SITES=$(echo "$MAFINFO" | cut -f 1)  # line numbers added by nl
 AWKPAT=$(echo $(for x in $SITES; do echo "NR==$x ||"; done) | sed -e 's/||$//'; echo ";")
 
-if [ -z $SITES ]
+if [ -z "$SITES" ]
 then
     echo "No sites found."
     exit 1
