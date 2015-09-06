@@ -9,7 +9,7 @@ outputs info and corresponding counts to stdout.
 
 "
 
-if [ $# -lt 4 ]
+if [ $# -lt 3 ]
 then
     echo "$usage"
     exit 1
@@ -31,14 +31,13 @@ COUNTFILE="$DATADIR/272torts_snp1e6_minmapq20minq30.counts.gz"
 
 MINFREQ="$1"
 MAXFREQ="$2"
-NSITES=${5:-1}  # defaults to 1
-SCAFFOLD="${6:-.}"  # defaults to '.'
-NIND="${7:-150}"  # defaults to 150
+NSITES=${3:-1}  # defaults to 1
+SCAFFOLD="${4:-.}"  # defaults to '.'
 
 # 7th column is MAF (after nl)
 MAFPAT="\$7>$MINFREQ && \$7<$MAXFREQ"
 # 2nd is scaffold
-if [ $# -ge 6 ]
+if [ $# -ge 4 ]
 then
     MAFPAT="$MAFPAT && \$2 ~ $SCAFFOLD"
 fi
