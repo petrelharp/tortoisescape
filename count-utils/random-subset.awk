@@ -1,4 +1,4 @@
-#!env awk
+#!env gawk
 
 # from http://stackoverflow.com/a/692401/933228
 # Waterman's Algorithm R for random sampling
