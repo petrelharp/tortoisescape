@@ -20,6 +20,8 @@ MAFFILE="$DATDIR/272torts_snp1e6_minmapq20minq30.mafs.gz"
 POSFILE="$DATDIR/272torts_snp1e6_minmapq20minq30.pos.gz"
 COUNTFILE="$DATDIR/272torts_snp1e6_minmapq20minq30.counts.gz"
 
+echo "reading from $DATADIR"
+
 ## all the info is:
 # > paste <(zcat 272torts_snp1e6_minmapq20minq30.pos.gz) <(zcat 272torts_snp1e6_minmapq20minq30.mafs.gz | cut -f 3-) | nl
 #  1  chr         pos  totDepth  major  minor  knownEM   pK-EM         nInd
