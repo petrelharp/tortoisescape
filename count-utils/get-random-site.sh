@@ -39,7 +39,7 @@ MAFPAT="\$7>$MINFREQ && \$7<$MAXFREQ"
 # 2nd is scaffold
 if [ $# -ge 4 ]
 then
-    MAFPAT="$MAFPAT && \$2 ~ $SCAFFOLD"
+    MAFPAT="$MAFPAT && \$2 ~ \"${SCAFFOLD}\""
 fi
 
 >&2 echo "$MAFPAT"
