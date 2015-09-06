@@ -4,12 +4,12 @@ usage="Usage:
     $0  (min frequency) (max frequency) [number of sites] [scaffold]
 
 Chooses random sites with MAF between [min] and [max]; 
-optionally restricting to 'scaffold' (a regex) and at least a certain number of individuals (nInd);
+optionally restricting to 'scaffold' and at least a certain number of individuals (nInd);
 outputs info and corresponding counts to stdout.
 
 "
 
-if [ $# -lt 3 ]
+if [ $# -lt 2 ]
 then
     echo "$usage"
     exit 1
@@ -32,14 +32,14 @@ COUNTFILE="$DATADIR/272torts_snp1e6_minmapq20minq30.counts.gz"
 MINFREQ="$1"
 MAXFREQ="$2"
 NSITES=${3:-1}  # defaults to 1
-SCAFFOLD="${4:-.}"  # defaults to '.'
+SCAFFOLD="${4:-scaffold_0}"  # defaults to 'scaffold_0'
 
 # 7th column is MAF (after nl)
 MAFPAT="\$7>$MINFREQ && \$7<$MAXFREQ"
 # 2nd is scaffold
 if [ $# -ge 4 ]
 then
-    MAFPAT="$MAFPAT && \$2 ~ \"${SCAFFOLD}\""
+    MAFPAT="$MAFPAT && \$2 == \"${SCAFFOLD}\""
 fi
 
 >&2 echo "$MAFPAT"
