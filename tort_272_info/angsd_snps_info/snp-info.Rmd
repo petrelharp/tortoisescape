@@ -1,0 +1,28 @@
+
+Got histograms as follows:
+```
+zcat 272torts_snp1e6_minmapq20minq30.pos.gz  | cut -f 3 | awk ' NF > 0{ counts[$0] = counts[$0] + 1; } END { for (word in counts) print word, counts[word]; }' | sort -n > coverage.hist
+zcat 272torts_snp1e6_minmapq20minq30.mafs.gz  | cut -f 7 | awk ' NF > 0{ counts[$0] = counts[$0] + 1; } END { for (word in counts) print word, counts[word]; }' | sort -n > nInd.hist
+```
+
+Here are total contributions by depth:
+```{r coverages}
+depth <- read.table("totDepth.hist",header=TRUE)
+names(depth) <- c("totDepth","count")
+plot(depth[,1],depth[,1]*depth[,2]/sum(depth[,1]*depth[,2]),log='xy',xlab="total depth", ylab="percent of the SNPs",type='l')
+abline(v=c(351,450))
+text(c(351,450),1e-6,labels=paste("depth=",c(351,450)),pos=c(2,4))
+plot( depth$totDepth, cumsum( as.numeric(depth$totDepth*depth$count) )/sum(as.numeric(depth$totDepth*depth$count) ), log='x', type='l', xlab="total depth", ylab="cumule coverage" )
+abline(v=c(351,450))
+text(c(351,450),1e-6,labels=paste("depth=",c(351,450)),pos=c(2,4))
+```
+
+The proportion of sites with coverages between 150 and 450 is
+`r with( subset(depth, totDepth >=150 & totDepth <= 450 ), sum(as.numeric(totDepth*count)) ) / with( depth, sum(as.numeric(totDepth*count)) )`
+and the histogram falls out like this
+```{r count_classes}
+cc <- with(depth, tapply(as.numeric(totDepth*count),cut(totDepth,breaks=c(0,150,450,Inf)),sum) )
+cc/sum(cc)
+#    (0,150]  (150,450]  (450,Inf] 
+# 0.03085452 0.48325198 0.48589350 
+```
