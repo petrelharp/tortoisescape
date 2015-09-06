@@ -51,11 +51,16 @@ tort_272_info/all_angsd_snps_distance_maps : tort_272_info/all_angsd_snps.pwp.cs
 
 %_distance_maps : %.pwp.csv
 	cd tort_272_info; Rscript ../visualization/distance-maps.R geog_distance.csv $(notdir $<) . $(notdir $@)
-	make $@/index.html
+	make $@/index_etort.html
 
 %_rainbow_distance_maps : %.pwp.csv
 	cd tort_272_info; Rscript ../visualization/distance-rainbow-maps.R geog_distance.csv $(notdir $<) . $(notdir $@)
-	make $@/index.html
+	make $@/index_etort.html
+
+%/index_etort.html :
+	R --vanilla -e "dirname=\"../$*\";knitr::knit(\"visualization/index_etort.Rmd\",output=\"$*/index_etort.md\")"
+	pandoc -s $*/index_etort.md -t slidy -o $@
+
 
 %/index.html :
 	R --vanilla -e "dirname=\"../$*\";knitr::knit(\"visualization/index.Rmd\",output=\"$*/index.md\")"

@@ -1,6 +1,7 @@
 
 ```{r setup, results="asis", echo=FALSE}
-pngs <- sort(list.files(dirname,".*.png"))
+pngs <- sort(list.files(dirname,".*etort.*.png"))
+tort.ids <- gsub("[a-z]*_etort","etort",pngs)
 for (k in seq_along(pngs)) {
     # cat( "## ", gsub("[.]png","",tort.ids[k]), "\n\n" )
     cat( paste("![](",pngs[k],")",sep=""), "\n\n" )
