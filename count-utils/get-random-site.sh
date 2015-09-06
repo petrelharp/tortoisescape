@@ -43,6 +43,8 @@ then
     MAFPAT="$MAFPAT && \$2 ~ $SCAFFOLD"
 fi
 
+>&2 echo "$MAFPAT"
+
 MAFINFO=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | nl | awk -f <(echo "$MAFPAT") | shuf -n $NSITES | sort)
 
 SITES=$(echo "$MAFINFO" | cut -f 1)  # extract line numbers added by nl (note both files have a header)
