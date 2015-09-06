@@ -15,7 +15,7 @@ then
     exit 1
 fi
 
-DATADIR="$(dirname $(readlink -f $0))/../../angsd_counts"
+DATADIR="$(dirname $(readlink -f $0))/../../angsd-counts"
 MAFFILE="$DATADIR/272torts_snp1e6_minmapq20minq30.mafs.gz"
 POSFILE="$DATADIR/272torts_snp1e6_minmapq20minq30.pos.gz"
 COUNTFILE="$DATADIR/272torts_snp1e6_minmapq20minq30.counts.gz"
