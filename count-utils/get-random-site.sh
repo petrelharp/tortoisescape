@@ -35,14 +35,13 @@ NSITES=${3:-1}  # defaults to 1
 SCAFFOLD="${4:-scaffold_0}"  # defaults to 'scaffold_0'
 
 # 7th column is MAF (after nl)
-MAFPAT="\$7>$MINFREQ && \$7<$MAXFREQ"
 # 2nd is scaffold
-if [ $# -ge 4 ]
-then
-    MAFPAT="$MAFPAT && \$2 == \"${SCAFFOLD}\""
-fi
+MAFPAT="\$7>$MINFREQ && \$7<$MAXFREQ && \$2 == \"${SCAFFOLD}\""
 
 >&2 echo "$MAFPAT"
+
+INFOHEADER=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | head -n 1)
+COUNTHEADER=$(head -n 1 $COUNTFILE)
 
 MAFINFO=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | nl | awk -f <(echo "$MAFPAT") | shuf -n $NSITES | sort)
 
@@ -55,4 +54,5 @@ then
     exit 1
 fi
 
+echo $INFOHEADER $COUNTHEADER
 paste <(echo "$MAFINFO" | cut -f 2-) <(zcat $COUNTFILE | awk -f <(echo "$AWKPAT"))
