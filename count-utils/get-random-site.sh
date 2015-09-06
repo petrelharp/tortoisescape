@@ -41,7 +41,7 @@ MAFPAT="\$7>$MINFREQ && \$7<$MAXFREQ && \$2 == \"${SCAFFOLD}\""
 >&2 echo "$MAFPAT"
 
 INFOHEADER=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | head -n 1)
-COUNTHEADER=$(head -n 1 $COUNTFILE)
+COUNTHEADER=$(zcat $COUNTFILE | head -n 1)
 
 MAFINFO=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | nl | awk -f <(echo "$MAFPAT") | shuf -n $NSITES | sort)
 
