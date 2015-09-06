@@ -11,13 +11,14 @@ outputs info and corresponding counts to stdout.
 
 if [ $# -lt 4 ]
 then
-    echo $usage
+    echo "$usage"
     exit 1
 fi
 
-MAFFILE="272torts_snp1e6_minmapq20minq30.mafs.gz"
-POSFILE="272torts_snp1e6_minmapq20minq30.pos.gz"
-COUNTFILE="272torts_snp1e6_minmapq20minq30.counts.gz"
+DATADIR="$(dirname $(readlink -f $0))/../../angsd_counts"
+MAFFILE="$DATDIR/272torts_snp1e6_minmapq20minq30.mafs.gz"
+POSFILE="$DATDIR/272torts_snp1e6_minmapq20minq30.pos.gz"
+COUNTFILE="$DATDIR/272torts_snp1e6_minmapq20minq30.counts.gz"
 
 ## all the info is:
 # > paste <(zcat 272torts_snp1e6_minmapq20minq30.pos.gz) <(zcat 272torts_snp1e6_minmapq20minq30.mafs.gz | cut -f 3-) | nl
