@@ -43,7 +43,7 @@ MAFPAT="\$7>$MINFREQ && \$7<$MAXFREQ && \$2 == \"${SCAFFOLD}\""
 INFOHEADER=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | head -n 1)
 COUNTHEADER=$(zcat $COUNTFILE | head -n 1)
 
-MAFINFO=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | nl | awk -f <(echo "$MAFPAT") | shuf -n $NSITES | sort)
+MAFINFO=$(paste <(zcat $POSFILE) <(zcat $MAFFILE | cut -f 3-) | nl | awk -f <(echo "$MAFPAT") | awk -v n=$NSITES -f $(dirname $(readlink -f $0))/random-subset.awk)
 
 SITES=$(echo "$MAFINFO" | cut -f 1)  # extract line numbers added by nl (note both files have a header)
 # tell awk to stop after the last one: makes it a lot quicker
