@@ -29,6 +29,7 @@ tort_272_info/covariance.csv : covmat/allSNPs-cpp_labeled.txt
 
 tort_272_info/all_angsd_snps.pwp.csv : pairwisePi/allSNPs.pwp
 	# did some stuff in R here
+	# including multiplying by 0.0298 = 52740529/(total number of sites)
 
 tort_272_info/all_sites.pwp.csv : pairwisePi/allllllSites.pwp
 	# did some stuff in R here

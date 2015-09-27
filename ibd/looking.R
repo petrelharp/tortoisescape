@@ -18,9 +18,13 @@ etorts <- unique(c(levels(geog$etort1),levels(geog$etort2)))
 netorts <- as.numeric(gsub("[^0-9]","",gsub(" .*","",etorts)))
 etorts <- etorts[order(netorts)]
 ntorts <- length(etorts)
+chroms <- unique(ibd$chrom)
 
 ibd$etort1 <- factor( etorts[match(ibd$id1,ids)], levels=etorts )
 ibd$etort2 <- factor( etorts[match(ibd$id2,ids)], levels=etorts )
+ibd$chrom <- factor( ibd$chrom, levels=chroms )
+
+chrlens <- with(ibd,tapply(end,chrom,max)-tapply(start,chrom,min))
 
 geog.mat <- matrix( nrow=ntorts, ncol=ntorts )
 rownames(geog.mat) <- colnames(geog.mat) <- etorts
@@ -106,8 +110,10 @@ ns.spectra <- sapply( 1:nlevels(ibd$length.bin), function (k) {
         } )
 colnames(ns.spectra) <- levels(ibd$length.bin)
 
-matplot(len.mids, t(ns.spectra),type='l',log='y',lty=1:4,col=1:4)
+pdf(file="IBD-spectrum-by-NS.pdf",width=4,height=4,pointsize=10)
+matplot(len.mids, t(ns.spectra),type='l',log='y',lty=1:4,col=1:4,xlab="IBD length (bp)", ylab="proportion")
 legend("topright",legend=rownames(ns.spectra),lty=1:4,col=1:4)
+dev.off()
 
 ####
 
@@ -122,10 +128,9 @@ indpair <- function (etort1,etort2) {
     return( ii[ cbind(match(etort1,etorts),match(etort2,etorts)) ] )
 }
 
-chroms <- unique(ibd$chrom)
 etort.pairs <- outer(etorts,etorts,paste,sep="-")
 etort.pairs <- etort.pairs[upper.tri(etort.pairs,diag=TRUE)]
-cii <- with(ibd, sparseMatrix( i=indpair(etort1,etort2), j=match(chrom,chroms), x=len, dims=c(length(etort.pairs),length(chroms)) ) )
+cii <- with(ibd, sparseMatrix( i=indpair(etort1,etort2), j=as.numeric(chrom), x=len, dims=c(length(etort.pairs),length(chroms)) ) )
 
 contig.means <- colMeans(cii>0)
 pair.means <- rowMeans(cii>0)
