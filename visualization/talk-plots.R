@@ -25,7 +25,20 @@ layer <- raster("../visualization/dem_30")
 
 player <- function (main='') { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",yaxt="n",legend.mar=0,box=FALSE,main=main) }
 
-pdf(file="everyone-pwp.pdf",width=2.5,height=5,pointsize=10)
+pdf(file="everyone-pwp.pdf",width=5.5,height=5.5/1.7,pointsize=10)
+    usethese <- !relatives
+    north1 <- ( pcs$PC1[match(dist2$etort1[usethese],pcs$etort)] > 0 )
+    north2 <- ( pcs$PC1[match(dist2$etort2[usethese],pcs$etort)] > 0 )
+    layout(t(1:2))
+    par(mar=c(2.5,2.5,0.5,0.5))
+    player()
+    points(coords,pch=20,col=pc.cols)
+    plot( dist1[usethese,3], dist2[usethese,3], pch=20, cex=.25, 
+       col=adjustcolor("black",0.25), xlab="geog dist (km)", ylab="divergence",
+       mgp=c(1.6,0.75,0) )
+dev.off()
+
+pdf(file="everyone-pwp-vertical.pdf",width=2.5,height=5,pointsize=10)
     usethese <- !relatives
     north1 <- ( pcs$PC1[match(dist2$etort1[usethese],pcs$etort)] > 0 )
     north2 <- ( pcs$PC1[match(dist2$etort2[usethese],pcs$etort)] > 0 )
@@ -37,25 +50,29 @@ pdf(file="everyone-pwp.pdf",width=2.5,height=5,pointsize=10)
     par(mar=c(2.5,2.5,0.5,0.5))
     plot( dist1[usethese,3], dist2[usethese,3], pch=20, cex=.25, 
        col=distcolors, xlab="geog dist (km)", ylab="divergence",
-       mgp=c(2.0,0.75,0) )
+       mgp=c(1.6,0.75,0) )
 dev.off()
 
-for (tid in c(1, 100, 200) {
-  png( file=file.path(outdir,paste(tour.labels[k], "_",gsub("[^0-9a-z-]","_",tid),".png",sep='')), width=12*144, height=4*144, pointsize=10, res=144 )
-    layout(t(1:3))
-    opar <- par(mar=c(1,1,2,1))
+mindist <- min(dist2[!relatives,3])
+sddist <- sd(dist2[!relatives,3])
+sfn <- function (x,max.cex=7) {
+    max.cex/( 1 + exp( (x-mindist)/sddist ) )
+}
+
+for (tid in paste("etort-",c(285,240,35,273,57,229,191),sep='')) {
+  pdf( file=paste("pwp_",tid,".pdf",sep=''), width=5.5, height=5.5/1.7, pointsize=10 )
+    layout(t(1:2))
+    par(mar=c(2.5,2.5,0.5,0.5))
     usethese <- ( dist2$etort1 != dist2$etort2 ) & ( ( dist2$etort1 == tid ) | ( dist2$etort2 == tid ) )
     otherone <- ifelse( dist2$etort1[usethese] == tid, dist2$etort2[usethese], dist2$etort1[usethese] )
     thiscolors <- pc.cols[ match(otherone,tort.ids) ]
-    player(paste(tid," similarities"))
+    player()
     points(coords[match(otherone,tort.ids)],pch=20,cex=sfn(dist2[,3][usethese]),col=thiscolors)
     points(coords[match(tid,tort.ids)],pch="*",cex=2)
-    player(paste(tid," distances"))
-    points(coords[match(otherone,tort.ids)],pch=20,cex=dfn(dist2[,3][usethese]),col=thiscolors)
-    points(coords[match(tid,tort.ids)],pch="*",cex=2)
-    par(opar)
-    plot( dist1[,3], dist2[,3], pch=20, cex=.5, 
-        col=adjustcolor("black",.25), xlab=dist1.file, ylab=dist2.file )
+    plot( dist1[!relatives,3], dist2[!relatives,3], pch=20, cex=.5, 
+        col=adjustcolor("black",.25),
+       xlab="geog dist (km)", ylab="divergence",
+       mgp=c(1.6,0.75,0) )
     points( dist1[,3][usethese], dist2[,3][usethese], pch=20, col=thiscolors, cex=1.5 )
   dev.off()
 }
