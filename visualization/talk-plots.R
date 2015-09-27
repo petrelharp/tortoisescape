@@ -59,7 +59,7 @@ pdf(file="everyone-pwp-vertical.pdf",width=2.5,height=5,pointsize=10)
 dev.off()
 
 mindist <- min(dist2[!relatives,3])
-sddist <- sd(dist2[!relatives,3])
+sddist <- 3*sd(dist2[!relatives,3])
 sfn <- function (x,max.cex=7) {
     max.cex/( 1 + exp( (x-mindist)/sddist ) )
 }
