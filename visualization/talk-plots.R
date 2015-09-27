@@ -30,7 +30,7 @@ player <- function (main='') {
     lines(county_lines,lwd=0.5)
 }
 
-pdf(file="everyone-pwp.pdf",width=5.5,height=5.5/1.7,pointsize=10)
+png(file="everyone-pwp.png",width=5.5*144,height=5.5/1.7*144,pointsize=10,res=144)
     usethese <- !relatives
     north1 <- ( pcs$PC1[match(dist2$etort1[usethese],pcs$etort)] > 0 )
     north2 <- ( pcs$PC1[match(dist2$etort2[usethese],pcs$etort)] > 0 )
@@ -43,7 +43,7 @@ pdf(file="everyone-pwp.pdf",width=5.5,height=5.5/1.7,pointsize=10)
        mgp=c(1.6,0.75,0) )
 dev.off()
 
-pdf(file="everyone-pwp-vertical.pdf",width=2.5,height=5,pointsize=10)
+png(file="everyone-pwp-vertical.png",width=2.5*144,height=5*144,pointsize=10,res=144)
     usethese <- !relatives
     north1 <- ( pcs$PC1[match(dist2$etort1[usethese],pcs$etort)] > 0 )
     north2 <- ( pcs$PC1[match(dist2$etort2[usethese],pcs$etort)] > 0 )
@@ -65,7 +65,7 @@ sfn <- function (x,max.cex=7) {
 }
 
 for (tid in paste("etort-",c(285,240,35,273,57,229,191),sep='')) {
-  pdf( file=paste("pwp_",tid,".pdf",sep=''), width=5.5, height=5.5/1.7, pointsize=10 )
+  png( file=paste("pwp_",tid,".png",sep=''), width=5.5*144, height=5.5/1.7*144, pointsize=10,res=144 )
     layout(t(1:2))
     par(mar=c(2.5,2.5,0.5,0.5))
     usethese <- ( dist2$etort1 != dist2$etort2 ) & ( ( dist2$etort1 == tid ) | ( dist2$etort2 == tid ) )
