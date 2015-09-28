@@ -1,4 +1,5 @@
 #!/usr/bin/Rscript
+require(methods)  # needed for get()
 
 dist1.file <- "../tort_272_info/geog_distance.csv"
 dist2.file <- "../tort_272_info/all_angsd_snps.pwp.csv"
@@ -13,6 +14,7 @@ load("../visualization/county_lines.Robj")  # provides county_lines
 coord.obj <- load(file.path(indir,"geog_coords.RData"))
 coords <- get(coord.obj)
 tort.ids <- row.names(coords)
+tort.ids
 
 # read in other info
 pcs <- read.csv(file.path(indir,"pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
@@ -38,7 +40,7 @@ png(file="everyone-pwp.png",width=5.5*144,height=5.5/1.7*144,pointsize=10,res=14
     par(mar=c(2.5,2.5,0.5,0.5))
     player()
     points(coords,pch=20,col=pc.cols)
-    plot( dist1[usethese,3], dist2[usethese,3], pch=20, cex=.25, 
+    plot( dist1[usethese,3]/1000, dist2[usethese,3], pch=20, cex=.25, 
        col=adjustcolor("black",0.25), xlab="geog dist (km)", ylab="divergence",
        mgp=c(1.6,0.75,0) )
 dev.off()
@@ -53,7 +55,7 @@ png(file="everyone-pwp-vertical.png",width=2.5*144,height=5*144,pointsize=10,res
     player()
     points(coords,pch=20,col=pc.cols)
     par(mar=c(2.5,2.5,0.5,0.5))
-    plot( dist1[usethese,3], dist2[usethese,3], pch=20, cex=.25, 
+    plot( dist1[usethese,3]/1000, dist2[usethese,3], pch=20, cex=.25, 
        col=distcolors, xlab="geog dist (km)", ylab="divergence",
        mgp=c(1.6,0.75,0) )
 dev.off()
@@ -74,10 +76,10 @@ for (tid in paste("etort-",c(285,240,35,273,57,229,191),sep='')) {
     player()
     points(coords[match(otherone,tort.ids)],pch=20,cex=sfn(dist2[,3][usethese]),col=thiscolors)
     points(coords[match(tid,tort.ids)],pch="*",cex=2)
-    plot( dist1[!relatives,3], dist2[!relatives,3], pch=20, cex=.5, 
+    plot( dist1[!relatives,3]/1000, dist2[!relatives,3], pch=20, cex=.5, 
         col=adjustcolor("black",.25),
        xlab="geog dist (km)", ylab="divergence",
        mgp=c(1.6,0.75,0) )
-    points( dist1[,3][usethese], dist2[,3][usethese], pch=20, col=thiscolors, cex=1.5 )
+    points( dist1[,3][usethese]/1000, dist2[,3][usethese], pch=20, col=thiscolors, cex=1.5 )
   dev.off()
 }
