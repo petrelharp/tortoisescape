@@ -83,3 +83,31 @@ for (tid in paste("etort-",c(285,240,35,273,57,229,191),sep='')) {
     points( dist1[,3][usethese]/1000, dist2[,3][usethese], pch=20, col=thiscolors, cex=1.5 )
   dev.off()
 }
+
+##########
+
+source("../inference/resistance-fns.R")
+require(raster)
+require(rgdal)
+show(load("../inference/habitat-only/nus_gt_three/setup.RData"))
+show(load("../inference/habitat-only/nus_gt_three/inference-11254807_5.RData"))
+load("../visualization/county_lines.Robj")  # provides county_lines
+
+
+
+G@x <- update.G(trust.optim$argument[-1])
+hts <- hitting.analytic(neighborhoods,G)
+
+# see raster:::.rasterImagePlot
+ph <- plot.ht.fn( layer.prefix="../geolayers/nussear/habitat-model/", nonmissing=nonmissing,sample.loc.file="../tort_272_info/geog_coords.RData")
+clines <- spTransform( county_lines, CRSobj=CRS(proj4string(with(environment(ph),layer))))
+
+png(file="example-hts.png",width=3*144,height=6*144,pointsize=10,res=144)
+plot.inds <- c(16,98)
+layout((1:2))
+for (k in plot.inds) {
+    ph( hts[,k], xaxt='n', yaxt='n', xlab='', ylab='', xlim=c(2e5,7.5e5), ylim=c(3.6e6,4.1e6), par.args=list(mar=c(0,0.1,0,0)+.5), zlim=c(0,20000), legend=FALSE, box=FALSE, legend.mar=0 )
+    lines(clines)
+}
+dev.off()
+
