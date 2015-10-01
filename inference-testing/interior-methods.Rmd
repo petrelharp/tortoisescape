@@ -1,0 +1,83 @@
+---
+title: "Interior methods: exploration"
+date: "`r date()`"
+author: "Peter Ralph"
+---
+
+```{r setup, include=FALSE}
+options(scipen=3)
+fig.dim <- 5
+knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+source("../inference/resistance-fns.R",chdir=TRUE)
+source("../inference/diy-grid-generator.R",chdir=TRUE)
+library(Matrix)
+```
+
+
+Consider the following problem:
+we are given a function $f(x)$ on $[0,1]$
+and then suppose that $h(x,y)$ is a function on $U=[0,1]^2$
+that solves
+$$\begin{aligned}
+ \Delta h(x,y) &= -1 \qquad \text{for } x\neq y \\
+ h(x,x) &= f(x) \\
+ 0
+ &=\partial_x h(x,0)
+ =\partial_x h(x,1)
+ =\partial_x h(0,y)
+ =\partial_x h(1,y) .
+\end{aligned}$$
+Then, suppose that at a set of $\ell$ locations $(x_i,y_i)$
+we have noisy observations of $h$:
+$$\begin{aligned}
+    H_i &= h(x_i,y_i) + \epsilon_i \\
+    \epsilon_i \sim N(0,\eta^2) .
+\end{aligned}$$
+
+**Question:** How do we infer $f(x)$?
+*Note:* We won't use $h(x,y)=h(y,x)$ below, but should.
+
+Here's a picture of the set-up.
+The discrete analog of finding $h$ from $f$ is to solve 
+$$\begin{aligned}
+  Q_{-d,-d} h_{-d} &= - Q_{-d,d} f -1 \\
+  h_d = f
+\end{aligned}$$
+```{r landscape}
+n <- 20
+# L is n^2 x n^2
+L <- grid.adjacency(n)
+L <- L-Diagonal(n=nrow(L),x=rowSums(L))
+xvals <- (1:n-0.5)/n
+yvals <- (1:n-0.5)/n
+# generate a random f (length n)
+f <- rexp(n)
+# h is n x n
+rhs <- h <- matrix( nrow=n, ncol=n )
+diagsites <- which(row(h)==col(h))
+diag(h) <- f
+rhs[-diagsites] <- as.vector( -1 - L[-diagsites,diagsites]%*%f )
+h[-diagsites] <- as.vector( solve( L[-diagsites,-diagsites], rhs[-diagsites] ) )
+layout(t(1:2))
+image(rhs,main="right-hand side")
+image(h,main="h(x,y)")
+```
+
+Let's put a Gaussian prior on $f$:
+$$\begin{aligned}
+    f(x) &= \sum_{k=1}^m Z_k \phi_k(x) \\
+    Z_k \sim N(0,\zeta^2_k) ,
+\end{aligned}$$
+where $\phi$ is an orthonormal basis for $[0,1]$.
+The goal is then to infer $Z$.
+
+The likelihood is
+$$\begin{aligned}
+    \mathcal{L}(z)
+    &=
+    \frac{\exp\left\{\sum_{k=1}^m z_k^2 / \zeta_k^2\right}}{(2\pi)^{m/2}\prod_k \zeta_k}
+    \frac{\exp{\sum_{i=1}^\ell (H_i-h_z(x_i,y_i))/\eta^2}}{(2\pi\eta^2)^{\ell/2}} ,
+\end{aligned}$$
+where $h_z$ is the solution to the equation above given $z$.
+
+
