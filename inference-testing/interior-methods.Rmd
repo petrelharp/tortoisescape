@@ -4,6 +4,10 @@ date: "`r date()`"
 author: "Peter Ralph"
 ---
 
+$$
+\DeclareMathOperator{\grad}{\nabla}
+$$
+
 ```{r setup, include=FALSE}
 options(scipen=3)
 fig.dim <- 5
@@ -13,6 +17,125 @@ source("../inference/diy-grid-generator.R",chdir=TRUE)
 library(Matrix)
 ```
 
+
+The general problem
+===================
+
+Let $R$ be a open subset of $\R^2$,
+and suppose that $g$ and $a$
+are nice enough functions on $R$ with $g > 0$.
+Define the elliptic operator
+$$\begin{aligned}
+Lu(x) = g(x) \grad \cdot a(x) \grad u(x) .
+\end{aligned}$$
+Let $U = \{(x,y)\in R^2 : |x-y|>r\}$, for some $r$,
+and suppose we also have a nonnegative function $f$ on $\partial U$.
+Then define the function $h$ on $U$ to solve the Dirichlet problem
+$$\begin{aligned}
+    L_x h(x,y) + L_y h(x,y) &= -1 \qquad \text{ for } (x,y) \in U \\
+    h(x,y) &= f(x,y) \qquad \text{ for } (x,y) \in \partial U .
+\end{aligned}$$
+where $L_x$ acts on the $x$-slot of $h$, etcetera.
+We have noisy observations of $h$ in both the interior and boundary of $U$,
+and would like to infer $f$, $g$, and $a$. 
+
+
+
+Weak inference
+==============
+
+As above, suppose that $g$, $b_1$, and $b_2$
+are functions on $U$, with $g \ge 0$,
+and that with $B=(b_1,b_2)$,
+$$\begin{aligned}
+    \Delta h(x) + B(x) \cdot \grad h(x) &= -g(x) \qquad \text{for } x \in U \\
+    h(x) &= 0 \qquad \text{for }  x \in \partial U .
+\end{aligned}$$
+Then, suppose we have noisy observations of $h$.
+Let's suppose that we use those noisy observations
+to estimate $\int_U h(x) \phi(x) dx$ for test functions $\phi$
+with some degree of accuracy that depends on $\phi$.
+
+Suppose that $\phi$ and $\grad \phi$ vanish on $\partial_U$.
+Integrating the equation above against $\phi$
+and integrating by parts
+we get that
+$$\begin{aligned}
+    0 &=
+    \int \phi \left( \Delta h + B \cdot \grad h + g \right) dx \\
+    &=
+    \int h \left( \Delta \phi - \grad \cdot ( \phi B ) \right) dx + \int \phi g dx \\
+    &=
+    \int h \left( \Delta \phi - B \cdot \grad \phi - \phi \grad \cdot B \right) dx + \int \phi g dx 
+\end{aligned}$$
+
+Now suppose that $\{\phi_k\}$ is an orthnormal basis for $C^2_0(U)$,
+and that 
+$$\begin{aligned}
+    b_1 &= \sum_k \beta_{1k} \phi_k \\
+    b_2 &= \sum_k \beta_{2k} \phi_k \\
+    g &= \sum_k \gamma{k} \phi_k .
+\end{aligned}$$
+Then the equation above is
+$$\begin{aligned}
+    \int h \Delta \phi dx
+    &=
+    \sum_k \int h \left( 
+    \beta_{1k} \phi_k \partial_{x_1} \phi 
+    + \beta_{2k} \phi_k \partial_{x_2} \phi 
+    + \beta_{1k} \phi \partial_{x_1} \phi_k
+    + \beta_{2k} \phi \partial_{x_2} \phi_k
+      \right) dx
+    - \gamma_k \int \phi \phi_k dx  \\
+      &=
+    \sum_k \left\{
+     \beta_{1k} \int h ( 
+         \phi_k \partial_{x_1} \phi 
+         + \phi \partial_{x_1} \phi_k ) dx 
+     + \beta_{2k} \int h ( 
+         \phi_k \partial_{x_2} \phi 
+         + \phi \partial_{x_2} \phi_k ) dx 
+    - \gamma_k \int \phi \phi_k dx  
+      \right\}
+\end{aligned}$$
+
+If furthermore we decompose
+$$\begin{aligned}
+\phi_k \partial_{x_1} \phi_\ell
++ \phi_\ell \partial_{x_1} \phi_k
+  &=
+  \sum_m \delta^1_{k\ell,m} \phi_m \\
+\Delta \phi_\ell &= \sum_m \kappa_{\ell m} \phi_m ,
+\end{aligned}$$
+then 
+$$\begin{aligned}
+    \sum_m \kappa_{\ell m} \int h \phi_m dx
+      &=
+    \sum_k \left\{
+     \beta_{1k} \sum_m \delta^1_{k\ell,m} \int h \phi_m dx
+     + \beta_{1k} \sum_m \delta^2_{k\ell,m} \int h \phi_m dx
+      \right\}
+    - \gamma_\ell
+\end{aligned}$$
+Note that $\delta_{k\ell,m} = \delta_{\ell k,m}$.
+
+
+This gives us a set of linear equations
+that the coefficients $\beta$ and $\gamma$ solve.
+We would like those that have to do with low frequencies
+to only depend on other low frequencies,
+i.e.,
+that $\kappa$ and $\delta$ are "upper triangular".
+In particular, it would be nice if we had
+$\kappa_{\ell m} = 0$ for $m > \ell$
+and
+$\delta_{k \ell, m} = 0$ for 
+
+
+
+
+Simple example
+==============
 
 Consider the following problem:
 we are given a function $f(x)$ on $[0,1]$
@@ -31,7 +154,7 @@ Then, suppose that at a set of $\ell$ locations $(x_i,y_i)$
 we have noisy observations of $h$:
 $$\begin{aligned}
     H_i &= h(x_i,y_i) + \epsilon_i \\
-    \epsilon_i \sim N(0,\eta^2) .
+    \epsilon_i &\sim N(0,\eta^2) .
 \end{aligned}$$
 
 **Question:** How do we infer $f(x)$?
@@ -63,21 +186,36 @@ image(rhs,main="right-hand side")
 image(h,main="h(x,y)")
 ```
 
-Let's put a Gaussian prior on $f$:
+If we denote by $\mathcal{H}(f)$ the solution to the equation above,
+the log-likelihood is
 $$\begin{aligned}
-    f(x) &= \sum_{k=1}^m Z_k \phi_k(x) \\
-    Z_k \sim N(0,\zeta^2_k) ,
-\end{aligned}$$
-where $\phi$ is an orthonormal basis for $[0,1]$.
-The goal is then to infer $Z$.
-
-The likelihood is
-$$\begin{aligned}
-    \mathcal{L}(z)
+    \mathcal{L}(f)
+    % &= \log \left(
+    % \frac{\exp{\sum_{i=1}^\ell (H_i-\mathcal{H}(f)(x_i,y_i))/\eta^2}}{(2\pi\eta^2)^{\ell/2}} ,
+    % \right)
     &=
-    \frac{\exp\left\{\sum_{k=1}^m z_k^2 / \zeta_k^2\right}}{(2\pi)^{m/2}\prod_k \zeta_k}
-    \frac{\exp{\sum_{i=1}^\ell (H_i-h_z(x_i,y_i))/\eta^2}}{(2\pi\eta^2)^{\ell/2}} ,
+    \sum_{i=1}^\ell (H_i-\mathcal{H}(f)(x_i,y_i))^2/\eta^2
+    - \frac{\ell}{2}\log(2\pi) - \ell \log(\eta) .
 \end{aligned}$$
-where $h_z$ is the solution to the equation above given $z$.
-
+The Frech\'et derivative of this with respect to $f$ is
+$$\begin{aligned}
+    \partial_f \mathcal{L}(f)
+    &=
+    \sum_{i=1}^\ell 2 (H_i-\mathcal{H}(z)(x_i,y_i)) \partial_f \mathcal{H}(f)(x_i,y_i) /\eta^2 .
+\end{aligned}$$
+Here $\partial_\psi \mathcal{H}(f)(x,y) = \lim_{\epsilon\to0} \frac{1}{\epsilon}(\mathcal{H}(f+\epsilon\psi)-\mathcal{H}(f))$.
+Note that
+$$\begin{aligned}
+ \Delta \mathcal{H}(f+g)(x,y) &= -1 \qquad \text{for } x\neq y \\
+ \Delta \mathcal{H}(f)(x,y) &= -1 \qquad \text{for } x\neq y \\
+ \mathcal{H}(f+g)(x,x) &= f(x)+g(x) \\
+ \mathcal{H}(f)(x,x) &= f(x) ,
+\end{aligned}$$
+so that $u_\psi=\mathcal{H}(f+\psi)-\mathcal{H}(f)$,
+in addition to the boundary conditions,
+is harmonic off the diagonal and equal to $g$ on the diagonal:
+$$\begin{aligned}
+ \Delta u(x,y) &= 0 \qquad \text{for } x\neq y \\
+ u(x,x) &= \psi(x) .
+\end{aligned}$$
 
