@@ -39,6 +39,12 @@ where $L_x$ acts on the $x$-slot of $h$, etcetera.
 We have noisy observations of $h$ in both the interior and boundary of $U$,
 and would like to infer $f$, $g$, and $a$. 
 
+If we forget about the product structure, then the above can be rewritten
+$$\begin{aligned}
+    L_x h(x,y) + L_y h(x,y) &= -1 \qquad \text{ for } (x,y) \in U \\
+    h(x,y) &= f(x,y) \qquad \text{ for } (x,y) \in \partial U .
+\end{aligned}$$
+
 
 
 Weak inference
