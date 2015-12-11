@@ -1,0 +1,95 @@
+---
+title: "Estimating linkage from low-coverage data"
+date: "`r date()`"
+author: "Peter Ralph"
+---
+
+$$
+\newcommand{\E}{\mathbb{E}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\cov}{\text{cov}\,}
+$$
+
+Variance in heterozygosity
+==========================
+
+Let $X$ and $Y$ be independent pairs of alleles sampled from a diploid individual
+with overall heterozygosity $\pi$;
+so, $X$ and $Y$ are each Bernoulli($P$), where $P=1/2$ with probability $\pi$
+and $P=\epsilon$ otherwise.
+Then,
+$$
+\begin{align}
+    \cov[X,Y] &= \frac{\pi}{4} + \epsilon(1-\pi) - \left( \frac{\pi}{2} + \epsilon(1-\pi) \right)^2 \\
+        &= \pi (1-\pi) \left(\epsilon-\frac{1}{2}\right)^2 .
+\end{align}
+$$
+More generally,
+$$
+\begin{align}
+    \cov[X,Y] = \var[P] ,
+\end{align}
+$$
+which includes variation in error rate across sites.
+
+
+The goal
+========
+
+Consider a pair of haploid individuals, $x$ and $y$.
+At each site $i$ on the genome, we can pick a random allele from each individuals' genotypes;
+let $H_{xy}(i)=1$ if the two differ (i.e., are heterozygous) and $H_{xy}(i)=0$ otherwise.
+We are then interested in the autocorrelation function of $H$.
+This is similar to [Lynch et al](http://www.ncbi.nlm.nih.gov/pubmed/24948778).
+
+We actually have diploid individuals: pairs of haploids $(x_1,x_2)$ and $(y_1,y_2)$.
+Heterozygosity is then $H_{xy} = (H_{x_1y_1}+H_{x_1y_2}+H_{x_2y_1}+H_{x_2y_2})/4$,
+and 
+$$
+\begin{align}
+\cov[H_{xy}(i), H_{xy}(j)] = \frac{1}{16} \sum_{abcd} \cov[H_{x_ay_b}(i),H_{x_cy_d}(j)],
+\end{align}
+$$
+where the sum is over choices of $a$, $b$, $c$, and $d$ from $\{1,2\}$.
+Only four of the 16 terms are covariances in heterozygosities
+between the same pair of chromosomes,
+but the others will give us information to the extent that
+the two chromosomes of an individual tend to coalesce before they coalesce with another.
+(Also, since they're at the same place in space, coalescent times are correlated.)
+
+Define
+\begin{align}
+    \pi_{xy} = \frac{1}{L} \sum_i H_{xy}(i) .
+\end{align}
+We want to estimate
+\begin{align}
+    A_{xy}(d) = \frac{1}{L-d} \sum_i (H_{xy}(i)-\pi_{xy})(H_{xy}(i+d)-\pi_{xy}) .
+\end{align}
+
+Suppose that $N_A(x,i)$ is the number of $A$'s seen at site $i$ in individual $x$,
+and $N(x,i) = N_A(x,i) + N_C(x,i) + N_G(x,i) + N_T(x,i)$.
+We know already that
+\begin{align}
+    \E\left[ 1 - \sum_B \frac{N_B(x,i)}{N(x,i)} \frac{N_B(y,i) - \delta_{xy}}{N(y,i)-\delta_{xy}} \right] = H_{xy}(i) ,
+\end{align}
+where $\delta_{xy}=1$ if $x=y$ and is zero otherwise.
+Then, $A_{xy}$ is the [autocorrelation](https://en.wikipedia.org/wiki/Autocorrelation) function of $H_{xy}$.
+
+
+Implementation
+==============
+
+First, will simulate up some sequences that have the property
+that sites that agree tend to be near each other:
+```{r sim_seqs}
+seqlen <- 1000
+bases <- c("A","C","G","T")
+x <- sample( bases, seqlen, replace=TRUE )
+z <- sample( bases, seqlen, replace=TRUE )
+p.agree <- 1/(1+exp(-cumsum(rnorm(seqlen)/sqrt(seqlen))+1.5))
+y <- ifelse( runif(seqlen)<p.agree, x, z )
+layout(1:2)
+plot(p.agree)
+plot(acf(1.0*(x==y)))
+```
+
