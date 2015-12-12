@@ -8,6 +8,8 @@ $$
 \newcommand{\E}{\mathbb{E}}
 \renewcommand{\P}{\mathbb{P}}
 \newcommand{\cov}{\text{cov}\,}
+\newcommand{\var}{\text{var}\,}
+\newcommand{\cor}{\text{cor}\,}
 $$
 
 Variance in heterozygosity
@@ -79,17 +81,109 @@ Then, $A_{xy}$ is the [autocorrelation](https://en.wikipedia.org/wiki/Autocorrel
 Implementation
 ==============
 
+Haploid
+-------
+
 First, will simulate up some sequences that have the property
 that sites that agree tend to be near each other:
 ```{r sim_seqs}
-seqlen <- 1000
+seqlen <- 10000
 bases <- c("A","C","G","T")
+names(bases) <- bases
 x <- sample( bases, seqlen, replace=TRUE )
 z <- sample( bases, seqlen, replace=TRUE )
-p.agree <- 1/(1+exp(-cumsum(rnorm(seqlen)/sqrt(seqlen))+1.5))
+coal <- rexp(1000,rate=1/1000)
+blocks <- c(0,cumsum(rexp(1000,rate=coal/1e4)))
+p.agree <- exp(-coal[cut(seq_along(x),breaks=blocks)]/1000)
 y <- ifelse( runif(seqlen)<p.agree, x, z )
-layout(1:2)
-plot(p.agree)
-plot(acf(1.0*(x==y)))
+acf(1.0*(x==y),lag.max=1000,main="autocorrelation for agreement")
+acf(p.agree,lag.max=1000,main="autocorrelation for prob of agreement")
+plot(p.agree,ylab="prob of agreement",pch=20)
 ```
 
+*Note:* If $X$ and $Y$ are $\{0,1\}$-valued and independent given their means $P$ and $Q$,
+then
+$$\begin{aligned}
+\cov[X,Y] 
+    &= 
+    \cov[ \E[X|P,Q], \E[Y|P,Q] ] + \E[ \cov[X,Y|P,Q] ] \\
+    &= 
+    \cov[P,Q] + 0
+\end{aligned}$$
+and so 
+$$\begin{aligned}
+\cor[X,Y] 
+=
+\frac{\cov[P,Q]}{\sqrt{\E[P(1-P)]\E[Q(1-Q)]}} .
+\end{aligned}$$
+
+Now, let's sample reads (no errors, haploid):
+```{r sim_coverage}
+sample_reads <- function (x,mean.coverage) {
+    coverages <- rpois(length(x),mean.coverage)
+    as.data.frame(lapply(bases,function(B) {
+                        ifelse(x==B,coverages,0)
+                    } ) )
+}
+mean.coverage <- 10
+x.counts <- sample_reads(x,mean.coverage)
+y.counts <- sample_reads(y,mean.coverage)
+```
+
+And, compute the vector of mean heterozygosities:
+```{r het_fn}
+H <- function (xc,yc) {
+    x.tot <- rowSums(xc)
+    if (missing(yc)) {
+        yc <- xc-1
+        y.tot <- x.tot-1
+    } else {
+        y.tot <- rowSums(yc)
+    }
+    return( 1-rowSums(xc*yc)/(x.tot*y.tot) )
+}
+# a quick check, since these are haploid:
+stopifnot(all( (H(x.counts,y.counts)==0) == (x==y) ))
+```
+
+That works, and since $H$ is equal to `x==y` for haploids, we're done here.
+
+Diploids
+--------
+
+```{r sim_diploids}
+seqlen <- 10000
+bases <- c("A","C","G","T")
+names(bases) <- bases
+x1 <- sample( bases, seqlen, replace=TRUE )
+z1 <- sample( bases, seqlen, replace=TRUE )
+z2 <- sample( bases, seqlen, replace=TRUE )
+z3 <- sample( bases, seqlen, replace=TRUE )
+coal1 <- rexp(1000,rate=1/1000)
+coal2 <- rexp(1000,rate=1/1000)
+blocks1 <- c(0,cumsum(rexp(1000,rate=coal/1e4)))
+blocks2 <- c(0,cumsum(rexp(1000,rate=coal/1e4)))
+p.agree1 <- exp(-coal[cut(seq_len(seqlen),breaks=blocks1)]/1000)
+p.agree2 <- exp(-coal[cut(seq_len(seqlen),breaks=blocks2)]/1000)
+p.agree3 <- exp(-coal[cut(seq_len(seqlen),breaks=blocks2)]/1000)
+x2 <- ifelse( runif(seqlen)<p.agree3, x1, z3 )
+y1 <- ifelse( runif(seqlen)<p.agree1, x1, z1 )
+y2 <- ifelse( runif(seqlen)<p.agree2, x2, z2 )
+x.counts <- sample_reads(x1,mean.coverage) + sample_reads(x2,mean.coverage)
+y.counts <- sample_reads(y1,mean.coverage) + sample_reads(y2,mean.coverage)
+```
+
+Here's the raw mean heterozygosities for each of the three comparisons:
+```{r plot_hets}
+layout(1:3)
+plot(H(x.counts),main="x-x",ylim=c(0,1))
+plot(H(x.counts,y.counts),main="x-y",ylim=c(0,1))
+plot(H(y.counts),main="y-y",ylim=c(0,1))
+```
+
+And, here's the autocorrelations:
+```{r plot_diploid_acfs}
+acf(H(x.counts),main="x-x",lag.max=seqlen/2)
+acf(H(x.counts,y.counts),main="x-y",lag.max=seqlen/2)
+acf(H(y.counts),main="y-y",lag.max=seqlen/2)
+```
