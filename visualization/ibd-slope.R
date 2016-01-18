@@ -10,8 +10,10 @@ pcs <- read.csv("pcs.csv")
 
 pi <- read.csv("all_angsd_snps.pwp.csv",stringsAsFactors=FALSE)
 # from Evan 1/31/15
-pi$pi <- pi$pi * ( 56575857 / 1898838430 )
-pi$years <- pi$pi  / 2.064406e-8 / 2
+pi$pi <- pi$raw_pi * ( 56575857 / 1898838430 )
+pi$generations <- pi$pi  / 2.064406e-8 / 2
+# referenced in www.sciencedirect.com/science/article/pii/S0006320713003443
+pi$years <- pi$generations * 25
 
 sample.ids <- unique( c(pi$etort1, pi$etort2) )
 sample.ids <- sample.ids[ order(as.numeric(gsub(" .*","",gsub("^[^0-9]*","",sample.ids)))) ]
