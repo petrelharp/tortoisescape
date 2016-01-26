@@ -1,0 +1,26 @@
+[general]
+creator=R package 'raster'
+created=2016-01-26 15:21:03
+[georeference]
+nrows=729
+ncols=566
+xmin=314025.7792
+ymin=3594742.6292853
+xmax=879975.77876
+ymax=4323678.2294253
+projection=+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0
+[data]
+datatype=FLT8S
+byteorder=little
+nbands=1
+bandorder=BIL
+categorical=FALSE
+minvalue=0
+maxvalue=1
+nodatavalue=-1.7e+308
+[legend]
+legendtype=
+values=
+color=
+[description]
+layername=nussear

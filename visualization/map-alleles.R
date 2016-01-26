@@ -1,7 +1,7 @@
 #!env Rscript
 
 usage <- "
-Make maps for each allele in files produced by extract-random-alelles.R:
+Make maps for each allele in files produced by extract-random-alleles.R:
     Rscript map-random-alleles.R [list of directories to do this in]
 "
 

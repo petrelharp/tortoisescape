@@ -60,3 +60,7 @@ n.nus.mask <- mask(nus.mask,n.mask)
 writeRaster(nus.mask,file="mask_crew_dem_2K_sea_habitat_north.grd",overwrite=TRUE)
 s.nus.mask <- mask(nus.mask,s.mask)
 writeRaster(nus.mask,file="mask_crew_dem_2K_sea_habitat_south.grd",overwrite=TRUE)
+
+# nussear's suitability layer, masked
+nus.values.mask <- mask( nus, masked )
+writeRaster(nus.values.mask, file="nussear_masked.grd",overwrite=TRUE)
