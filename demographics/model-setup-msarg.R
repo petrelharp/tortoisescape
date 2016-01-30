@@ -71,3 +71,32 @@ barrier.demog <- add_to_demography( barrier.demog, tnew=barrier.begin.time, pop=
 
 plot(barrier.demog,xy=pop.xy)
 
+
+###
+# create the refugia
+expansion.end.time <- 1e4/25/step.len
+refugia.end.time <- 20e4/25/step.len
+refugia.begin.time <- 1e6/25/step.len
+expansion.speed <- 3e2/mean(res(pop$habitat))/(refugia.end.time-expansion.end.time)
+expansion.width <- 100e3/mean(res(pop$habitat))
+
+refugia.centers <- SpatialPoints(coords=cbind( x=c(727229.8,626639.7),
+                                               y=c(3803747,3957436)),
+                        proj4string=CRS(proj4string(habitat)))
+refugia.radius <- 5e4
+refugia <- gBuffer( refugia.centers, width=refugia.radius, byid=TRUE )
+refugia.mask <- gContains( gUnaryUnion(refugia), pop.points, byid=TRUE )
+
+refugia.demog <- demography( hab.grid )
+refugia.demog <- add_to_demography( refugia.demog, tnew=refugia.end.time,
+                                   fn=modify_grid_layer, layer=1, dN=refugia.mask )
+refugia.demog <- add_to_demography( refugia.demog, tnew=refugia.begin.time,
+                                   pop=refugia.demog[[1]] )
+refugia.demog <- logistic_interpolation( refugia.demog, 
+                                         t.end=expansion.end.time,
+                                         t.begin=refugia.end.time, 
+                                         nsteps=10, 
+                                         speed=expansion.speed, 
+                                         width=expansion.width )
+
+plot(refugia.demog,xy=pop.xy)
