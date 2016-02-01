@@ -1,8 +1,8 @@
-source("msarg/msarg.R")
 library(raster)
 library(landsim)
 library(sp)
 library(rgeos)
+library(msarg)
 
 # load tortoise habitat
 habitat <- raster("../visualization/nussear_masked.grd")
@@ -117,16 +117,16 @@ matplot(t(sapply(as(refugia.demog,"list"),slot,"N")),type='l')
 
 plot(refugia.demog,xy=pop.xy)
 
-# check for jumps that are too big that things get stuck
-for (k in 2:length(refugia.demog)) {
-    dothese <- xor( refugia.demog[[k]]@N==0, refugia.demog[[k-1]]@N==0 )
-    if (any(dothese)) {
-        plot( pop.xy[ dothese, ], pch=20, cex=2, 
-             col=ifelse(refugia.demog[[k]]@N==0,"black","red")[dothese],
-            main=sprintf("t=%f",refugia.demog@t[k-1]) )
-        if (interactive() && is.null(locator(1))) { break }
-    }
-}
+# # check for jumps that are too big that things get stuck
+# for (k in 2:length(refugia.demog)) {
+#     dothese <- xor( refugia.demog[[k]]@N==0, refugia.demog[[k-1]]@N==0 )
+#     if (any(dothese)) {
+#         plot( pop.xy[ dothese, ], pch=20, cex=2, 
+#              col=ifelse(refugia.demog[[k]]@N==0,"black","red")[dothese],
+#             main=sprintf("t=%f",refugia.demog@t[k-1]) )
+#         if (interactive() && is.null(locator(1))) { break }
+#     }
+# }
 
 if (!file.exists("refugia-demography-msarg.RData")) {
     save(refugia.demog, sample.config, pop.xy, file="refugia-demography-msarg.RData")

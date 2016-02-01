@@ -1,8 +1,8 @@
-source("msarg/msarg.R",chdir=TRUE)
 library(raster)
 library(rgeos)
 library(sp)
 library(ape)
+library(msarg)
 
 # plotting stuff
 habitat <- raster("../visualization/nussear_masked.grd")
