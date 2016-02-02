@@ -11,8 +11,8 @@ argvec <- if (interactive()) { scan(what="char") } else { commandArgs(TRUE) }
 if (length(argvec)<1) { stop(usage) }
 
 indir <- argvec[1]
-dist1.file <- file.path(indir,"mean-divergence.csv")
-dist2.file <- file.path(indir,"geog-distance.csv")
+dist1.file <- file.path(indir,"geog-distance.csv")
+dist2.file <- file.path(indir,"mean-divergence.csv")
 outdir <- file.path(indir,"pngs")
 
 dist1 <- read.csv(dist1.file,header=TRUE,stringsAsFactors=FALSE)
@@ -64,8 +64,8 @@ for (k in seq_along(tort.ids)) {
     points(coords[match(otherone,tort.ids)],pch=20,cex=sfn(dist2[,3][usethese]),col=thiscolors)
     points(coords[match(tid,tort.ids)],pch="*",cex=2)
     par(opar)
-    plot( dist1[,3], dist2[,3], pch=20, cex=.5, 
-        col=adjustcolor("black",.25), xlab=dist1.file, ylab=dist2.file )
-    points( dist1[,3][usethese], dist2[,3][usethese], pch=20, col=thiscolors, cex=1.5 )
+    plot( dist1[,3]/1000, dist2[,3], pch=20, cex=.5, 
+        col=adjustcolor("black",.25), xlab="geog dist (km)", ylab="divergence" )
+    points( dist1[,3][usethese]/1000, dist2[,3][usethese], pch=20, col=thiscolors, cex=1.5 )
   dev.off()
 }

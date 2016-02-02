@@ -13,7 +13,8 @@ demogs <- list(
                barrier.ms="barrier-demography-msarg.RData"
               )
 
-ntrees <- 1000
+ntrees <- 500
+plot.ntrees <- min(20,ntrees)
 
 # # first the barrier
 # load("barrier-demography-msarg.RData")  # provides barrier.demog and sample.config
@@ -66,13 +67,13 @@ for (kdem in seq_along(demogs)) {
          col=adjustcolor(comparison.cols[l2s,l2s],0.5) )
 
     layout(t(1:2))
-    for (tree in tree.output) {
+    for (tree in tree.output[1:plot.ntrees]) {
         plot(habitat)
         plot_sample_config( dem, sample.config, add=TRUE, xy=pop.xy, cex=0.1, sample.cols=sample.cols )
         plot.phylo( tree, tip.color=sample.cols[l2s], cex=0.2 )
         ape::axisPhylo(1)
         abline_phylo(v=dem@t, lty=2, lwd=2, col='grey')
-        if (interactive() && is.null(locator(1))) { break }
+        # if (interactive() && is.null(locator(1))) { break }
     }
 
     dev.off()
