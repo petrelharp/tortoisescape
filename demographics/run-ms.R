@@ -32,6 +32,8 @@ for (kdem in seq_along(demogs)) {
     geog.dist <- sqrt( outer(sample.xy[,1],sample.xy[,1],"-")^2 + outer(sample.xy[,2],sample.xy[,2],"-")^2 )
     # use to convert things indexed by location (as those above) to things indexed by sample
     l2s <- rep(1:nrow(sample.config),sample.config[,"n"])
+    # map tree tips to sample.config
+    tfn <- tip_order_fn(sample.config)
 
     sample.cols <- ifelse( north.cells, "blue", "purple" )
     comparison.cols <- outer( north.cells, north.cells, function (x,y) { ifelse( xor(x,y), "red", ifelse(x, "blue", "purple") ) } )
@@ -45,18 +47,27 @@ for (kdem in seq_along(demogs)) {
     for (k in seq_along(tree.dists)[-1]) { mean.dist <- mean.dist+tree.dists[[k]] }
     mean.dist <- mean.dist/length(tree.dists)
 
-    # write out things necessary to make nice plots of the results
+    # make things necessary to make nice plots of the results
     sample.ids <- paste0("sample-",1:sum(sample.config[,"n"]))
     ut <- upper.tri(mean.dist,diag=FALSE)
     dist.table <- data.frame( id1=sample.ids[row(mean.dist)[ut]], id2=sample.ids[col(mean.dist)[ut]], pi=mean.dist[ut] )
-    write.csv( dist.table, file=file.path(outdir,"mean-divergence.csv"), row.names=FALSE )
     geog.table <- data.frame( id1=sample.ids[row(mean.dist)[ut]], id2=sample.ids[col(mean.dist)[ut]], distance=geog.dist[l2s,l2s][ut] )
-    write.csv( geog.table, file=file.path(outdir,"geog-distance.csv"), row.names=FALSE )
     sample.spatialpoints <- sample.points[l2s]
     row.names(sample.spatialpoints) <- sample.ids
-    save( sample.spatialpoints, file=file.path(outdir,"geog_coords.RData"))
     fake.pcs <- data.frame( id=sample.ids, pc1=ifelse(north.cells[l2s],+1.0,-1.0) )
+    # write out things necessary to make nice plots of the results
+    write.csv( dist.table, file=file.path(outdir,"mean-divergence.csv"), row.names=FALSE )
+    write.csv( geog.table, file=file.path(outdir,"geog-distance.csv"), row.names=FALSE )
+    save( sample.spatialpoints, file=file.path(outdir,"geog_coords.RData"))
     write.csv( fake.pcs, file=file.path(outdir,"pcs.csv"), row.names=FALSE )
+
+    # actual pcs
+    #  of the covariance matrix (up to scaline; see McVean)
+    covmat <- (rowMeans(mean.dist) + colMeans(mean.dist) - mean(mean.dist) - mean.dist)
+    pmat <- diag(nrow(covmat)) - 1/nrow(covmat)
+    pcs <- eigen( (pmat %*% covmat %*% t(pmat)) )$vectors[,1:5]
+    pc.pal <- rainbow(n=32, start=4/6, end=0)
+    pc.cols <- apply(pcs, 2, function (x) { pc.pal[cut(x,length(pc.pal))] } )
 
     ## look at some plots
 
@@ -66,13 +77,21 @@ for (kdem in seq_along(demogs)) {
          xlab="geog dist (km)", ylab="mean TMRCA (y)",
          col=adjustcolor(comparison.cols[l2s,l2s],0.5) )
 
+    for (k in 1:ncol(pcs)) {
+        plot( crop(habitat,sample.xy), main=sprintf("PC %d",k) )
+        points( sample.xy, pch=20, cex=2, col=pc.cols[,k] )
+        # if (interactive() && is.null(locator(1))) { break }
+    }
+
     layout(t(1:2))
     for (tree in tree.output[1:plot.ntrees]) {
-        plot(habitat)
-        plot_sample_config( dem, sample.config, add=TRUE, xy=pop.xy, cex=0.1, sample.cols=sample.cols )
-        plot.phylo( tree, tip.color=sample.cols[l2s], cex=0.2 )
-        ape::axisPhylo(1)
-        abline_phylo(v=dem@t, lty=2, lwd=2, col='grey')
+        plot( crop(habitat,sample.xy) )
+        points( sample.xy, pch=20, cex=2, col=pc.cols[,1] )
+        # plot_sample_config( dem, sample.config, add=TRUE, xy=pop.xy, col=sample.cols )
+        pp <- plot.phylo( tree, show.tip.label=FALSE )  # tip.color=pc.cols[,k] )  # tip.color=sample.cols[l2s], cex=0.2 )
+        axisPhylo(1)
+        ab <- abline_phylo(v=dem@t[length(dem@t)], lty=2, col='grey')
+        points( rep(1.05*ab[1],nrow(pcs)), 1:nrow(pcs), pch=20, col=pc.cols[,1][order(tfn(tree))] )
         # if (interactive() && is.null(locator(1))) { break }
     }
 
