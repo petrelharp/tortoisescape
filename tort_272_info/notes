@@ -1,0 +1,27 @@
+
+These are the "hybrids" near Searchlight:
+```
+    eog all_angsd_snps_rainbow_distance_maps/*etort-{271,7,35}.png
+```
+Note that their relationships to others are highly correlated even though they aren't direct neighbors.
+
+---------
+
+In the Kelso area, **etort-70** goes the opposite way from the others.  
+Like the others just over the Granites to the south, it is closest to the ones to the east,
+even closer than to its neighbors.
+Possibly mislabeled?
+
+---------
+
+**etort-231** is clearly mislabeled, and should be directly south.
+
+--------
+
+These three neighbors:
+```
+    eog all_angsd_snps_rainbow_distance_maps/*etort-{258,272,113}.png
+```
+are all very similar in terms of divergence to northern pops,
+but **etort-272** is much closer to the Ivanpah samples than the neighbors...
+but simliarly close to Ivanpah as the northeastern tortoises are.
