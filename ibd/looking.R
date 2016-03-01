@@ -53,6 +53,9 @@ len.breaks <- c(0,exp(seq(log(1000),log(2e4),length.out=10)),1e5)
 len.mids <- len.breaks[-1] - diff(len.breaks)/2
 len.mids[length(len.mids)] <- rev(len.breaks)[2]
 ibd$length.bin <- cut( ibd$end-ibd$start,breaks=len.breaks )
+length.bin.names <- sapply(1:(length(len.breaks)-1), function (k) {
+            sprintf("%0.1f-%0.1f kB", len.breaks[k]/1000, len.breaks[k+1]/1000)
+        } )
 
 for (k in 1:nlevels(ibd$length.bin)) {
     nibd[[levels(ibd$length.bin)[k]]] <- count.ibds( as.numeric(ibd$length.bin)==k )
@@ -68,8 +71,15 @@ len.dist <- sapply( 1:nlevels(ibd$length.bin), function (k) {
 colnames(len.dist) <- levels(ibd$length.bin)
 
 pdf(file="ibd-by-distance.pdf",width=10,height=8,pointsize=10)
-matplot(x=dist.mids, y=len.dist, type='l', log='y', ylab="mean number of blocks", xlab="geographical distance", col=rainbow(length(len.mids)), lty=1 )
-legend("topright",lty=1,col=rainbow(length(len.mids)), legend=paste(levels(ibd$length.bin),"bp"))
+matplot( x=dist.mids, y=len.dist, type='l', log='y', ylab="mean number of blocks", xlab="geographical distance", col=rainbow(length(len.mids)+5), lty=1 )
+legend("topright",lty=1,col=rainbow(length(len.mids)+5), legend=paste(levels(ibd$length.bin),"bp"))
+dev.off()
+
+pdf(file="ibd-by-distance-for-talk.pdf",width=5,height=3.5,pointsize=10)
+matplot( x=dist.mids/1000, y=len.dist[,len.breaks[-1]>4e3], type='l', log='y', xlim=c(0,600),
+        ylab="mean number of blocks", xlab="geographical distance (km)", col=rainbow(length(len.mids)+5), lty=1,
+       main="IBD blocks per pair" )
+legend("bottomright",lty=1,col=rainbow(length(len.mids)+5), legend=length.bin.names[len.breaks[-1]>4e3], bg="white", cex=0.75)
 dev.off()
 
 ## length spectrum by distance

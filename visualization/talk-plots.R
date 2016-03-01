@@ -14,7 +14,6 @@ load("../visualization/county_lines.Robj")  # provides county_lines
 coord.obj <- load(file.path(indir,"geog_coords.RData"))
 coords <- get(coord.obj)
 tort.ids <- row.names(coords)
-tort.ids
 
 # read in other info
 pcs <- read.csv(file.path(indir,"pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
@@ -75,7 +74,7 @@ for (tid in paste("etort-",c(285,240,35,273,57,229,191),sep='')) {
     thiscolors <- pc.cols[ match(otherone,tort.ids) ]
     player()
     points(coords[match(otherone,tort.ids)],pch=20,cex=sfn(dist2[,3][usethese]),col=thiscolors)
-    points(coords[match(tid,tort.ids)],pch="*",cex=2)
+    points(coords[match(tid,tort.ids)], pch="*", cex=4, col='black' )
     plot( dist1[!relatives,3]/1000, dist2[!relatives,3], pch=20, cex=.5, 
         col=adjustcolor("black",.25),
        xlab="geog dist (km)", ylab="divergence",
