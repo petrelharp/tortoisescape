@@ -4,13 +4,13 @@
 ## Writes out a (nsites x 4) matrix of these inner products.
 
 blocksize <- 1e5 # number of sites to read in at a time
-outfile <- "pc-counts.tsv"
 do.text <- FALSE # write out in text? (if not, binary)
 
 # read in the site information
 tortdir <- file.path(gsub("tortoises.*","tortoises",getwd()),"tortoisescape")
 datadir <- file.path(dirname(tortdir),"angsd-counts")
 countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30.counts.gz")
+outfile <- gsub(".counts.gz",".pccounts.4bin",countfile)  # .4bin means binary, four columns
 
 maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.mafs.gz"),header=TRUE)
 pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.pos.gz"),header=TRUE)
@@ -73,10 +73,17 @@ while (length(counts <- scan(countfile,nmax=4*nindivs*blocksize,skip=skip))>0) {
     } else {
         writeBin(as.vector(pc.counts), con=outcon)
     }
-    if (skip > 1e6) { break }
+    # for testing purposes:
+    #   if (skip > 1e6) { break }
 }
 if (!do.text) { close(outcon) }
 
 
 if (FALSE) {  # to read it in
+    pc.con <- pipe(paste("cat",outfile), open="rb")
+    # do this multiple times to read in chunks
+    pc.counts <- readBin(pc.con,what="numeric",n=4*blocksize)
+    dim(pc.counts) <- c(length(pc.counts)/4,4)
+    # and then close
+    close(pc.con)
 }
