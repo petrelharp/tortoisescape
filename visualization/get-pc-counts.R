@@ -66,6 +66,7 @@ while (length(counts <- scan(countfile,nmax=4*nindivs*blocksize,skip=skip))>0) {
     dim(counts) <- c(length(counts)/(4*nindivs),4*nindivs)
     # rownames(counts) <- count.header
     skip <- skip+nrow(counts)
+    cat("row ", skip, "\n")
     pc.counts <- do_pc_counts(counts)
     if (do.text) {
         write.table( as.vector(pc.counts), file=outfile,  append=TRUE, sep='\t', row.names=FALSE, col.names=FALSE  )
@@ -76,3 +77,6 @@ while (length(counts <- scan(countfile,nmax=4*nindivs*blocksize,skip=skip))>0) {
 }
 if (!do.text) { close(outcon) }
 
+
+if (FALSE) {  # to read it in
+}
