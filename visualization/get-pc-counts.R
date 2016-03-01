@@ -8,25 +8,18 @@ do.text <- FALSE # write out in text? (if not, binary)
 
 # read in the site information
 tortdir <- file.path(gsub("tortoises.*","tortoises",getwd()),"tortoisescape")
-datadir <- file.path(dirname(tortdir),"angsd-counts")
-countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30.counts.gz")
+
+# datadir <- file.path(dirname(tortdir),"angsd-counts")
+# countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30.counts.gz")
+# maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.mafs.gz"),header=TRUE)
+# pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.pos.gz"),header=TRUE)
+
+datadir <- file.path(dirname(tortdir),"angsd-counts/kenroMapped")
+countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.gz")
+# maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
+# pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
+
 outfile <- gsub(".counts.gz",".pccounts.4bin",countfile)  # .4bin means binary, four columns
-
-maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.mafs.gz"),header=TRUE)
-pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.pos.gz"),header=TRUE)
-
-# scaffolds
-minscaf <- 2e4  # minimum number of snps per scaffold
-scaf.counts <- table( pos$chr )
-long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
-
-# apply filters
-mindepth <- 150 # minimum totalDepth
-maxdepth <- 350 # maximum totalDepth
-goodones <- ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) )
-# minind <- 250   # minimum nInd -- RESULTS IN NO SNPs
-# goodones <- goodones & ( maf$nInd >= minind )
-goodones <- goodones & ( pos$chr %in% long.scafs )
 
 # the count file
 count.con <- gzfile(countfile,open="r")
