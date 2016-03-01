@@ -57,7 +57,51 @@ player <- function (main='') { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",
 pcs <- read.csv(file.path("../tort_272_info","pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
 stopifnot( all( tort.ids %in% pcs$etort ) )
 pc.cols <- adjustcolor( ifelse( pcs$PC1[match(tort.ids,pcs$etort)] > 0, "blue", "purple" ), .75 )
+pcs.plus <- cbind(pcs, coordinates(coords[match(row.names(coords),pcs$etort)]) )
+pcs.clust <- kmeans(as.matrix(pcs.plus[,-1]),centers=9)
+pc.plus.cols <- adjustcolor( rainbow(9)[as.numeric(pcs.clust$cluster)], .75 )
 ```
+
+Divergence on the mitochondria
+==============================
+
+As we showed in [the other file](explore-mitochondria.html),
+we can do away with nu-mts and the like by taking the majority allele at each site.
+
+If we genotype the individuals this way,
+we get the following matrix of divergences,
+ordered by PC1:
+```{r mt_div,cache=TRUE}
+dmat <- matrix(NA,nrow=272,ncol=272)
+for (i in 1:272) { for (j in 1:272) { dmat[i,j] <- dmat[j,i] <- mean(major.allele[,i]!=major.allele[,j],na.rm=TRUE) } }
+# dmat[order(pcs$PC1),order(pcs$PC1)]
+rownames(dmat) <- colnames(dmat) <- colnames(major.allele)
+hist(dmat[upper.tri(dmat,diag=FALSE)],breaks=100,xlab="divergence")
+```
+
+Excluding **etort-50**, which has mean divergence `r mean(dmat['etort-50',-match('etort-50',colnames(dmat))])`,
+the mean divergence is `r mean(dmat[upper.tri(dmat,diag=FALSE)&rownames(dmat)!='etort-50'&colnames(dmat)!='etort-50'])`.
+The mean divergence between haplotypes 
+is `r mean(dmat[upper.tri(dmat,diag=FALSE)&rownames(dmat)!='etort-50'&colnames(dmat)!='etort-50'&dmat>0.0023])`,
+which is comparable to the nuclear divergence of around `r .005-.0002392`.
+
+
+Here's a visual representation of this:
+```{r mt_div_again, fig.height=5*fig.dim}
+etid <- gsub(" (sheared2)","",gsub("etort-","",pcs$etort[order(pcs$PC1)]),fixed=TRUE)
+# pdf(file="mt-divergence.pdf",width=6,height=18,pointsize=8)
+plot(0,0,xlim=range(dmat),ylim=c(1,272),type='n',yaxt='n',xlab='mitochondrial divergence',ylab='')
+for (k in unique(pc.plus.cols)) {
+    axis(2,at=(1:272)[pc.plus.cols[order(pcs$PC1)]==k],labels=etid[pc.plus.cols[order(pcs$PC1)]==k],las=2,
+         col=k, col.axis=k, cex.axis=0.75)
+}
+text(dmat[order(pcs$PC1),order(pcs$PC1)],row(dmat),labels=rep(etid,each=length(etid)),
+     col=adjustcolor(pc.plus.cols[order(pcs$PC1)][col(dmat)],0.75), cex=0.5 )
+# dev.off()
+```
+
+
+
 
 Geographic distribution of segregating sites
 ============================================
@@ -94,6 +138,22 @@ for (k in segregating[segfreqs>0.2]) {
 }
 ```
 
+Haplotypes
+==========
+
+```{r get_haplotypes}
+hap.scores <- colMeans(northern.alleles[segfreqs>0.2,])
+north.hap <- (hap.scores>0.5)
+# pdf(file="mt-hap-map.pdf",width=3,height=3,pointsize=10)
+# par(mar=c(0,0,3,0)+.1)
+player("mitochondrial haplotypes")
+points(coords, pch=19,
+        col=adjustcolor(ifelse(rownames(coords@coords)=="etort-50",NA,
+                     ifelse(north.hap,"blue","purple")),0.5), cex=1)
+points(coords['etort-50'],pch="*")
+# dev.off()
+```
+
 The SNPs themselves
 ===================
 
@@ -110,11 +170,14 @@ rare.alleles.1 <- (rowMeans(nall,na.rm=TRUE)<0.25)
 rare.alleles.2 <- (rowMeans(nall,na.rm=TRUE)>0.75)
 colmat[rare.alleles.1,] <- ifelse(nall[rare.alleles.1,],"red","grey")
 colmat[rare.alleles.2,] <- ifelse(nall[rare.alleles.2,],"grey","red")
-par(mar=c(7,4,1,1))
+png(file="mt-haplotypes.png",width=5*288,height=2.5*288,res=288,pointsize=8)
+par(mar=c(3,0,2,0)+.1)
 plot( col(nall), row(nall), 
+     main="mitochondrial haplotypes",
         col=adjustcolor(colmat,0.75),
-        pch=20, xlab='', xaxt='n', ylab='' )
-axis(1, at=seq_along(tort.ids), labels=tort.ids[order(pcs$PC1)], cex=0.25, las=3 )
+        pch=15, xlab='', xaxt='n', yaxt='n', ylab='' )
+axis(1, at=seq_along(tort.ids), labels=gsub(" (sheared2)","",tort.ids[order(pcs$PC1)],fixed=TRUE), cex=0.25, las=3, cex.axis=0.25 )
+dev.off()
 ```
 
 Trees
