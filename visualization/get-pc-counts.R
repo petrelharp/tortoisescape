@@ -9,11 +9,9 @@
 ## then we need these things:
 # A = sum_i p(i)
 # B = sum_i p(i) * v(i)
+# C = sum_{i : n(i)>0} v(i)
+# D = sum_{i : n(i)>0} v(i)^2
 # N = #{ i : n(i) > 0 }
-## and these things, which are the same across every site 
-##   ... so we don't compute them here:
-# C = sum_i v(i)
-# D = sum_i v(i)^2
 ##
 ## so we will estimate the covariance by
 #  ( B - A * C / N ) / N
@@ -42,8 +40,8 @@ countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts
 # maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
 # pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
 
-outsuffix <- if (do.text) { ".pc1counts.txt" } else { ".pc1counts.3bin" }
-outfile <- gsub(".counts.gz",outsuffix,countfile)  # .3bin means binary, four columns
+outsuffix <- if (do.text) { ".pc1counts.txt" } else { ".pc1counts.5bin" }
+outfile <- gsub(".counts.gz",outsuffix,countfile)  # .5bin means binary, five columns
 headerfile <- if ( do.text ) { outfile } else { paste0(outfile,".header") }
 
 # the count file
@@ -64,6 +62,8 @@ pcvec <- pcs[[paste0("PC",pc.num)]]
 # then the rows are, for each allele:
 #   A = sum_i p(i)         -- sum of major allele frequencies
 #   B = sum_i p(i) * v(i)  -- inner product of major allele frequencies with PC1
+#   C = sum_{i : n(i)>0} v(i)
+#   D = sum_{i : n(i)>0} v(i)^2
 #   N = #{ i : n(i) > 0 }  -- number of sampled individuals
 # columns of counts (transposed below) are of the form:
 #   ind0_A  ind0_C  ind0_G  ind0_T  ind1_A  ind1_C  ind1_G  ind1_T  ...
@@ -90,14 +90,16 @@ do_pc_counts <- function (counts) {
     major.freqs[!is.finite(major.freqs)] <- 0
     dim(major.freqs) <- c(nindivs,ncol(counts))
     return( rbind(
-              max.counts,                        # this is A
-              as.vector(pcvec %*% major.freqs),  # this is B
-              colSums( 0 != coverage )           # this is N
+              max.counts,                           # this is A
+              as.vector(pcvec %*% major.freqs),     # this is B
+              as.vector(pcvec %*% (coverage>0)),    # this is C
+              as.vector(pcvec^2 %*% (coverage>0)),  # this is D
+              colSums( coverage>0 )                 # this is N
           ) )
 }
 
 # loop through the file
-writeLines("sum_freq\tfreq_prod\tnum_nonzero", headerfile)
+writeLines("sum_freq\tfreq_prod\tsum_weights\tsum_weights_sq\tnum_nonzero\n", headerfile)
 if (!do.text) {
     outcon <- file(outfile, open="wb", raw=TRUE)
 }
@@ -121,13 +123,18 @@ try(close(count.con))
 
 
 if (FALSE) {  # to read it in
+    pc.header <- scan(headerfile,what='char')
     pc.con <- pipe(paste("cat",outfile), open="rb")
     pc.header <-  scan(headerfile,what='char')
     # do this multiple times to read in chunks
-    pc.counts <- readBin(pc.con,what="numeric",n=length(pc.header)*blocksize)
-    dim(pc.counts) <- c(length(pc.header),length(pc.counts)/length(pc.header))
-    pc.counts <- t(pc.counts)
-    colnames(pc.counts) <- pc.header
+    read_chunk <- function (blocksize) {
+        # do this multiple times to read in chunks
+        pc.counts <- readBin(pc.con,what="numeric",n=length(pc.header)*blocksize)
+        dim(pc.counts) <- c(length(pc.header),length(pc.counts)/length(pc.header))
+        pc.counts <- t(pc.counts)
+        colnames(pc.counts) <- pc.header
+        return(pc.counts)
+    }
     # and then close
     close(pc.con)
 }
