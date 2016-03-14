@@ -84,13 +84,13 @@ do_pc_counts <- function (counts) {
     major.col <- ifelse( totals[,1]==max.counts, 1,
                         ifelse( totals[,2]==max.counts, 2,
                             ifelse( totals[,3]==max.counts, 3, 4 ) ) )
-    # product of major allele freqs with weights
+    # major allele frequencies
     major.freqs <- ( counts[ cbind( as.vector(outer(4*(0:(nindivs-1)),major.col,"+")), rep(1:ncol(counts),each=nindivs) ) ]
                     / as.vector(coverage) )
     major.freqs[!is.finite(major.freqs)] <- 0
     dim(major.freqs) <- c(nindivs,ncol(counts))
     return( rbind(
-              max.counts,                           # this is A
+              colSums(major.freqs),                 # this is A
               as.vector(pcvec %*% major.freqs),     # this is B
               as.vector(pcvec %*% (coverage>0)),    # this is C
               as.vector(pcvec^2 %*% (coverage>0)),  # this is D

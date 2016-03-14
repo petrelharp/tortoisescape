@@ -13,6 +13,7 @@ tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
 coord.obj <- load(file.path(tortdir,"tort_272_info","geog_coords.RData"))
 coords <- get(coord.obj)
 tort.ids <- row.names(coords)
+nindivs <- length(tort.ids)
 ```
 
 ```{r snp_info, include=FALSE}
@@ -71,17 +72,17 @@ If at a given site:
 then we need these things:
 
 - $A = \sum_i p(i)$
-- $B = \sum_i p(i) * v(i)$
-- $N = #\{ i : n(i) > 0 \}$
+- $B = \sum_i p(i) v(i)$
 - $C = \sum_{i : p(i)>0} v(i)$
 - $D = \sum_{i : p(i)>0} v(i)^2$
+- $N = #\{ i : n(i) > 0 \}$
 
 Then, we estimate the covariance by
-$$  ( B - A * C / N ) / N $$
+$$  ( B - A C / N ) / N $$
 and the correlation by
 $$
-  ( \text{covariance} ) / \sqrt( ( ( A - A^2 / N ) / N ) * ( ( D - C^2 / N ) / N ) )
-  = ( B * N - A * C ) / \sqrt( ( A * N - A^2 ) * ( D * N - C^2 ) )
+  ( \text{covariance} ) / \sqrt{ ( ( A - A^2 / N ) / (N-1) ) ( ( D - C^2 / N ) / (N-1) ) }
+  = ( B N - A C ) (N-1) / N \sqrt{ ( A N - A^2 ) ( D N - C^2 ) }
 $$
 
 The five columns of `r pccountfile` are $A$, $B$, $C$, $D$, and $N$, respectively.
@@ -89,15 +90,49 @@ The five columns of `r pccountfile` are $A$, $B$, $C$, $D$, and $N$, respectivel
 ```{r convert_counts, include=FALSE}
 # A is : sum_freq  
 # B is : freq_prod 
+# C is : sum_weights
+# D is : sum_weights_sq
 # N is : num_nonzero 
 pc.num <- 1
 pcs <- read.csv(file.path(tortdir,"tort_272_info","pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
 pcvec <- pcs[[paste0("PC",pc.num)]]
-sum.pcvec <- mean(pcvec)
-var.pcvec <- var(pcvec)
+pcvec.mean <- umat[,"sum_weights"] / umat[,"num_nonzero"]
+pcvec.var <- ( umat[,"sum_weights_sq"] - pcvec.mean * umat[,"sum_weights"] ) / (umat[,"num_nonzero"]-1) 
 snp.freq <- umat[,"sum_freq"] / umat[,"num_nonzero"]
-pc.cov <- ( umat[,"freq_prod"] / umat[,"num_nonzero"] - umat[,"sum_freq"] * sum.pcvec / umat[,"num_nonzero"] ) / umat[,"num_nonzero"]
-snp.var <- (umat[,"sum_freq"] - (umat[,"sum_freq"]^2) / umat[,"num_nonzero"] ) / umat[,"num_nonzero"]
-pc.cor <- pc.cov / sqrt( snp.var * var.pcvec )
+# snp.var <- snp.freq * ( 1 - snp.freq )
+pc.cov <- ( umat[,"freq_prod"] / umat[,"num_nonzero"] - pcvec.mean * snp.freq )
+pc.cor <- pc.cov / sqrt( snp.freq * ( 1 - snp.freq ) * pcvec.var )
 ```
 
+Note that from these data we can also look for clinality in the **missing** data.
+Suppose that
+
+- $z(i) = 1$ if the allele is missing in individual $i$ and $=0$ otherwise;
+- $C = \sum_i v(i) z(i)$
+- $N = \sum_i z(i)$
+- $n_I =$ the number of individuals
+- $\bar v = \sum_i v(i) / n_I$
+- $\sigma^2_v = \sum_i (v(i)-\bar v)^2 / (n_I-1)$
+
+and so the covariance of $z$ with $v$ is
+$$  ( C - N \sum_i v(i) / n_I ) / n_I $$
+and the correlation is
+$$  ( \text{covariance} ) / \sqrt{ ( N / n_I )( 1 - N/n_I ) \sigma^2_v } . $$
+
+```{r na_cov, include=FALSE}
+total.pc.mean <- mean(pcvec)
+total.pc.var <- var(pcvec)
+na.freq <- umat[,"num_nonzero"] / nindivs
+na.cov <- ( umat[,"sum_weights"] / nindivs - total.pc.mean * na.freq )
+na.cor <- na.cov / sqrt( na.freq * ( 1 - na.freq ) * total.pc.var )
+```
+
+# Summary stats
+
+Here is the histogram of minor allele frequencies,
+with and without the filters above:
+(recall that these were already selected by angsd as likely polymorphic)
+```{r afs}
+hist(1-snp.freq,breaks=1000, main="empirical minor allele frequency")
+hist(1-snp.freq[goodones[seq_along(snp.freq)]],breaks=1000, main="same, on filtered sites")
+```
