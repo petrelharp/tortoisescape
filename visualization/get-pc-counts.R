@@ -42,9 +42,8 @@ countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts
 # maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
 # pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
 
-outsuffix <- if (do.text) { ".pc1counts.txt" } else { ".pc1counts.3bin" }
-outfile <- gsub(".counts.gz",outsuffix,countfile)  # .3bin means binary, four columns
-headerfile <- if ( do.text ) { outfile } else { paste0(outfile,".header") }
+outsuffix <- if (do.text) { ".pc1counts.txt" } else { ".pc1counts.4bin" }
+outfile <- gsub(".counts.gz",outsuffix,countfile)  # .4bin means binary, four columns
 
 # the count file
 count.con <- pipe(paste("zcat",countfile),open="r")
@@ -60,45 +59,38 @@ pcs$angsd.id <- count.ids[count.ids[,2]=="A",1]
 
 pcvec <- pcs[[paste0("PC",pc.num)]]
 
-# this returns an 3 x nsites matrix,
-# then the rows are, for each allele:
+# this returns an 4 x nsites matrix,
+# with the rows giving the inner product of the counts for each allele with PC1
+# note that this is transposed to what we might like,
+# so that we we write out as a vector in chunks it will end up in the right order.
+
+# this returns an nsites x 3 matrix,
+# with the columns giving, for each allele:
 #   A = sum_i p(i)         -- sum of major allele frequencies
 #   B = sum_i p(i) * v(i)  -- inner product of major allele frequencies with PC1
 #   N = #{ i : n(i) > 0 }  -- number of sampled individuals
 # columns of counts (transposed below) are of the form:
 #   ind0_A  ind0_C  ind0_G  ind0_T  ind1_A  ind1_C  ind1_G  ind1_T  ...
-# note that the output is transposed to what we might like,
-# so that we we write out as a vector in chunks it will end up in the right order.
 nindivs <- nrow(count.ids)/4
 do_pc_counts <- function (counts) {
     # assumes that the counts matrix has been "transposed" from the file,
     # i.e., read in with one row of the file equal to one column of counts
     # so that counts[4*(j-1)+k,] correponds to counts of the k'th nucleotide in the j-th individual
-    coverage <- ( counts[1+4*(0:(nindivs-1)),] + counts[2+4*(0:(nindivs-1)),] 
-                      + counts[3+4*(0:(nindivs-1)),] + counts[4+4*(0:(nindivs-1)),] )
-    totals <- sapply( 1:4, function (k) {
+    acgt.prod <- do.call(rbind, lapply( 1:4, function (k) {
+            as.vector(pcvec %*% counts[k+4*(0:(nindivs-1)),])
+        } ) )
+    # rownames(pc.counts) <- c("A","C","G","T")
+
+    acgt.counts <- lapply( 1:4, function (k) {
             colSums( counts[k+4*(0:(nindivs-1)),] )
         } )
-    # names(totals) <- rownames(acgt.prod) <- c("A","C","G","T")
-    max.counts <- pmax( totals[,1], totals[,2], totals[,3], totals[,4] )
-    major.col <- ifelse( totals[,1]==max.counts, 1,
-                        ifelse( totals[,2]==max.counts, 2,
-                            ifelse( totals[,3]==max.counts, 3, 4 ) ) )
-    # product of major allele freqs with weights
-    major.freqs <- ( counts[ cbind( as.vector(outer(4*(0:(nindivs-1)),major.col,"+")), rep(1:ncol(counts),each=nindivs) ) ]
-                    / as.vector(coverage) )
-    major.freqs[!is.finite(major.freqs)] <- 0
-    dim(major.freqs) <- c(nindivs,ncol(counts))
-    return( rbind(
-              max.counts,                        # this is A
-              as.vector(pcvec %*% major.freqs),  # this is B
-              colSums( 0 != coverage )           # this is N
-          ) )
+    major.col <- 
 }
 
 # loop through the file
-writeLines("sum_freq\tfreq_prod\tnum_nonzero", headerfile)
-if (!do.text) {
+if (do.text) {
+    writeLines("A\tC\tG\tT", outfile)
+} else {
     outcon <- file(outfile, open="wb", raw=TRUE)
 }
 nlines <- 0
@@ -122,12 +114,11 @@ try(close(count.con))
 
 if (FALSE) {  # to read it in
     pc.con <- pipe(paste("cat",outfile), open="rb")
-    pc.header <-  scan(headerfile,what='char')
     # do this multiple times to read in chunks
-    pc.counts <- readBin(pc.con,what="numeric",n=length(pc.header)*blocksize)
-    dim(pc.counts) <- c(length(pc.header),length(pc.counts)/length(pc.header))
+    pc.counts <- readBin(pc.con,what="numeric",n=4*blocksize)
+    dim(pc.counts) <- c(4,length(pc.counts)/4)
     pc.counts <- t(pc.counts)
-    colnames(pc.counts) <- pc.header
+    colnames(pc.counts) <- c("A","C","G","T")
     # and then close
     close(pc.con)
 }
