@@ -1,0 +1,70 @@
+---
+title: "SNP clinality"
+date: "`r date()`"
+---
+
+```{r setup, include=FALSE}
+library(pander)
+options(scipen=3)
+fig.dim <- 5
+knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+# locations and labels
+tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
+coord.obj <- load(file.path(tortdir,"tort_272_info","geog_coords.RData"))
+coords <- get(coord.obj)
+tort.ids <- row.names(coords)
+```
+
+```{r snp_info, include=FALSE}
+datadir <- "."
+countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.gz")
+# maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
+pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
+# scaffolds
+minscaf <- 1e4  # minimum number of snps per scaffold
+scaf.counts <- table( pos$chr )
+long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
+# apply filters
+mindepth <- 150 # minimum totalDepth
+maxdepth <- 350 # maximum totalDepth
+goodones <- ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) )
+# minind <- 250   # minimum nInd -- RESULTS IN NO SNPs
+# goodones <- goodones & ( maf$nInd >= minind )
+goodones <- goodones & ( pos$chr %in% long.scafs )
+```
+
+```{r count_connection, include=FALSE}
+countsuffix <- ".pc1counts.4bin"
+pccountfile <- gsub(".counts.gz",countsuffix,countfile)  # .4bin means binary, four columns
+pc.con <- pipe(paste("cat",pccountfile), open="rb")
+read_chunk <- function (blocksize) {
+    # do this multiple times to read in chunks
+    pc.counts <- readBin(pc.con,what="numeric",n=4*blocksize)
+    dim(pc.counts) <- c(4,length(pc.counts)/4)
+    pc.counts <- t(pc.counts)
+    colnames(pc.counts) <- c("A","C","G","T")
+    return(pc.counts)
+}
+umat <- read_chunk(nrow(pos))
+close(pc.con)
+```
+
+For each variant site, I've calculated the product of PC1 with the raw counts for each nucleotide,
+i.e., if $A_{i\ell}$ is the number of $A$-reads in the $i$th individual at site $\ell$,
+and $v_i$ is the coordinate of that individual on PC1,
+then we have
+\[
+u_{A,\ell} = \sum_i v_i A_{i\ell},
+\]
+and likewise for $u_C$, $u_G$, and $u_T$.
+Note that for most sites only two of those four will be nonzero. 
+This should be normalized, to be comparable between sites with different total depths:
+suppose that the common alleles at site $\ell$ are $A$ and $C$;
+and associate with individual $i$ the score $z_{i\ell}=A_{i\ell} - C_{i\ell}$.
+Note that 
+The covariance of $z$ with $v$ is 
+
+
+We are only looking at scaffolds with at least `r minscaf` SNPs per scaffold,
+and SNPs with total depth between `r mindepth` and `r maxdepth`;
+this is a proportion `r mean(goodones)` of the SNPs.

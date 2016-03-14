@@ -11,7 +11,7 @@ maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.mafs.gz"),h
 pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.pos.gz"),header=TRUE)
 
 # scaffolds
-minscaf <- 2e4  # minimum number of snps per scaffold
+minscaf <- 1e3  # minimum number of snps per scaffold
 scaf.counts <- table( pos$chr )
 long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
 
