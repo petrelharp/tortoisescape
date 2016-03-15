@@ -5,6 +5,7 @@ date: "`r date()`"
 
 ```{r setup, include=FALSE}
 library(pander)
+library(phonTools)  # for fastacf
 options(scipen=3)
 fig.dim <- 5
 knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
@@ -75,7 +76,7 @@ then we need these things:
 - $B = \sum_i p(i) v(i)$
 - $C = \sum_{i : p(i)>0} v(i)$
 - $D = \sum_{i : p(i)>0} v(i)^2$
-- $N = #\{ i : n(i) > 0 \}$
+- $N = \#\{ i : n(i) > 0 \}$
 
 Then, we estimate the covariance by
 $$  ( B - A C / N ) / N $$
@@ -126,6 +127,10 @@ na.freq <- umat[,"num_nonzero"] / nindivs
 na.cov <- ( umat[,"sum_weights"] / nindivs - total.pc.mean * na.freq )
 na.cor <- na.cov / sqrt( na.freq * ( 1 - na.freq ) * total.pc.var )
 ```
+```{r tidyup, include=FALSE}
+# don't need umat any more
+rm(umat); gc()
+```
 
 # Summary stats
 
@@ -133,6 +138,84 @@ Here is the histogram of minor allele frequencies,
 with and without the filters above:
 (recall that these were already selected by angsd as likely polymorphic)
 ```{r afs}
-hist(1-snp.freq,breaks=1000, main="empirical minor allele frequency")
-hist(1-snp.freq[goodones[seq_along(snp.freq)]],breaks=1000, main="same, on filtered sites")
+hist(1-snp.freq,breaks=1000, xlim=c(0,1), main="empirical minor allele frequency")
+hist(1-snp.freq[goodones[seq_along(snp.freq)]],breaks=1000, xlim=c(0,1), main="same, on filtered sites")
+```
+
+And, here are the distributions of correlation coefficients:
+```{r cor_hists}
+hist(pc.cor,breaks=1000,xlim=c(-1,1), main="SNP correlations with PC1")
+hist(pc.cor[goodones[seq_along(pc.cor)]],breaks=1000,xlim=c(-1,1), main="same, on filtered sites")
+```
+
+Here is correlation against minor allele frequency:
+```{r cor_vs_freq, fig.width=fig.dim}
+plot( snp.freq, pc.cor, pch='.', col=adjustcolor("black",0.5), main="SNPs",
+        xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC1" )
+```
+
+And, frequencies of missingness, 
+with the distribution expected if coverage is Poisson(1.2):
+```{r na_afs}
+xh <- hist(1-na.freq,breaks=1000, xlim=c(0,1), main="Frequency of missing data")
+lines((0:nindivs)/nindivs, length(na.freq)*dbinom((0:nindivs),nindivs,exp(-1.2)),col='red',lwd=2)
+xh <- hist(1-na.freq[goodones[seq_along(na.freq)]],breaks=1000, xlim=c(0,1), main="same, on filtered sites")
+lines((0:nindivs)/nindivs, length(na.freq)*dbinom((0:nindivs),nindivs,exp(-1.2)),col='red',lwd=2)
+```
+and, distributions of correlation coefficients:
+```{r cor_hists_na}
+hist(na.cor,breaks=1000,xlim=c(-1,1), main="NA correlations with PC1")
+hist(na.cor[goodones[seq_along(na.cor)]],breaks=1000,xlim=c(-1,1), main="same, on filtered sites")
+```
+and, correlation against minor allele frequency:
+```{r na_cor_vs_freq, fig.width=fig.dim}
+plot( snp.freq, pc.cor, pch='.', col=adjustcolor("black",0.5), main="missingness",
+        xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC1" )
+```
+
+# By scaffold
+
+First, let's look at the top ten longest scaffolds.
+Red dots are sites removed by the filters.
+```{r long_scafs}
+superlong <- names(sort(scaf.counts,decreasing=TRUE)[1:10])
+for (scaf in superlong) {
+    plot( pos$pos[pos$chr==scaf], pc.cor[pos$chr==scaf],
+            xlab='position', ylab='correlation', main=paste('scaffold',scaf),
+            pch=ifelse(goodones[pos$chr==scaf],20,NA),
+            col=adjustcolor(ifelse(goodones[pos$chr==scaf],'black','red'),0.25),
+            ylim=c(-1,1) )
+}
+```
+Huh, scaffold 2062 looks interesting.
+What's the difference between the high and low correlation SNPs on that scaffold?
+Those seem to line up with intermediate-frequency haplotypes:
+```{r scaf_2062}
+get_scaf <- function (scaf) {
+    usethese <- (goodones & pos$chr==scaf)
+    cbind( pos[usethese,], 
+        data.frame( pc.cor=pc.cor[usethese],
+                    snp.freq=snp.freq[usethese],
+                    na.cor=na.cor[usethese],
+                    na.freq=na.freq[usethese] ) )
+}
+this.scaf <- "scaffold_2062"
+s2062 <- get_scaf(this.scaf)
+cor( abs(s2062[,3:6]) )
+# hist( s2062$pc.cor, breaks=60, main=paste('SNP correlations on',this.scaf) )
+with( s2062, plot( pos, abs(pc.cor), pch=20, cex=0.5, xlab='position', 
+                main=paste('SNP correlation,',this.scaf) ) )
+with( s2062, plot( pos, snp.freq, pch=20, cex=0.5, xlab='position', 
+                main=paste('SNP frequency',this.scaf) ) )
+```
+
+
+OK, let's see how correlations partition by scaffold.
+```{r scaf_stats}
+snp.by.scaf <- tapply( abs(pc.cor[goodones]), pos$chr[goodones], mean )
+na.by.scaf <- tapply( abs(na.cor[goodones]), pos$chr[goodones], mean )
+hist( snp.by.scaf, xlim=range(0,snp.by.scaf,na.by.scaf,finite=TRUE), breaks=50, 
+        col=adjustcolor("blue",0.5), freq=TRUE, main='mean absolute correlation by scaffold' )
+hist( na.by.scaf, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("red",0.5) )
+legend("topleft", fill=c('blue','red'), legend=c('SNP', 'missingness'))
 ```
