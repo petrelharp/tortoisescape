@@ -7,7 +7,7 @@ Usage:
     $0 (counts file) (pos file) (output .nc file)
 "
 
-if [ $# -lt 3]
+if [ $# -lt 3 ]
 then
     echo $USAGE
     exit 1
