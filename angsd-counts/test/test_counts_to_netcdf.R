@@ -14,7 +14,9 @@ out.truth <- list(
         pos=pos$pos )
 out.truth$counts=array(as.numeric(t(counts)),dim=c(4,length(out.truth$indivs),nrow(pos)))
 
-ncfile <- "test.nc"
+system("../counts-to-netcdf.sh test.counts.gz test.pos.gz test.counts.nc")
+
+ncfile <- "test.counts.nc"
 
 nin <- nc_open(ncfile)
 

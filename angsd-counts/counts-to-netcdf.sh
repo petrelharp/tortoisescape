@@ -23,7 +23,7 @@ CHRNAME="chr"
 BASESNAME="base"
 COUNTNAME="count"
 
-INDIVS=$(zcat $COUNTSFILE | head -n 1 | sed -e 's/_[ACGT]//g' | tr '\t' '\n' | uniq | sed -e 's/^/"/' -e 's/$/"/' | tr '\n' ',' | sed -e 's/,$//')
+INDIVS=$(zcat $COUNTSFILE | head -n 1 | sed -e 's/\t*$//' -e 's/_[ACGT]//g' | tr '\t' '\n' | uniq | sed -e 's/^/"/' -e 's/$/"/' | tr '\n' ',' | sed -e 's/,$//')
 BASES=$(zcat $COUNTSFILE | head -n 1 | cut -f 1-4 | sed -e 's/[^\t_]*_//g' | sed -e 's/\t/", "/g' -e 's/^/"/' -e 's/$/"/')
 
 NUM_INDIVS=$(echo $INDIVS |awk --field-separator="," "{ printf NF; } ")
@@ -68,7 +68,7 @@ echo "Writing to $OUTFILE "
   zcat ${POSFILE} | tail -n +2 | cut -f 2 | tr '\n' ',' | sed -e 's/,$//';
   echo ";"
   echo "${COUNTNAME} = ";  # counts
-  zcat ${COUNTSFILE} | tail -n +2 | tr '\t' ',' | sed -e 's/$/,/g' | awk '{printf "%s",p} {p=$0 ORS} END{sub(/,.$/,"",p); print p}';
+  zcat ${COUNTSFILE} | tail -n +2 | tr '\t' ',' | awk '{printf "%s",p} {p=$0 ORS} END{sub(/,.$/,"",p); print p}';
   echo ";"
   echo ${NCDF_FOOTER}
   ) | ncgen -4 -o $OUTFILE 
