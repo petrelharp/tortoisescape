@@ -9,7 +9,7 @@ Usage:
 
 if [ $# -lt 3 ]
 then
-    echo $USAGE
+    echo "$USAGE"
     exit 1
 fi
 
