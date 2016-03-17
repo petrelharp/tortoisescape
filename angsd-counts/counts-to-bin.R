@@ -12,7 +12,7 @@ if ( length(arglist) < 2 ) { stop(usage) }
 countsfile <- arglist[1]
 outfile <- arglist[2]
 nbytes <- if (length(arglist)>2) { arglist[3] } else { 1 }
-maxcounts <- as.integer(256^nbytes)
+maxcounts <- as.integer(256^nbytes-1)
 
 count.con <- pipe(paste("zcat",countsfile),open="r")
 count.header <- scan(count.con,nlines=1,what="char")
@@ -38,7 +38,7 @@ cat("All done writing to ", outfile, "\n")
 
 
 if (FALSE) {
-    # to read lines from the result:
+    # to read lines from the result, NA'ing out counts above the maximum:
     bincount <- file(outfile,open="rb")
     attr(bincount,"nindivs") <- nindivs
     attr(bincount,"nbytes") <- nbytes
@@ -52,6 +52,7 @@ if (FALSE) {
                                   size=attr(bincount,"nbytes"), 
                                   signed=(attr(bincount,"nbytes")>2) )
         }
+        output[output>=256^attr(bincount,"nbytes")-1] <- NA
         return(output)
     }
 }
