@@ -29,8 +29,7 @@ BASES=$(zcat $COUNTSFILE | head -n 1 | cut -f 1-4 | sed -e 's/[^\t_]*_//g' | sed
 NUM_INDIVS=$(echo $INDIVS |awk --field-separator="," "{ printf NF; } ")
 NUM_BASES=$(echo $BASES | wc -w)  # paranoid a little?
 
-NCDF_HEADER="
-netcdf counts {
+NCDF_HEADER="netcdf counts {
 
 dimensions:
     indiv = ${NUM_INDIVS}, 
@@ -54,9 +53,12 @@ NCDF_FOOTER="
 "
 
 
-echo "Writing to $OUTFILE "
+echo "Writing to ${OUTFILE}.cdl "
 
-( echo "$NCDF_HEADER";
+##  pipes won't work because you can't seek on a pipe, and ncgen needs to seek, I guess.  grrr.
+# ncgen -4 -o $OUTFILE <(   
+( 
+  echo "$NCDF_HEADER";
   echo "${INDIVNAME} = ";  # individuals
   echo "${INDIVS};";
   echo "${BASESNAME} = ";  # bases
@@ -70,7 +72,11 @@ echo "Writing to $OUTFILE "
   echo "${COUNTNAME} = ";  # counts
   zcat ${COUNTSFILE} | tail -n +2 | tr '\t' ',' | awk '{printf "%s",p} {p=$0 ORS} END{sub(/,.$/,"",p); print p}';
   echo ";"
-  echo ${NCDF_FOOTER}
-  ) | ncgen -4 -o $OUTFILE 
+  echo ${NCDF_FOOTER}  
+) > ${OUTFILE}.cdl
 
+echo "Done writing ${OUTFILE}.cdl, converting to $OUTFILE"
 
+ncgen -4 -o $OUTFILE ${OUTFILE}.cdl && rm ${OUTFILE}.cdl
+
+echo "All done!"
