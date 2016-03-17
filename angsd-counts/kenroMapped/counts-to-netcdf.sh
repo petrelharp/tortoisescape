@@ -1,6 +1,6 @@
 #!/bin/bash
 
-usage="
+USAGE="
 Convert a .counts.gz and .pos.gz file into a netcdf4 file.
 
 Usage:
@@ -23,23 +23,29 @@ CHRNAME="chr"
 BASESNAME="base"
 COUNTNAME="count"
 
+INDIVS=$(zcat $COUNTSFILE | head -n 1 | sed -e 's/_[ACGT]//g' | tr '\t' '\n' | uniq | sed -e 's/^/"/' -e 's/$/"/' | tr '\n' ',' | sed -e 's/,$//')
+BASES=$(zcat $COUNTSFILE | head -n 1 | cut -f 1-4 | sed -e 's/[^\t_]*_//g' | sed -e 's/\t/", "/g' -e 's/^/"/' -e 's/$/"/')
+
+NUM_INDIVS=$(echo $INDIVS |awk --field-separator="," "{ printf NF; } ")
+NUM_BASES=$(echo $BASES | wc -w)  # paranoid a little?
+
 NCDF_HEADER="
 netcdf counts {
 
 dimensions:
-    indiv = 3, 
-    base = 4,
+    indiv = ${NUM_INDIVS}, 
+    base = ${NUM_BASES},
     pos = unlimited;
 
 variables:
-    int    ${INDIVNAME}(indiv), ${POSNAME}(pos);
-    string ${CHRNAME}(pos), ${BASESNAME}(base);
+    int ${POSNAME}(pos);
+    string ${CHRNAME}(pos), ${BASESNAME}(base), ${INDIVNAME}(indiv);
     int    ${COUNTNAME}(pos,indiv,base);  // last dim varies fastest
 
-    ${INDIVNAME}:units = 'indiv';
-    ${BASESNAME}:units = 'base';
-    ${POSNAME}:units = 'snp';
-    ${COUNTNAME}:units = 'reads';
+    ${INDIVNAME}:units = \"indiv\";
+    ${BASESNAME}:units = \"base\";
+    ${POSNAME}:units = \"snp\";
+    ${COUNTNAME}:units = \"reads\";
 
 data:
 "
@@ -47,21 +53,24 @@ NCDF_FOOTER="
 }
 "
 
-INDIVS=$(zcat $COUNTSFILE | head -n 1 | sed -e 's/_[ACGT]//g' | uniq | tr '\t' ',')
-BASES=$(zcat $COUNTSFILE | head -n 1 | cut -f 1-4 | sed -e 's/[^\t_]*_//g' | tr '\t' ',')
 
 echo "Writing to $OUTFILE "
 
 ( echo "$NCDF_HEADER";
-  echo "${INDIVNAME} = ";
+  echo "${INDIVNAME} = ";  # individuals
   echo "${INDIVS};";
-  echo "${BASESNAME} = ";
+  echo "${BASESNAME} = ";  # bases
   echo "${BASES};";
-  echo "${CHRNAME} = ";
-  zcat ${POSFILE} | tail -n +2 | cut -f 1 | tr '\n' ',' | sed -e 's/,$/;\n/';
-  echo "${POSNAME} = ";
-  zcat ${POSFILE} | tail -n +2 | cut -f 2 | tr '\n' ',' | sed -e 's/,$/;\n/';
-  echo "${COUNTNAME} = ";
-  zcat ${COUNTSFILE} | tail -n +2 | tr '\t' ',' | tr '\n' ',' | sed -e 's/,$/;\n/';
+  echo "${CHRNAME} = ";  # chromosome
+  zcat ${POSFILE} | tail -n +2 | cut -f 1 | sed -e 's/^/"/' -e 's/$/"/' | tr '\n' ',' | sed -e 's/,$//';
+  echo ";"
+  echo "${POSNAME} = ";  # position
+  zcat ${POSFILE} | tail -n +2 | cut -f 2 | tr '\n' ',' | sed -e 's/,$//';
+  echo ";"
+  echo "${COUNTNAME} = ";  # counts
+  zcat ${COUNTSFILE} | tail -n +2 | tr '\t' ',' | sed -e 's/$/,/g' | awk '{printf "%s",p} {p=$0 ORS} END{sub(/,.$/,"",p); print p}';
+  echo ";"
   echo ${NCDF_FOOTER}
   ) | ncgen -4 -o $OUTFILE 
+
+
