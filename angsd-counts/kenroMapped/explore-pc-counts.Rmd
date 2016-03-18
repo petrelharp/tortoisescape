@@ -25,8 +25,8 @@ countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts
 # maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
 pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
 # scaffolds
-minscaf <- 1e4  # minimum number of snps per scaffold
 scaf.counts <- table( pos$chr )
+minscaf <- 1e3  # minimum number of snps per scaffold
 long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
 # apply filters
 mindepth <- 150 # minimum totalDepth
@@ -39,7 +39,8 @@ goodones <- goodones & ( pos$chr %in% long.scafs )
 
 ```{r count_connection, include=FALSE}
 # the counts themselves
-bincount <- file(countfile,open="rb")
+bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin"
+bincount <- file(bincountfile,open="rb")
 attr(bincount,"nindivs") <- nindivs
 attr(bincount,"nbytes") <- 1
 read_bincounts <- function (bincount,lines) {
@@ -253,18 +254,45 @@ player <- function (...) { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",yaxt
 pc.cols <- adjustcolor( ifelse( pcs$PC1[match(tort.ids,pcs$etort)] > 0, "blue", "purple" ), .25 )
 map_alleles <- function (lines,...) {
     counts <- read_bincounts(bincount,lines)
-    freqs <- tapply( 1:ncol(counts), 1:ncol(counts)%%4, function (k) { rowSums(sweep(counts,1,rowSums(counts),"/")[,k]) } )
+    freqs <- do.call( cbind, tapply( 1:ncol(counts), 1:ncol(counts)%%4, function (k) { rowSums(sweep(counts,1,rowSums(counts),"/")[,k]) } ) )
+    these.cors <- pc.cor[lines]
     site.info <- pos[lines,]
     for (site in 1:nrow(counts)) {
         player( main=paste(site.info$chr[site],site.info$pos[site]), ... )
-        mtext(side=3,line=0.5,text=paste(
-                 "depth:",rowSums(counts)[site],
-                 "freq:",max(freqs[site,]),
-                 "nInd:",rowSums(!is.na(counts))[site]) )
+        mtext(side=3,line=0.5,
+              text=sprintf("depth: %d, freq: %0.3f, nInd: %d, pc1cor: %0.3f",
+                 rowSums(counts)[site], # depth
+                 max(freqs[site,]),   # frequency
+                 rowSums(!is.na(counts))[site], # num indivs
+                 these.cors[site])  # cor with PC1
+              )
         for (k in seq_along(bases)) {
             nn <- k+4*(0:(nindivs-1))
             points(coords,pch=20,cex=counts[site,nn],col=base.cols[k])
         }
+        legend('topleft',legend=bases,col=base.cols,pch=20)
     }
 }
+```
+
+We'll pull out and make maps of contiguous segments of one hundred SNPs for the top few scaffolds.
+```{r map_scafs, include=FALSE}
+for (scaf in superlong) {
+    scafdir <- paste0(scaf,"_maps")
+    dir.create(scafdir,showWarnings=FALSE)
+    thisdir <- file.path( scafdir, "centered" )
+    dir.create(thisdir,showWarnings=FALSE)
+    scaf.lines <- which( pos$chr==scaf )
+    do.lines <- scaf.lines[floor(length(scaf.lines)/2)+(1:100)]
+    png( filename=file.path(thisdir,"snp_map%03d.png"), 
+            width=5*144, height=5*144, pointsize=10, res=144 )
+    map_alleles( do.lines )
+    dev.off()
+    system(paste("cd", thisdir, ";",
+                 file.path(tortdir,"visualization/make-slideshow.sh"),
+                 "*.png > index.html" ) )
+}
+```
+```{r map_scafs_list, results="asis"}
+paste0("- [", superlong, "](", superlong, "_maps/centered/index.html", ")")
 ```

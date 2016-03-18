@@ -11,7 +11,7 @@ arglist <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
 if ( length(arglist) < 2 ) { stop(usage) }
 countsfile <- arglist[1]
 outfile <- arglist[2]
-nbytes <- if (length(arglist)>2) { as.integer(arglist[3]) } else { 1 }
+nbytes <- if (length(arglist)>2) { as.integer(arglist[3]) } else { 1L }
 maxcounts <- as.integer(256^nbytes-1)
 
 count.con <- pipe(paste("zcat",countsfile),open="r")
