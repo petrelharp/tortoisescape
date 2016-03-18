@@ -1,46 +1,46 @@
 #!env Rscript
 
-## To compute the correlation and covariance of each site with a vector, say, PC1:
-## If at a given site:
-# c(i) = major allele count in indiv i
-# n(i) = sample size, i.e. coverage of indiv i
-# p(i) = c(i)/n(i)
-# v(i) = vector of weights
-## then we need these things:
-# A = sum_i p(i)
-# B = sum_i p(i) * v(i)
-# C = sum_{i : n(i)>0} v(i)
-# D = sum_{i : n(i)>0} v(i)^2
-# N = #{ i : n(i) > 0 }
-##
-## so we will estimate the covariance by
-#  ( B - A * C / N ) / N
-## and the correlation by
-#  ( cov ) / sqrt( ( ( A - A^2 / N ) / N ) * ( ( D - C^2 / N ) / N ) )
-#  = ( B * N - A * C ) / sqrt( ( A * N - A^2 ) * ( D * N - C^2 ) )
-##
+usage <- "Usage:\
+    Rscript get-pc-counts.R (name of counts file) (pc number)\
+\
+Details:\
+To compute the correlation and covariance of each site with a vector, say, PC1:\
+If at a given site:\
+    c(i) = major allele count in indiv i\
+    n(i) = sample size, i.e. coverage of indiv i\
+    p(i) = c(i)/n(i)\
+    v(i) = vector of weights\
+then we need these things:\
+    A = sum_i p(i)\
+    B = sum_i p(i) * v(i)\
+    C = sum_{i : n(i)>0} v(i)\
+    D = sum_{i : n(i)>0} v(i)^2\
+    N = #{ i : n(i) > 0 }\
+so we will estimate the covariance by\
+    ( B - A * C / N ) / N\
+and the correlation by\
+    ( cov ) / sqrt( ( ( A - A^2 / N ) / N ) * ( ( D - C^2 / N ) / N ) )\
+        = ( B * N - A * C ) / sqrt( ( A * N - A^2 ) * ( D * N - C^2 ) )\
+"
 
-blocksize <- 1e5 # number of sites to read in at a time
-do.text <- FALSE # write out in text? (if not, binary)
-pc.num <- 2
+arglist <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
+if (length(arglist)!=2) { stop(usage) }
+countfile <- arglist[1]
+pc.num <- as.integer(arglist[2])
 
-# read in the site information
-tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
+# pc.num <- 1
 
-# datadir <- file.path(dirname(tortdir),"angsd-counts")
-# countfile <- file.path(datadir,"test.counts.gz")
-
-# datadir <- file.path(tortdir,"angsd-counts")
-# countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30.counts.gz")
-# maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.mafs.gz"),header=TRUE)
-# pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.pos.gz"),header=TRUE)
-
-datadir <- file.path(tortdir,"angsd-counts/kenroMapped")
-countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.gz")
+# datadir <- file.path(tortdir,"angsd-counts/kenroMapped")
+# countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.gz")
 # maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
 # pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
 
-outsuffix <- if (do.text) { ".pc1counts.txt" } else { ".pc1counts.5bin" }
+blocksize <- 1e5 # number of sites to read in at a time
+do.text <- FALSE # write out in text? (if not, binary)
+
+# read in the site information
+tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
+outsuffix <- sprintf(if (do.text) { ".pc%dcounts.txt" } else { ".pc%dcounts.5bin" }, pc.num)
 outfile <- gsub(".counts.gz",outsuffix,countfile)  # .5bin means binary, five columns
 headerfile <- if ( do.text ) { outfile } else { paste0(outfile,".header") }
 

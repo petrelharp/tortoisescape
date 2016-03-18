@@ -244,7 +244,8 @@ hist( na.by.scaf, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("red",0.5) )
 legend("topleft", fill=c('blue','red'), legend=c('SNP', 'missingness'))
 ```
 
-# Maps of high-correlation alleles
+
+# Maps of random segments of alleles
 
 ```{r plot_allele_setup, include=FALSE}
 bases <- c("A","C","G","T")
@@ -254,7 +255,8 @@ player <- function (...) { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",yaxt
 pc.cols <- adjustcolor( ifelse( pcs$PC1[match(tort.ids,pcs$etort)] > 0, "blue", "purple" ), .25 )
 map_alleles <- function (lines,...) {
     counts <- read_bincounts(bincount,lines)
-    freqs <- do.call( cbind, tapply( 1:ncol(counts), 1:ncol(counts)%%4, function (k) { rowSums(sweep(counts,1,rowSums(counts),"/")[,k]) } ) )
+    freqs <- do.call( cbind, tapply( 1:ncol(counts), 0:(ncol(counts)-1)%%4, function (k) { rowSums(sweep(counts,1,rowSums(counts),"/")[,k]) } ) )
+    coverage <- do.call( cbind, tapply( 1:ncol(counts), 0:(ncol(counts)-1)%/%4, function (k) { rowSums(counts[,k]) } ) )
     these.cors <- pc.cor[lines]
     site.info <- pos[lines,]
     for (site in 1:nrow(counts)) {
@@ -263,7 +265,7 @@ map_alleles <- function (lines,...) {
               text=sprintf("depth: %d, freq: %0.3f, nInd: %d, pc1cor: %0.3f",
                  rowSums(counts)[site], # depth
                  max(freqs[site,]),   # frequency
-                 rowSums(!is.na(counts))[site], # num indivs
+                 rowSums(coverage>0)[site], # num indivs covered
                  these.cors[site])  # cor with PC1
               )
         for (k in seq_along(bases)) {
@@ -275,7 +277,8 @@ map_alleles <- function (lines,...) {
 }
 ```
 
-We'll pull out and make maps of contiguous segments of one hundred SNPs for the top few scaffolds.
+We'll pull out and make maps of contiguous segments of one hundred SNPs for the top few scaffolds;
+here are links to those slideshows:
 ```{r map_scafs, include=FALSE}
 for (scaf in superlong) {
     scafdir <- paste0(scaf,"_maps")
@@ -293,6 +296,28 @@ for (scaf in superlong) {
                  "*.png > index.html" ) )
 }
 ```
-```{r map_scafs_list, results="asis"}
-paste0("- [", superlong, "](", superlong, "_maps/centered/index.html", ")")
+```{r map_scafs_list, results="asis", echo=FALSE}
+list_to_mdlist <- function (x) { cat("\n",paste0("- ",paste(x,collapse="\n- ")),"\n",sep='',"\n") }
+list_to_mdlist( paste0("[", superlong, "](", superlong, "_maps/centered/index.html", ")") )
 ```
+
+It doesn't look like even alleles with correlation around 0.4 are particularly striking.
+
+
+# Maps of high-correlation SNPs
+
+We'll also make maps of all the SNPs that have correlation above 0.5 (there are `r sum(abs(pc.cor[goodones])>0.5)` of these`.
+```{r high_cor_maps, include=FALSE}
+high.cor.lines <- which( goodones & abs(pc.cor)>0.5 )
+thisdir <- "cor_gt_0.5_maps"
+dir.create(thisdir,showWarnings=FALSE)
+png( filename=file.path(thisdir,"snp_map%03d.png"), 
+        width=5*144, height=5*144, pointsize=10, res=144 )
+map_alleles( high.cor.lines )
+dev.off()
+system(paste("cd", thisdir, ";",
+             file.path(tortdir,"visualization/make-slideshow.sh"),
+             "*.png > index.html" ) )
+```
+These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
+
