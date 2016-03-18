@@ -5,7 +5,9 @@ date: "`r date()`"
 
 ```{r setup, include=FALSE}
 library(pander)
-library(phonTools)  # for fastacf
+library(raster)
+library(maptools)
+# library(phonTools)  # for fastacf
 options(scipen=3)
 fig.dim <- 5
 knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
@@ -36,6 +38,27 @@ goodones <- goodones & ( pos$chr %in% long.scafs )
 ```
 
 ```{r count_connection, include=FALSE}
+# the counts themselves
+bincount <- file(countfile,open="rb")
+attr(bincount,"nindivs") <- nindivs
+attr(bincount,"nbytes") <- 1
+read_bincounts <- function (bincount,lines) {
+    line.coords <- 4*(lines-1)*attr(bincount,"nbytes")*attr(bincount,"nindivs")
+    output <- matrix( integer(4*length(lines)*attr(bincount,"nindivs")), nrow=length(lines) )
+    for (k in seq_along(lines)) {
+        seek(bincount,line.coords[k])
+        output[k,] <- readBin( bincount, what=integer(),
+                              n=4*attr(bincount,"nindivs"),
+                              size=attr(bincount,"nbytes"),
+                              signed=(attr(bincount,"nbytes")>2) )
+    }
+    output[output>=256^attr(bincount,"nbytes")-1] <- NA
+    return(output)
+}
+```
+
+```{r pc_count_connection, include=FALSE}
+# correlation of PCs with counts
 countsuffix <- ".pc1counts.5bin"  # .5bin means binary, five columns
 pccountfile <- gsub(".counts.gz",countsuffix,countfile)
 pccountheaderfile <- paste0(pccountfile,".header")
@@ -218,4 +241,30 @@ hist( snp.by.scaf, xlim=range(0,snp.by.scaf,na.by.scaf,finite=TRUE), breaks=50,
         col=adjustcolor("blue",0.5), freq=TRUE, main='mean absolute correlation by scaffold' )
 hist( na.by.scaf, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("red",0.5) )
 legend("topleft", fill=c('blue','red'), legend=c('SNP', 'missingness'))
+```
+
+# Maps of high-correlation alleles
+
+```{r plot_allele_setup, include=FALSE}
+bases <- c("A","C","G","T")
+base.cols <- adjustcolor(1:4,.5)
+layer <- raster(file.path(tortdir,"visualization/dem_30"))
+player <- function (...) { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",yaxt="n",legend.mar=0,box=FALSE,...) }
+pc.cols <- adjustcolor( ifelse( pcs$PC1[match(tort.ids,pcs$etort)] > 0, "blue", "purple" ), .25 )
+map_alleles <- function (lines,...) {
+    counts <- read_bincounts(bincount,lines)
+    freqs <- tapply( 1:ncol(counts), 1:ncol(counts)%%4, function (k) { rowSums(sweep(counts,1,rowSums(counts),"/")[,k]) } )
+    site.info <- pos[lines,]
+    for (site in 1:nrow(counts)) {
+        player( main=paste(site.info$chr[site],site.info$pos[site]), ... )
+        mtext(side=3,line=0.5,text=paste(
+                 "depth:",rowSums(counts)[site],
+                 "freq:",max(freqs[site,]),
+                 "nInd:",rowSums(!is.na(counts))[site]) )
+        for (k in seq_along(bases)) {
+            nn <- k+4*(0:(nindivs-1))
+            points(coords,pch=20,cex=counts[site,nn],col=base.cols[k])
+        }
+    }
+}
 ```
