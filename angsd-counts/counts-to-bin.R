@@ -20,6 +20,9 @@ count.ids <- do.call(rbind,strsplit(count.header,"_"))
 colnames(count.ids) <- c("angsd.id","base")
 nindivs <- nrow(count.ids)/4
 
+headerfile <- paste0(outfile,".header")
+cat( paste(count.header,collapse="\t"), "\n", sep='', file=headerfile )
+
 # number of values to read at once
 chunksize <- 1e8
 # number of rows to read at once
@@ -33,6 +36,7 @@ while (length(counts <- scan(count.con,what=integer(),nlines=chunklines))>0) {
 }
 
 close(outcon)
+try(close(count.con))
 
 cat("All done writing to ", outfile, "\n")
 

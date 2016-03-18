@@ -3,6 +3,7 @@
 usage <- "Usage:\
     Rscript get-pc-counts.R (name of counts file) (pc number)\
 \
+The counts file can be text, gzipped (.counts.gz) or binary (.counts.bin, as output by counts-to-bin.R, one byte per int).\
 Details:\
 To compute the correlation and covariance of each site with a vector, say, PC1:\
 If at a given site:\
@@ -45,13 +46,30 @@ outfile <- gsub(".counts.gz",outsuffix,countfile)  # .5bin means binary, five co
 headerfile <- if ( do.text ) { outfile } else { paste0(outfile,".header") }
 
 # the count file
-count.con <- pipe(paste("zcat",countfile),open="r")
-count.header <- scan(count.con,nlines=1,what="char")
+if (grepl(".counts.gz$",countfile)) {
+    count.con <- pipe(paste("zcat",countfile),open="r")
+    count.header <- scan(count.con,nlines=1,what="char")
+    read_fun <- function (blocksize) { scan(count.con,nlines=blocksize) }
+} else if (grepl(".counts.bin$",countfile)) {
+    count.con <- file(countfile,open="rb")
+    count.header <- scan(paste0(countfile,".header"),what="char")
+    attr(count.con,"nbytes") <- 1
+    read_fun <- function (blocksize) {
+        readBin( bincount, what=integer(),
+                  n=4*attr(bincount,"nindivs")*blocksize,
+                  size=attr(bincount,"nbytes"),
+                  signed=(attr(bincount,"nbytes")>2) )
+    }
+} else { stop(paste("Counts file", countfile, "not a recognized format.")) }
+
+## count info
+count.ids <- do.call(rbind,strsplit(count.header,"_"))
+colnames(count.ids) <- c("angsd.id","base")
+nindivs <- nrow(count.ids)/4
+attr(count.con,"nindivs") <- nindivs
 
 ###
 # find pc-weighted counts by base
-count.ids <- do.call(rbind,strsplit(count.header,"_"))
-colnames(count.ids) <- c("angsd.id","base")
 pcs <- read.csv(file.path(tortdir,"tort_272_info","pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
 # yes, they're in the same order (evan, 2/29/16)
 pcs$angsd.id <- count.ids[count.ids[,2]=="A",1]
@@ -69,7 +87,6 @@ pcvec <- pcs[[paste0("PC",pc.num)]]
 #   ind0_A  ind0_C  ind0_G  ind0_T  ind1_A  ind1_C  ind1_G  ind1_T  ...
 # note that the output is transposed to what we might like,
 # so that we we write out as a vector in chunks it will end up in the right order.
-nindivs <- nrow(count.ids)/4
 do_pc_counts <- function (counts) {
     # assumes that the counts matrix has been "transposed" from the file,
     # i.e., read in with one row of the file equal to one column of counts
@@ -103,8 +120,9 @@ writeLines("sum_freq\tfreq_prod\tsum_weights\tsum_weights_sq\tnum_nonzero\n", he
 if (!do.text) {
     outcon <- file(outfile, open="wb", raw=TRUE)
 }
+
 nlines <- 0
-while (length(counts <- scan(count.con,nlines=blocksize))>0) {
+while (length(counts <- read_fun(blocksize))>0) {
     dim(counts) <- c(4*nindivs,length(counts)/(4*nindivs))
     # rownames(counts) <- count.header
     nlines <- nlines+ncol(counts)
