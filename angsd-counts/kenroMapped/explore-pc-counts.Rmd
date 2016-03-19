@@ -237,7 +237,7 @@ get_scaf <- function (scaf,pc.num) {
 this.scaf <- "scaffold_2062"
 s2062.pc1 <- get_scaf(this.scaf,1)
 s2062.pc2 <- get_scaf(this.scaf,2)
-cor( abs(s2062.pc1[,3:6]) )
+cor( cbind( abs(s2062.pc1), abs(s2062.pc2) ) )
 # hist( s2062.pc1$snp.cor, breaks=60, main=paste('SNP correlations on',this.scaf) )
 layout(1:2)
 opar <- par(mar=c(par("mar"),0.1)[c(5,2,3,4)])
