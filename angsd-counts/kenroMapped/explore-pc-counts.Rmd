@@ -182,7 +182,7 @@ hist(pc2.df$snp.cor[goodones[seq_along(pc1.df$snp.cor)]],breaks=1000,xlim=c(-1,1
 ```
 
 Here is correlation against minor allele frequency:
-```{r cor_vs_freq, fig.width=2*fig.dim, cache=TRUE, depends="pc_count_connection"}
+```{r cor_vs_freq, fig.width=2*fig.dim, cache=TRUE, depends=c("snp_info","pc_count_connection")}
 layout(t(1:2))
 plot( pc1.df$snp.freq[goodones], pc1.df$snp.cor[goodones], pch='.', col=adjustcolor("black",0.5), main="SNPs",
         xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC1" )
@@ -218,7 +218,7 @@ plot( pc2.df$snp.freq, pc2.df$na.cor, pch='.', col=adjustcolor("black",0.5), mai
 
 First, let's look at the top ten longest scaffolds.
 **Above zero** are *absolute* correlations with **PC1**, and below  are with **PC2**:
-```{r long_scafs, cache=TRUE, depends="pc_count_connection"}
+```{r long_scafs, cache=TRUE, depends=c("snp_info","pc_count_connection")}
 superlong <- names(sort(scaf.counts,decreasing=TRUE)[1:10])
 for (scaf in superlong) {
     plot( pos$pos[pos$chr==scaf & goodones], abs(pc1.df$snp.cor[pos$chr==scaf & goodones]),
@@ -337,7 +337,7 @@ list_to_mdlist( paste0('[', superlong, '](', superlong, '_maps/centered/index.ht
 
 We'll make maps of all the SNPs that have correlation with PC1 above 0.85 
 (there are `r sum(abs(pc1.df$snp.cor[goodones])>0.85)` of these).
-```{r high_cor_maps, include=FALSE, cache=TRUE}
+```{r high_cor_maps, include=FALSE, cache=TRUE, depends="snp_info"}
 pc.num <- 1
 high.cor.lines <- which( goodones & abs(pc1.df$snp.cor)>0.85 )
 thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
@@ -356,7 +356,7 @@ These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
 
 We'll also make maps of all the SNPs that have correlation with PC2 above 0.5 
 (there are `r sum(abs(pc2.df$snp.cor[goodones])>0.5)` of these).
-```{r high_cor_maps_2, include=FALSE, cache=TRUE}
+```{r high_cor_maps_2, include=FALSE, cache=TRUE, depends="snp_info"}
 pc.num <- 2
 high.cor.lines <- which( goodones & abs(pc2.df$snp.cor)>0.5 )
 thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
@@ -380,7 +380,7 @@ Many of these may have been removed only for being on shortish contigs
 and at least `r minscaf` SNPs per contig).
 Here is a plot of correlation with PC1 against total depth,
 color is whether it passed these filters or not:
-```{r all_snps, cache=TRUE}
+```{r all_snps, cache=TRUE, depends="snp_info"}
 usethese <- ( !is.na(abs(pc1.df$snp.cor)) & abs(pc1.df$snp.cor)>0.7 )
 plot( pos$totDepth[usethese], abs(pc1.df$snp.cor[usethese]), pch=20, cex=0.5, log='x', xlim=c(10,550),
      col=adjustcolor("black",0.5),
