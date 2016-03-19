@@ -3,7 +3,7 @@
 usage <- "Usage:\
     Rscript get-pc-counts.R (name of counts file) (pc number)\
 \
-The counts file can be text, gzipped (.counts.gz) or binary (.counts.bin, as output by counts-to-bin.R, one byte per int).\
+The counts file can be text, gzipped (.counts.gz) or binary (.counts.bin.gz, as output by counts-to-bin.R, one byte per int).\
 Details:\
 To compute the correlation and covariance of each site with a vector, say, PC1:\
 If at a given site:\
@@ -50,15 +50,15 @@ if (grepl(".counts.gz$",countfile)) {
     count.con <- pipe(paste("zcat",countfile),open="r")
     count.header <- scan(count.con,nlines=1,what="char")
     read_fun <- function (blocksize) { scan(count.con,nlines=blocksize) }
-} else if (grepl(".counts.bin$",countfile)) {
-    count.con <- file(countfile,open="rb")
+} else if (grepl(".counts.bin",countfile)) {
+    count.con <- if (grepl(".counts.bin.gz$",countfile)) { file(countfile,open="rb") } else { pipe(paste("zcat",countfile),open="rb") }
     count.header <- scan(paste0(countfile,".header"),what="char")
     attr(count.con,"nbytes") <- 1
     read_fun <- function (blocksize) {
-        readBin( bincount, what=integer(),
-                  n=4*attr(bincount,"nindivs")*blocksize,
-                  size=attr(bincount,"nbytes"),
-                  signed=(attr(bincount,"nbytes")>2) )
+        readBin( count.con, what=integer(),
+                  n=4*attr(count.con,"nindivs")*blocksize,
+                  size=attr(count.con,"nbytes"),
+                  signed=(attr(count.con,"nbytes")>2) )
     }
 } else { stop(paste("Counts file", countfile, "not a recognized format.")) }
 
