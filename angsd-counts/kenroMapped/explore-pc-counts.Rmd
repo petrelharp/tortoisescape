@@ -31,7 +31,7 @@ minscaf <- 1e3  # minimum number of snps per scaffold
 long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
 # apply filters
 mindepth <- 150 # minimum totalDepth
-maxdepth <- 350 # maximum totalDepth
+maxdepth <- 500 # maximum totalDepth
 goodones <- ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) )
 # minind <- 250   # minimum nInd -- RESULTS IN NO SNPs
 # goodones <- goodones & ( maf$nInd >= minind )
@@ -63,6 +63,8 @@ read_bincounts <- function (bincount,lines) {
 We are only looking at scaffolds with at least `r minscaf` SNPs per scaffold,
 and SNPs with total depth between `r mindepth` and `r maxdepth`;
 this is a proportion `r mean(goodones)` of the SNPs.
+Overall, we've got a depth of about `r mean(pos$totDepth[pos$totDepth<maxdepth])`;
+on the longer scaffolds this is `r mean(pos$totDepth[pos$totDepth<maxdepth & pos$chr%in%long.scafs])`;
 
 
 # Computation
@@ -379,28 +381,11 @@ and at least `r minscaf` SNPs per contig).
 Here is a plot of correlation with PC1 against total depth,
 color is whether it passed these filters or not:
 ```{r all_snps, cache=TRUE}
-plot( pos$totDepth, pc1.df$snp.cor, pch=20, cex=0.5,
-     col=adjustcolor( ifelse( ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) ),
-                     ifelse(pos$chr %in% long.scafs, "black", "blue"), "red" ) ,0.5),
+usethese <- ( !is.na(abs(pc1.df$snp.cor)) & abs(pc1.df$snp.cor)>0.7 )
+plot( pos$totDepth[usethese], abs(pc1.df$snp.cor[usethese]), pch=20, cex=0.5, log='x', xlim=c(10,550),
+     col=adjustcolor("black",0.5),
     xlab='total depth', ylab='correlation with PC1' )
 legend("topright", pch=20, col=c('black','blue','red'), legend=c('filtered','short scaffold','wierd depth') )
 ```
-
-We'll also make some maps of the high-correlation,
-non-filter-passing alleles.
-There are `r sum(abs(pc2.df$snp.cor[goodones])>0.5)` of these).
-```{r high_cor_maps_unfiltered, include=FALSE, cache=TRUE}
-pc.num <- 1
-high.cor.lines <- which( goodones & abs(pc1.df$snp.cor)>0.85 )
-thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
-dir.create(thisdir,showWarnings=FALSE)
-png( filename=file.path(thisdir,"snp_map%03d.png"), 
-        width=5*144, height=5*144, pointsize=10, res=144 )
-map_alleles( high.cor.lines )
-dev.off()
-system(paste("cd", thisdir, ";",
-             file.path(tortdir,"visualization/make-slideshow.sh"),
-             "*.png > index.html" ) )
-```
-These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
+Looks like most of the high correlation ones are due to *low* coverage.
 
