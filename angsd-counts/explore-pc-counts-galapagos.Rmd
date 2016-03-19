@@ -31,7 +31,7 @@ minscaf <- 1e3  # minimum number of snps per scaffold
 long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
 # apply filters
 mindepth <- 150 # minimum totalDepth
-maxdepth <- 350 # maximum totalDepth
+maxdepth <- 500 # maximum totalDepth
 goodones <- ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) )
 # minind <- 250   # minimum nInd -- RESULTS IN NO SNPs
 # goodones <- goodones & ( maf$nInd >= minind )
@@ -63,6 +63,8 @@ read_bincounts <- function (bincount,lines) {
 We are only looking at scaffolds with at least `r minscaf` SNPs per scaffold,
 and SNPs with total depth between `r mindepth` and `r maxdepth`;
 this is a proportion `r mean(goodones)` of the SNPs.
+Overall, we've got a depth of about `r mean(pos$totDepth[pos$totDepth<maxdepth])`;
+on the longer scaffolds this is `r mean(pos$totDepth[pos$totDepth<maxdepth & pos$chr%in%long.scafs])`;
 
 
 # Computation
@@ -180,7 +182,7 @@ hist(pc2.df$snp.cor[goodones[seq_along(pc1.df$snp.cor)]],breaks=1000,xlim=c(-1,1
 ```
 
 Here is correlation against minor allele frequency:
-```{r cor_vs_freq, fig.width=2*fig.dim, cache=TRUE, depends="pc_count_connection"}
+```{r cor_vs_freq, fig.width=2*fig.dim, cache=TRUE, depends=c("snp_info","pc_count_connection")}
 layout(t(1:2))
 plot( pc1.df$snp.freq[goodones], pc1.df$snp.cor[goodones], pch='.', col=adjustcolor("black",0.5), main="SNPs",
         xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC1" )
@@ -216,7 +218,7 @@ plot( pc2.df$snp.freq, pc2.df$na.cor, pch='.', col=adjustcolor("black",0.5), mai
 
 First, let's look at the top ten longest scaffolds.
 **Above zero** are *absolute* correlations with **PC1**, and below  are with **PC2**:
-```{r long_scafs, cache=TRUE, depends="pc_count_connection"}
+```{r long_scafs, cache=TRUE, depends=c("snp_info","pc_count_connection")}
 superlong <- names(sort(scaf.counts,decreasing=TRUE)[1:10])
 for (scaf in superlong) {
     plot( pos$pos[pos$chr==scaf & goodones], abs(pc1.df$snp.cor[pos$chr==scaf & goodones]),
@@ -226,29 +228,6 @@ for (scaf in superlong) {
             pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
     abline(h=0)
 }
-```
-Huh, scaffold 2062 looks interesting.
-What's the difference between the high and low correlation SNPs on that scaffold?
-Those seem to line up with intermediate-frequency haplotypes:
-```{r scaf_2062, fig.height=2*fig.dim}
-get_scaf <- function (scaf,pc.num) {
-    cbind( pos[goodones & pos$chr==scaf,2:3],
-        get(paste0("pc",pc.num,".df"))[goodones & pos$chr==scaf,] )
-}
-this.scaf <- "scaffold_2062"
-s2062.pc1 <- get_scaf(this.scaf,1)
-s2062.pc2 <- get_scaf(this.scaf,2)
-cor( cbind( abs(s2062.pc1[,2:6]), abs(s2062.pc2[,c(4,6)]) ) )
-# hist( s2062.pc1$snp.cor, breaks=60, main=paste('SNP correlations on',this.scaf) )
-layout(1:2)
-opar <- par(mar=c(par("mar"),0.1)[c(5,2,3,4)])
-with( s2062.pc1, plot( pos, abs(snp.cor), pch=20, cex=0.5, xlab='', xaxt='n', ylim=c(-1,1),
-                      ylab='correlation', main=paste('SNP correlation,',this.scaf) ) )
-with( s2062.pc2, points( pos, -abs(snp.cor), pch=20, cex=0.5 ) )
-abline(h=0)
-opar <- par(mar=c(opar$mar,0.1)[c(1,2,5,4)])
-with( s2062.pc1, plot( pos, snp.freq, pch=20, cex=0.5, xlab='position', ylab='major allele frequency') )
-par(opar)
 ```
 
 
@@ -335,7 +314,7 @@ list_to_mdlist( paste0('[', superlong, '](', superlong, '_maps/centered/index.ht
 
 We'll make maps of all the SNPs that have correlation with PC1 above 0.85 
 (there are `r sum(abs(pc1.df$snp.cor[goodones])>0.85)` of these).
-```{r high_cor_maps, include=FALSE, cache=TRUE}
+```{r high_cor_maps, include=FALSE, cache=TRUE, depends="snp_info"}
 pc.num <- 1
 high.cor.lines <- which( goodones & abs(pc1.df$snp.cor)>0.85 )
 thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
@@ -354,7 +333,7 @@ These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
 
 We'll also make maps of all the SNPs that have correlation with PC2 above 0.5 
 (there are `r sum(abs(pc2.df$snp.cor[goodones])>0.5)` of these).
-```{r high_cor_maps_2, include=FALSE, cache=TRUE}
+```{r high_cor_maps_2, include=FALSE, cache=TRUE, depends="snp_info"}
 pc.num <- 2
 high.cor.lines <- which( goodones & abs(pc2.df$snp.cor)>0.5 )
 thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
@@ -378,10 +357,10 @@ Many of these may have been removed only for being on shortish contigs
 and at least `r minscaf` SNPs per contig).
 Here is a plot of correlation with PC1 against total depth,
 color is whether it passed these filters or not:
-```{r all_snps, cache}
-plot( pos$totDepth, pc1.df$snp.cor, pch=20, cex=0.5,
-     col=adjustcolor( ifelse( ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) ),
-                     ifelse(pos$chr %in% long.scafs, "black", "blue"), "red" ) ,0.5),
+```{r all_snps, cache=TRUE, depends="snp_info"}
+usethese <- ( !is.na(abs(pc1.df$snp.cor)) & abs(pc1.df$snp.cor)>0.7 )
+plot( pos$totDepth[usethese], abs(pc1.df$snp.cor[usethese]), pch=20, cex=0.5, log='x', xlim=c(10,550),
+     col=adjustcolor("black",0.5),
     xlab='total depth', ylab='correlation with PC1' )
 legend("topright", pch=20, col=c('black','blue','red'), legend=c('filtered','short scaffold','wierd depth') )
 ```
