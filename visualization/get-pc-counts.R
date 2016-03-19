@@ -51,7 +51,7 @@ if (grepl(".counts.gz$",countfile)) {
     count.header <- scan(count.con,nlines=1,what="char")
     read_fun <- function (blocksize) { scan(count.con,nlines=blocksize) }
 } else if (grepl(".counts.bin",countfile)) {
-    count.con <- if (grepl(".counts.bin.gz$",countfile)) { file(countfile,open="rb") } else { pipe(paste("zcat",countfile),open="rb") }
+    count.con <- if (!grepl(".counts.bin.gz$",countfile)) { file(countfile,open="rb") } else { pipe(paste("zcat",countfile),open="rb") }
     count.header <- scan(paste0(countfile,".header"),what="char")
     attr(count.con,"nbytes") <- 1
     read_fun <- function (blocksize) {
