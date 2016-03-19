@@ -42,7 +42,7 @@ do.text <- FALSE # write out in text? (if not, binary)
 # read in the site information
 tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
 outsuffix <- sprintf(if (do.text) { ".pc%dcounts.txt" } else { ".pc%dcounts.5bin" }, pc.num)
-outfile <- gsub(".counts.gz",outsuffix,countfile)  # .5bin means binary, five columns
+outfile <- paste0(gsub(".counts.*","",countfile),outsuffix)  # .5bin means binary, five columns
 headerfile <- if ( do.text ) { outfile } else { paste0(outfile,".header") }
 
 # the count file
