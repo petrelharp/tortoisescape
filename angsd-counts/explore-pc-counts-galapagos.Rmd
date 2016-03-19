@@ -1,0 +1,387 @@
+---
+title: "SNP clinality"
+date: "`r date()`"
+---
+
+```{r setup, include=FALSE}
+library(pander)
+library(raster)
+library(maptools)
+# library(phonTools)  # for fastacf
+options(scipen=3)
+fig.dim <- 5
+knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+# locations and labels
+tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
+coord.obj <- load(file.path(tortdir,"tort_272_info","geog_coords.RData"))
+coords <- get(coord.obj)
+tort.ids <- row.names(coords)
+nindivs <- length(tort.ids)
+```
+
+```{r snp_info, include=FALSE, cache=TRUE}
+datadir <- "."
+countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30.counts.gz")
+bincountfile <- "272torts_snp1e6_minmapq20minq30.counts.bin"
+# maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.mafs.gz"),header=TRUE)
+pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30.pos.gz"),header=TRUE)
+# scaffolds
+scaf.counts <- table( pos$chr )
+minscaf <- 1e3  # minimum number of snps per scaffold
+long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
+# apply filters
+mindepth <- 150 # minimum totalDepth
+maxdepth <- 350 # maximum totalDepth
+goodones <- ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) )
+# minind <- 250   # minimum nInd -- RESULTS IN NO SNPs
+# goodones <- goodones & ( maf$nInd >= minind )
+goodones <- goodones & ( pos$chr %in% long.scafs )
+```
+
+```{r count_connection, include=FALSE}
+# the counts themselves
+bincount <- file(bincountfile,open="rb")
+attr(bincount,"nindivs") <- nindivs
+attr(bincount,"nbytes") <- 1
+read_bincounts <- function (bincount,lines) {
+    line.coords <- 4*(lines-1)*attr(bincount,"nbytes")*attr(bincount,"nindivs")
+    output <- matrix( integer(4*length(lines)*attr(bincount,"nindivs")), nrow=length(lines) )
+    for (k in seq_along(lines)) {
+        seek(bincount,line.coords[k])
+        output[k,] <- readBin( bincount, what=integer(),
+                              n=4*attr(bincount,"nindivs"),
+                              size=attr(bincount,"nbytes"),
+                              signed=(attr(bincount,"nbytes")>2) )
+    }
+    output[output>=256^attr(bincount,"nbytes")-1] <- NA
+    return(output)
+}
+```
+
+# Data
+
+We are only looking at scaffolds with at least `r minscaf` SNPs per scaffold,
+and SNPs with total depth between `r mindepth` and `r maxdepth`;
+this is a proportion `r mean(goodones)` of the SNPs.
+
+
+# Computation
+
+We want to compute the correlation and covariance of each site with a vector, $v$ (say, PC1).
+If at a given site:
+
+- $c(i) =$ major allele count in indiv $i$
+- $n(i) =$ sample size, i.e. coverage of indiv $i$
+- $p(i) =$ $c(i)/n(i)$
+- $v(i) =$ vector of weights
+
+then we need these things:
+
+- $A = \sum_i p(i)$
+- $B = \sum_i p(i) v(i)$
+- $C = \sum_{i : p(i)>0} v(i)$
+- $D = \sum_{i : p(i)>0} v(i)^2$
+- $N = \#\{ i : n(i) > 0 \}$
+
+Then, we estimate the covariance by
+$$  ( B - A C / N ) / N $$
+and the correlation by
+$$
+  ( \text{covariance} ) / \sqrt{ ( ( A - A^2 / N ) / (N-1) ) ( ( D - C^2 / N ) / (N-1) ) }
+  = ( B N - A C ) (N-1) / N \sqrt{ ( A N - A^2 ) ( D N - C^2 ) }
+$$
+
+The five columns of the pcXcounts files are $A$, $B$, $C$, $D$, and $N$, respectively.
+
+Note that from these data we can also look for clinality in the **missing** data.
+Suppose that
+
+- $z(i) = 1$ if the allele is missing in individual $i$ and $=0$ otherwise;
+- $C = \sum_i v(i) z(i)$
+- $N = \sum_i z(i)$
+- $n_I =$ the number of individuals
+- $\bar v = \sum_i v(i) / n_I$
+- $\sigma^2_v = \sum_i (v(i)-\bar v)^2 / (n_I-1)$
+
+and so the covariance of $z$ with $v$ is
+$$  ( C - N \sum_i v(i) / n_I ) / n_I $$
+and the correlation is
+$$  ( \text{covariance} ) / \sqrt{ ( N / n_I )( 1 - N/n_I ) \sigma^2_v } . $$
+
+```{r pc_count_connection, include=FALSE, cache=TRUE}
+pc.num <- 1
+pcs <- read.csv(file.path(tortdir,"tort_272_info","pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
+get_pc_cors <- function (pc.num){
+    # correlation of PCs with counts
+    countsuffix <- sprintf(".pc%dcounts.5bin",pc.num)  # .5bin means binary, five columns
+    pccountfile <- gsub(".counts.gz",countsuffix,countfile)
+    pccountheaderfile <- paste0(pccountfile,".header")
+    pc.header <- scan(pccountheaderfile,what='char')
+    pc.con <- pipe(paste("cat",pccountfile), open="rb")
+    on.exit(close(pc.con),add=TRUE)
+    read_chunk <- function (blocksize) {
+        # do this multiple times to read in chunks
+        pc.counts <- readBin(pc.con,what="numeric",n=length(pc.header)*blocksize)
+        dim(pc.counts) <- c(length(pc.header),length(pc.counts)/length(pc.header))
+        pc.counts <- t(pc.counts)
+        colnames(pc.counts) <- pc.header
+        return(pc.counts)
+    }
+    umat <- read_chunk(nrow(pos))
+    ## do correlations
+    # A is : sum_freq  
+    # B is : freq_prod 
+    # C is : sum_weights
+    # D is : sum_weights_sq
+    # N is : num_nonzero 
+    pcvec <- pcs[[paste0("PC",pc.num)]]
+    pcvec.mean <- umat[,"sum_weights"] / umat[,"num_nonzero"]
+    pcvec.var <- ( umat[,"sum_weights_sq"] - pcvec.mean * umat[,"sum_weights"] ) / (umat[,"num_nonzero"]-1) 
+    snp.freq <- umat[,"sum_freq"] / umat[,"num_nonzero"]
+    # snp.var <- snp.freq * ( 1 - snp.freq )
+    pc.cov <- ( umat[,"freq_prod"] / umat[,"num_nonzero"] - pcvec.mean * snp.freq )
+    pc.cor <- pc.cov / sqrt( snp.freq * ( 1 - snp.freq ) * pcvec.var )
+    ## and, for NAs
+    total.pc.mean <- mean(pcvec)
+    total.pc.var <- var(pcvec)
+    na.freq <- umat[,"num_nonzero"] / nindivs
+    na.cov <- ( umat[,"sum_weights"] / nindivs - total.pc.mean * na.freq )
+    na.cor <- na.cov / sqrt( na.freq * ( 1 - na.freq ) * total.pc.var )
+    # don't need umat any more
+    rm(umat); gc()
+    return( data.frame(
+                snp.freq=snp.freq,
+                snp.cor=pc.cor,
+                na.freq=na.freq,
+                na.cor=na.cor
+           ) )
+}
+pc1.df <- get_pc_cors(1)
+pc2.df <- get_pc_cors(2)
+```
+
+# Summary stats
+
+Here is the histogram of minor allele frequencies,
+with and without the filters above:
+(recall that these were already selected by angsd as likely polymorphic)
+```{r afs}
+hist(1-pc1.df$snp.freq,breaks=1000, xlim=c(0,1), main="empirical minor allele frequency")
+hist(1-pc1.df$snp.freq[goodones[seq_along(pc1.df$snp.freq)]],breaks=1000, xlim=c(0,1), main="same, on filtered sites")
+```
+
+And, here are the distributions of correlation coefficients:
+```{r cor_hists}
+layout(t(1:2))
+hist(pc1.df$snp.cor,breaks=1000,xlim=c(-1,1), main="SNP correlations with PC1")
+hist(pc2.df$snp.cor,breaks=1000,xlim=c(-1,1), main="SNP correlations with PC2")
+hist(pc1.df$snp.cor[goodones[seq_along(pc1.df$snp.cor)]],breaks=1000,xlim=c(-1,1), main="SNP correlations with PC1, filtered")
+hist(pc2.df$snp.cor[goodones[seq_along(pc1.df$snp.cor)]],breaks=1000,xlim=c(-1,1), main="SNP correlations with PC2, filtered")
+```
+
+Here is correlation against minor allele frequency:
+```{r cor_vs_freq, fig.width=2*fig.dim, cache=TRUE, depends="pc_count_connection"}
+layout(t(1:2))
+plot( pc1.df$snp.freq[goodones], pc1.df$snp.cor[goodones], pch='.', col=adjustcolor("black",0.5), main="SNPs",
+        xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC1" )
+plot( pc2.df$snp.freq[goodones], pc2.df$snp.cor[goodones], pch='.', col=adjustcolor("black",0.5), main="SNPs",
+        xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC2" )
+```
+
+And, frequencies of missingness, 
+with the distribution expected if coverage is Poisson(1.2):
+```{r na_afs}
+xh <- hist(1-pc1.df$na.freq,breaks=1000, xlim=c(0,1), main="Frequency of missing data")
+lines((0:nindivs)/nindivs, length(pc1.df$na.freq)*dbinom((0:nindivs),nindivs,exp(-1.2)),col='red',lwd=2)
+xh <- hist(1-pc1.df$na.freq[goodones[seq_along(pc1.df$na.freq)]],breaks=1000, xlim=c(0,1), main="same, on filtered sites")
+lines((0:nindivs)/nindivs, length(pc1.df$na.freq)*dbinom((0:nindivs),nindivs,exp(-1.2)),col='red',lwd=2)
+```
+and, distributions of correlation coefficients:
+```{r cor_hists_na}
+layout(t(1:2))
+hist(pc1.df$na.cor,breaks=1000,xlim=c(-1,1), main="NA correlations with PC1")
+hist(pc2.df$na.cor,breaks=1000,xlim=c(-1,1), main="NA correlations with PC2")
+hist(pc1.df$na.cor[goodones[seq_along(pc1.df$na.cor)]],breaks=1000,xlim=c(-1,1), main="NA correlations with PC1, filtered")
+hist(pc2.df$na.cor[goodones[seq_along(pc2.df$na.cor)]],breaks=1000,xlim=c(-1,1), main="NA correlations with PC2, filtered")
+```
+and, correlation against minor allele frequency:
+```{r na_cor_vs_freq, fig.width=2*fig.dim, cache=TRUE, depends="pc_count_connection"}
+plot( pc1.df$snp.freq, pc1.df$na.cor, pch='.', col=adjustcolor("black",0.5), main="missingness",
+        xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC1" )
+plot( pc2.df$snp.freq, pc2.df$na.cor, pch='.', col=adjustcolor("black",0.5), main="missingness",
+        xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC2" )
+```
+
+# By scaffold
+
+First, let's look at the top ten longest scaffolds.
+**Above zero** are *absolute* correlations with **PC1**, and below  are with **PC2**:
+```{r long_scafs, cache=TRUE, depends="pc_count_connection"}
+superlong <- names(sort(scaf.counts,decreasing=TRUE)[1:10])
+for (scaf in superlong) {
+    plot( pos$pos[pos$chr==scaf & goodones], abs(pc1.df$snp.cor[pos$chr==scaf & goodones]),
+            xlab='position', ylab='correlation', main=paste('scaffold',scaf),
+            pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
+    points( pos$pos[pos$chr==scaf], -abs(pc2.df$snp.cor[pos$chr==scaf]),
+            pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
+    abline(h=0)
+}
+```
+Huh, scaffold 2062 looks interesting.
+What's the difference between the high and low correlation SNPs on that scaffold?
+Those seem to line up with intermediate-frequency haplotypes:
+```{r scaf_2062, fig.height=2*fig.dim}
+get_scaf <- function (scaf,pc.num) {
+    cbind( pos[goodones & pos$chr==scaf,2:3],
+        get(paste0("pc",pc.num,".df"))[goodones & pos$chr==scaf,] )
+}
+this.scaf <- "scaffold_2062"
+s2062.pc1 <- get_scaf(this.scaf,1)
+s2062.pc2 <- get_scaf(this.scaf,2)
+cor( cbind( abs(s2062.pc1[,2:6]), abs(s2062.pc2[,c(4,6)]) ) )
+# hist( s2062.pc1$snp.cor, breaks=60, main=paste('SNP correlations on',this.scaf) )
+layout(1:2)
+opar <- par(mar=c(par("mar"),0.1)[c(5,2,3,4)])
+with( s2062.pc1, plot( pos, abs(snp.cor), pch=20, cex=0.5, xlab='', xaxt='n', ylim=c(-1,1),
+                      ylab='correlation', main=paste('SNP correlation,',this.scaf) ) )
+with( s2062.pc2, points( pos, -abs(snp.cor), pch=20, cex=0.5 ) )
+abline(h=0)
+opar <- par(mar=c(opar$mar,0.1)[c(1,2,5,4)])
+with( s2062.pc1, plot( pos, snp.freq, pch=20, cex=0.5, xlab='position', ylab='major allele frequency') )
+par(opar)
+```
+
+
+OK, let's see how correlations partition by scaffold.
+```{r scaf_stats}
+by.scaf <- data.frame(
+        snp.1 = tapply( abs(pc1.df$snp.cor[goodones]), pos$chr[goodones], mean ),
+        na.1 = tapply( abs(pc1.df$na.cor[goodones]), pos$chr[goodones], mean ),
+        snp.2 = tapply( abs(pc2.df$snp.cor[goodones]), pos$chr[goodones], mean ),
+        na.2 = tapply( abs(pc2.df$na.cor[goodones]), pos$chr[goodones], mean )
+    )
+hist( by.scaf$snp.1, xlim=range(0,by.scaf,finite=TRUE), breaks=50, 
+        col=adjustcolor("blue",0.5), freq=TRUE, main='mean absolute correlation by scaffold' )
+hist( by.scaf$na.1, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("red",0.5) )
+hist( by.scaf$snp.2, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("purple",0.5) )
+hist( by.scaf$na.2, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("grey",0.5) )
+legend("topleft", fill=c('blue','red','purple','grey'), legend=outer(c('SNP', 'missingness'),c("PC1","PC2"),paste))
+```
+
+
+# Maps of random segments of alleles
+
+```{r plot_allele_setup, include=FALSE}
+bases <- c("A","C","G","T")
+base.cols <- adjustcolor(1:4,.5)
+layer <- raster(file.path(tortdir,"visualization/dem_30"))
+player <- function (...) { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",yaxt="n",legend.mar=0,box=FALSE,...) }
+pc.cols <- adjustcolor( ifelse( pcs$PC1[match(tort.ids,pcs$etort)] > 0, "blue", "purple" ), .25 )
+map_alleles <- function (lines,...) {
+    counts <- read_bincounts(bincount,lines)
+    freqs <- do.call( cbind, tapply( 1:ncol(counts), 0:(ncol(counts)-1)%%4, function (k) { rowSums(sweep(counts,1,rowSums(counts),"/")[,k]) } ) )
+    coverage <- do.call( cbind, tapply( 1:ncol(counts), 0:(ncol(counts)-1)%/%4, function (k) { rowSums(counts[,k]) } ) )
+    these.pc1.cors <- pc1.df$snp.cor[lines]
+    these.pc2.cors <- pc2.df$snp.cor[lines]
+    site.info <- pos[lines,]
+    for (site in 1:nrow(counts)) {
+        player( main=paste(site.info$chr[site],site.info$pos[site]), ... )
+        mtext(side=3,line=0.5,
+              text=sprintf("depth: %d, freq: %0.3f, nInd: %d, pc1cor: %0.3f, pc2cor: %0.3f",
+                 rowSums(counts)[site], # depth
+                 max(freqs[site,]),   # frequency
+                 rowSums(coverage>0)[site], # num indivs covered
+                 these.pc1.cors[site],  # cor with PC1
+                 these.pc2.cors[site])  # cor with PC2
+              )
+        for (k in seq_along(bases)) {
+            nn <- k+4*(0:(nindivs-1))
+            points(coords,pch=20,cex=counts[site,nn],col=base.cols[k])
+        }
+        legend('topleft',legend=bases,col=base.cols,pch=20)
+    }
+}
+```
+
+We'll pull out and make maps of contiguous segments of one hundred SNPs for the top few scaffolds;
+here are links to those slideshows:
+```{r map_scafs, include=FALSE, cache=TRUE}
+for (scaf in superlong) {
+    scafdir <- paste0(scaf,"_maps")
+    dir.create(scafdir,showWarnings=FALSE)
+    thisdir <- file.path( scafdir, "centered" )
+    dir.create(thisdir,showWarnings=FALSE)
+    scaf.lines <- which( pos$chr==scaf )
+    do.lines <- scaf.lines[floor(length(scaf.lines)/2)+(1:100)]
+    png( filename=file.path(thisdir,"snp_map%03d.png"), 
+            width=5*144, height=5*144, pointsize=10, res=144 )
+    map_alleles( do.lines )
+    dev.off()
+    system(paste("cd", thisdir, ";",
+                 file.path(tortdir,"visualization/make-slideshow.sh"),
+                 "*.png > index.html" ) )
+}
+```
+```{r map_scafs_list, results="asis", echo=FALSE}
+list_to_mdlist <- function (x) { cat('\n',paste0('- ',paste(x,collapse='\n- ')),'\n',sep='','\n') }
+list_to_mdlist( paste0('[', superlong, '](', superlong, '_maps/centered/index.html', ')') )
+```
+
+
+
+# Maps of high-correlation SNPs
+
+## With PC1
+
+We'll make maps of all the SNPs that have correlation with PC1 above 0.85 
+(there are `r sum(abs(pc1.df$snp.cor[goodones])>0.85)` of these).
+```{r high_cor_maps, include=FALSE, cache=TRUE}
+pc.num <- 1
+high.cor.lines <- which( goodones & abs(pc1.df$snp.cor)>0.85 )
+thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
+dir.create(thisdir,showWarnings=FALSE)
+png( filename=file.path(thisdir,"snp_map%03d.png"), 
+        width=5*144, height=5*144, pointsize=10, res=144 )
+map_alleles( high.cor.lines )
+dev.off()
+system(paste("cd", thisdir, ";",
+             file.path(tortdir,"visualization/make-slideshow.sh"),
+             "*.png > index.html" ) )
+```
+These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
+
+## With PC2
+
+We'll also make maps of all the SNPs that have correlation with PC2 above 0.5 
+(there are `r sum(abs(pc2.df$snp.cor[goodones])>0.5)` of these).
+```{r high_cor_maps_2, include=FALSE, cache=TRUE}
+pc.num <- 2
+high.cor.lines <- which( goodones & abs(pc2.df$snp.cor)>0.5 )
+thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
+dir.create(thisdir,showWarnings=FALSE)
+png( filename=file.path(thisdir,"snp_map%03d.png"), 
+        width=5*144, height=5*144, pointsize=10, res=144 )
+map_alleles( high.cor.lines )
+dev.off()
+system(paste("cd", thisdir, ";",
+             file.path(tortdir,"visualization/make-slideshow.sh"),
+             "*.png > index.html" ) )
+```
+These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
+
+
+# Unfiltered?
+
+There are a lot of SNPs that *don't* pass our filters that show very high correlation with PC1.
+Many of these may have been removed only for being on shortish contigs 
+(we required total coverage between `r mindepth` and `r maxdepth`, 
+and at least `r minscaf` SNPs per contig).
+Here is a plot of correlation with PC1 against total depth,
+color is whether it passed these filters or not:
+```{r all_snps, cache}
+plot( pos$totDepth, pc1.df$snp.cor, pch=20, cex=0.5,
+     col=adjustcolor( ifelse( ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) ),
+                     ifelse(pos$chr %in% long.scafs, "black", "blue"), "red" ) ,0.5),
+    xlab='total depth', ylab='correlation with PC1' )
+legend("topright", pch=20, col=c('black','blue','red'), legend=c('filtered','short scaffold','wierd depth') )
+```
