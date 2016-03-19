@@ -232,22 +232,23 @@ What's the difference between the high and low correlation SNPs on that scaffold
 Those seem to line up with intermediate-frequency haplotypes:
 ```{r scaf_2062, fig.height=2*fig.dim}
 get_scaf <- function (scaf,pc.num) {
-    get(paste0("pc",pc.num,".df"))[goodones & pos$chr==scaf,]
+    cbind( pos[goodones & pos$chr==scaf,2:3],
+        get(paste0("pc",pc.num,".df"))[goodones & pos$chr==scaf,] )
 }
 this.scaf <- "scaffold_2062"
 s2062.pc1 <- get_scaf(this.scaf,1)
 s2062.pc2 <- get_scaf(this.scaf,2)
-cor( cbind( abs(s2062.pc1), abs(s2062.pc2) ) )
+cor( cbind( abs(s2062.pc1[,2:6]), abs(s2062.pc2[,c(4,6)]) ) )
 # hist( s2062.pc1$snp.cor, breaks=60, main=paste('SNP correlations on',this.scaf) )
 layout(1:2)
 opar <- par(mar=c(par("mar"),0.1)[c(5,2,3,4)])
 with( s2062.pc1, plot( pos, abs(snp.cor), pch=20, cex=0.5, xlab='', xaxt='n', ylim=c(-1,1),
                       ylab='correlation', main=paste('SNP correlation,',this.scaf) ) )
 with( s2062.pc2, points( pos, -abs(snp.cor), pch=20, cex=0.5 ) )
- abline(h=0)
+abline(h=0)
 opar <- par(mar=c(opar$mar,0.1)[c(1,2,5,4)])
 with( s2062.pc1, plot( pos, snp.freq, pch=20, cex=0.5, xlab='position', ylab='major allele frequency') )
- par(opar)
+par(opar)
 ```
 
 
