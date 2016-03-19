@@ -91,7 +91,7 @@ $$
   = ( B N - A C ) (N-1) / N \sqrt{ ( A N - A^2 ) ( D N - C^2 ) }
 $$
 
-The five columns of `r pccountfile` are $A$, $B$, $C$, $D$, and $N$, respectively.
+The five columns of the pcXcounts files are $A$, $B$, $C$, $D$, and $N$, respectively.
 
 Note that from these data we can also look for clinality in the **missing** data.
 Suppose that
