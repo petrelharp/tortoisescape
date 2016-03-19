@@ -353,7 +353,7 @@ These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
 
 We'll also make maps of all the SNPs that have correlation with PC2 above 0.5 
 (there are `r sum(abs(pc2.df$snp.cor[goodones])>0.5)` of these).
-```{r high_cor_maps, include=FALSE}
+```{r high_cor_maps_2, include=FALSE}
 pc.num <- 2
 high.cor.lines <- which( goodones & abs(pc1.df$snp.cor)>0.5 )
 thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
