@@ -22,6 +22,7 @@ nindivs <- length(tort.ids)
 ```{r snp_info, include=FALSE, cache=TRUE}
 datadir <- "."
 countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.gz")
+bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin"
 # maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
 pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
 # scaffolds
@@ -39,7 +40,6 @@ goodones <- goodones & ( pos$chr %in% long.scafs )
 
 ```{r count_connection, include=FALSE}
 # the counts themselves
-bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin"
 bincount <- file(bincountfile,open="rb")
 attr(bincount,"nindivs") <- nindivs
 attr(bincount,"nbytes") <- 1
@@ -378,10 +378,29 @@ Many of these may have been removed only for being on shortish contigs
 and at least `r minscaf` SNPs per contig).
 Here is a plot of correlation with PC1 against total depth,
 color is whether it passed these filters or not:
-```{r all_snps, cache}
+```{r all_snps, cache=TRUE}
 plot( pos$totDepth, pc1.df$snp.cor, pch=20, cex=0.5,
      col=adjustcolor( ifelse( ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) ),
                      ifelse(pos$chr %in% long.scafs, "black", "blue"), "red" ) ,0.5),
     xlab='total depth', ylab='correlation with PC1' )
 legend("topright", pch=20, col=c('black','blue','red'), legend=c('filtered','short scaffold','wierd depth') )
 ```
+
+We'll also make some maps of the high-correlation,
+non-filter-passing alleles.
+There are `r sum(abs(pc2.df$snp.cor[goodones])>0.5)` of these).
+```{r high_cor_maps_unfiltered, include=FALSE, cache=TRUE}
+pc.num <- 1
+high.cor.lines <- which( goodones & abs(pc1.df$snp.cor)>0.85 )
+thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
+dir.create(thisdir,showWarnings=FALSE)
+png( filename=file.path(thisdir,"snp_map%03d.png"), 
+        width=5*144, height=5*144, pointsize=10, res=144 )
+map_alleles( high.cor.lines )
+dev.off()
+system(paste("cd", thisdir, ";",
+             file.path(tortdir,"visualization/make-slideshow.sh"),
+             "*.png > index.html" ) )
+```
+These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
+
