@@ -172,7 +172,34 @@ hist(1-pc1.df$snp.freq,breaks=1000, xlim=c(0,1), main="empirical minor allele fr
 hist(1-pc1.df$snp.freq[goodones[seq_along(pc1.df$snp.freq)]],breaks=1000, xlim=c(0,1), main="same, on filtered sites")
 ```
 
-And, here are the distributions of correlation coefficients:
+Some more summary statistics.
+We don't have the scaffold lengths handy, so we'll just use the maximal position of a SNP:
+Here is the density of segregating sites,
+mean divergence at segregating sites 
+and mean divergence overall,
+on scaffolds of length at least 10Kb:
+```{r sum_stats_by_scaf}
+scaf.len <- tapply( pos$pos, pos$chr, max)  # not quite length...
+dens.segsites <- scaf.counts/scaf.len
+mean.segsites.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { mean(2 * x * (1-x)) } )
+mean.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { sum(2 * x * (1-x)) } ) / scaf.len
+usethese <- (scaf.len>10000)
+scaf.summaries <- data.frame( "scaffold length"=scaf.len[usethese],
+                  "seg. sites per bp"=dens.segsites[usethese],
+                  "divergence at seg sites"=mean.segsites.pi[usethese],
+                  "divergence"=mean.pi[usethese]
+              )
+cor(scaf.summaries)
+layout(t(1:2))
+for (k in 1:ncol(scaf.summaries)) {
+    hist(scaf.summaries[[k]], main=names(scaf.summaries)[k], breaks=100)
+}
+pairs(scaf.summaries)
+```
+
+# Correlation coefficients
+
+And, here are the distributions of correlation coefficients with the PCs:
 ```{r cor_hists}
 layout(t(1:2))
 hist(pc1.df$snp.cor,breaks=1000,xlim=c(-1,1), main="SNP correlations with PC1")
@@ -229,7 +256,7 @@ for (scaf in superlong) {
     abline(h=0)
 }
 ```
-Huh, scaffold 2062 looks interesting.
+Huh, scaffold 2062 looks interesting on PC2.
 What's the difference between the high and low correlation SNPs on that scaffold?
 Those seem to line up with intermediate-frequency haplotypes:
 ```{r scaf_2062, fig.height=2*fig.dim}
@@ -270,6 +297,51 @@ hist( by.scaf$na.2, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("grey",0.5) 
 legend("topleft", fill=c('blue','red','purple','grey'), legend=outer(c('SNP', 'missingness'),c("PC1","PC2"),paste))
 ```
 
+## Is there an enrichment of high-correlation SNPs by scaffold?
+
+Now we'll look at numbers of SNPs with correlations with PC1 above certain thresholds,
+by scaffold:
+```{r high_cor_by_scaf, fig.height=2*fig.dim}
+cor.breaks <- seq(.75,.9,by=.05)
+num.highcors <- sapply( cor.breaks, function (cb) {
+            tapply( (pc1.df$snp.cor >= cb) & (pos$totDepth > mindepth), pos$chr, sum, na.rm=TRUE )
+        } )
+dens.highcors <- sweep(num.highcors,1,scaf.len,"/")
+outliers <- rownames(num.highcors)[num.highcors[,2]>8]
+outliers.ind <- match(outliers,levels(pos$chr))
+layout(matrix(1:4,nrow=2))
+for (k in seq_along(cor.breaks)) {
+    plot( scaf.len[scaf.len>4e3], num.highcors[scaf.len>4e3,k], log='x', 
+         xlab='scaffold length', ylab='number of snps', main=paste('correlation above', cor.breaks[k]) )
+    for (sl in c(.01,.001,.0001)) { abline(0,sl,untf=TRUE)}
+    text( scaf.len[outliers.ind], num.highcors[outliers.ind,k], labels=outliers, pos=4 )
+}
+```
+Plots give number of high-correlation SNPs against length;
+contour lines in the plots are at constant density.
+Here's the plots for the possible outlier scaffolds:
+```{r outlier_scafs, fig.height=1.5*fig.dim}
+get_scaf_2 <- function (scaf,pc.num) {
+    cbind( pos[pos$totDepth>mindepth & pos$totDepth<maxdepth & pos$chr==scaf,2:3],
+        get(paste0("pc",pc.num,".df"))[pos$totDepth>mindepth & pos$totDepth<maxdepth & pos$chr==scaf,] )
+}
+for (this.scaf in outliers) {
+    this.pc1 <- get_scaf_2(this.scaf,1)
+    this.pc2 <- get_scaf_2(this.scaf,2)
+    cor( cbind( abs(this.pc1[,2:6]), abs(this.pc2[,c(4,6)]) ) )
+    layout(1:2)
+    opar <- par(mar=c(par("mar"),0.1)[c(5,2,3,4)])
+    with( this.pc1, plot( pos, abs(snp.cor), pch=20, cex=0.5, xlab='', xaxt='n', ylim=c(-1,1),
+                          ylab='correlation', main=paste('SNP correlation,',this.scaf) ) )
+    with( this.pc2, points( pos, -abs(snp.cor), pch=20, cex=0.5 ) )
+    abline(h=0)
+    par(mar=c(opar$mar,0.1)[c(1,2,5,4)])
+    with( this.pc1, plot( pos, snp.freq, pch=20, cex=0.5, xlab='position', ylab='major allele frequency') )
+    par(opar)
+}
+```
+
+
 
 # Maps of random segments of alleles
 
@@ -305,7 +377,8 @@ map_alleles <- function (lines,...) {
 }
 ```
 
-We'll pull out and make maps of contiguous segments of one hundred SNPs for the top few scaffolds;
+We'll pull out and make maps of contiguous segments of one hundred SNPs for the top few scaffolds, 
+as well as the outlying ones;
 here are links to those slideshows:
 ```{r map_scafs, include=FALSE, cache=TRUE}
 for (scaf in superlong) {
@@ -323,10 +396,25 @@ for (scaf in superlong) {
                  file.path(tortdir,"visualization/make-slideshow.sh"),
                  "*.png > index.html" ) )
 }
+for (scaf in outliers) {
+    scafdir <- paste0(scaf,"_maps")
+    dir.create(scafdir,showWarnings=FALSE)
+    thisdir <- file.path( scafdir, "centered" )
+    dir.create(thisdir,showWarnings=FALSE)
+    scaf.lines <- which( pos$chr==scaf )
+    do.lines <- scaf.lines[ ( order(pc1.df$snp.cor[scaf.lines],decreasing=TRUE) <= 100 ) & (pos$totDepth > mindepth) ]
+    png( filename=file.path(thisdir,"snp_map%03d.png"), 
+            width=5*144, height=5*144, pointsize=10, res=144 )
+    map_alleles( do.lines )
+    dev.off()
+    system(paste("cd", thisdir, ";",
+                 file.path(tortdir,"visualization/make-slideshow.sh"),
+                 "*.png > index.html" ) )
+}
 ```
 ```{r map_scafs_list, results="asis", echo=FALSE}
 list_to_mdlist <- function (x) { cat('\n',paste0('- ',paste(x,collapse='\n- ')),'\n',sep='','\n') }
-list_to_mdlist( paste0('[', superlong, '](', superlong, '_maps/centered/index.html', ')') )
+list_to_mdlist( paste0('[', c(superlong,outliers), '](', c(superlong,outliers), '_maps/centered/index.html', ')') )
 ```
 
 
@@ -387,5 +475,7 @@ plot( pos$totDepth[usethese], abs(pc1.df$snp.cor[usethese]), pch=20, cex=0.5, lo
     xlab='total depth', ylab='correlation with PC1' )
 legend("topright", pch=20, col=c('black','blue','red'), legend=c('filtered','short scaffold','wierd depth') )
 ```
-Looks like most of the high correlation ones are due to *low* coverage.
+Looks like most of the high correlation ones are due to *low* coverage,
+i.e., just noise.
+
 
