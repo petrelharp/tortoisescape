@@ -14,7 +14,7 @@ outfile <- arglist[2]
 nbytes <- if (length(arglist)>2) { as.integer(arglist[3]) } else { 1L }
 maxcounts <- as.integer(256^nbytes-1)
 
-count.con <- pipe(paste("zcat",countsfile),open="r")
+count.con <- gzfile(countsfile,open="r")
 count.header <- scan(count.con,nlines=1,what="char")
 count.ids <- do.call(rbind,strsplit(count.header,"_"))
 colnames(count.ids) <- c("angsd.id","base")
