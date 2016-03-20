@@ -402,7 +402,7 @@ for (scaf in outliers) {
     thisdir <- file.path( scafdir, "centered" )
     dir.create(thisdir,showWarnings=FALSE)
     scaf.lines <- which( pos$chr==scaf )
-    do.lines <- scaf.lines[ ( order(pc1.df$snp.cor[scaf.lines],decreasing=TRUE) <= 100 ) & (pos$totDepth > mindepth) ]
+    do.lines <- scaf.lines[ ( order(pc1.df$snp.cor[scaf.lines],decreasing=TRUE) <= 100 ) & (pos$totDepth[scaf.lines] > mindepth) ]
     png( filename=file.path(thisdir,"snp_map%03d.png"), 
             width=5*144, height=5*144, pointsize=10, res=144 )
     map_alleles( do.lines )
