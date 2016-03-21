@@ -396,10 +396,12 @@ for (scaf in superlong) {
                  file.path(tortdir,"visualization/make-slideshow.sh"),
                  "*.png > index.html" ) )
 }
+```
+```{r map_outlier_scafs, include=FALSE, cache=TRUE}
 for (scaf in outliers) {
     scafdir <- paste0(scaf,"_maps")
     dir.create(scafdir,showWarnings=FALSE)
-    thisdir <- file.path( scafdir, "centered" )
+    thisdir <- file.path( scafdir, "high_cor" )
     dir.create(thisdir,showWarnings=FALSE)
     scaf.lines <- which( pos$chr==scaf )
     do.lines <- scaf.lines[ ( order(pc1.df$snp.cor[scaf.lines],decreasing=TRUE) <= 100 ) & (pos$totDepth[scaf.lines] > mindepth) ]
