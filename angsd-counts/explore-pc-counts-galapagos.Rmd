@@ -172,7 +172,34 @@ hist(1-pc1.df$snp.freq,breaks=1000, xlim=c(0,1), main="empirical minor allele fr
 hist(1-pc1.df$snp.freq[goodones[seq_along(pc1.df$snp.freq)]],breaks=1000, xlim=c(0,1), main="same, on filtered sites")
 ```
 
-And, here are the distributions of correlation coefficients:
+Some more summary statistics.
+We don't have the scaffold lengths handy, so we'll just use the maximal position of a SNP:
+Here is the density of segregating sites,
+mean divergence at segregating sites 
+and mean divergence overall,
+on scaffolds of length at least 10Kb:
+```{r sum_stats_by_scaf}
+scaf.len <- tapply( pos$pos, pos$chr, max)  # not quite length...
+dens.segsites <- scaf.counts/scaf.len
+mean.segsites.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { mean(2 * x * (1-x)) } )
+mean.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { sum(2 * x * (1-x)) } ) / scaf.len
+usethese <- (scaf.len>10000)
+scaf.summaries <- data.frame( "scaffold length"=scaf.len[usethese],
+                  "seg. sites per bp"=dens.segsites[usethese],
+                  "divergence at seg sites"=mean.segsites.pi[usethese],
+                  "divergence"=mean.pi[usethese]
+              )
+cor(scaf.summaries)
+layout(t(1:2))
+for (k in 1:ncol(scaf.summaries)) {
+    hist(scaf.summaries[[k]], main=names(scaf.summaries)[k], breaks=100)
+}
+pairs(scaf.summaries)
+```
+
+# Correlation coefficients
+
+And, here are the distributions of correlation coefficients with the PCs:
 ```{r cor_hists}
 layout(t(1:2))
 hist(pc1.df$snp.cor,breaks=1000,xlim=c(-1,1), main="SNP correlations with PC1")
