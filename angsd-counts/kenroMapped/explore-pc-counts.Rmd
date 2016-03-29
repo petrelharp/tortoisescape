@@ -250,7 +250,7 @@ superlong <- names(sort(scaf.counts,decreasing=TRUE)[1:10])
 for (scaf in superlong) {
     plot( pos$pos[pos$chr==scaf & goodones], abs(pc1.df$snp.cor[pos$chr==scaf & goodones]),
             xlab='position', ylab='correlation', main=paste('scaffold',scaf),
-            pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
+            cex=0.25, pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
     points( pos$pos[pos$chr==scaf], -abs(pc2.df$snp.cor[pos$chr==scaf]),
             pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
     abline(h=0)
@@ -414,11 +414,15 @@ for (scaf in outliers) {
                  "*.png > index.html" ) )
 }
 ```
+Long scaffolds:
 ```{r map_scafs_list, results="asis", echo=FALSE}
 list_to_mdlist <- function (x) { cat('\n',paste0('- ',paste(x,collapse='\n- ')),'\n',sep='','\n') }
-list_to_mdlist( paste0('[', c(superlong,outliers), '](', c(superlong,outliers), '_maps/centered/index.html', ')') )
+list_to_mdlist( paste0('[', superlong, '](', c(superlong,outliers), '_maps/high_cor/index.html', ')') )
 ```
-
+Scaffolds with many high-correlation SNPs:
+```{r map_scafs_list_outliers, results="asis", echo=FALSE}
+list_to_mdlist( paste0('[', outliers, '](', c(superlong,outliers), '_maps/high_cor/index.html', ')') )
+```
 
 
 # Maps of high-correlation SNPs

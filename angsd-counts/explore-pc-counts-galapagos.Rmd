@@ -250,7 +250,7 @@ superlong <- names(sort(scaf.counts,decreasing=TRUE)[1:10])
 for (scaf in superlong) {
     plot( pos$pos[pos$chr==scaf & goodones], abs(pc1.df$snp.cor[pos$chr==scaf & goodones]),
             xlab='position', ylab='correlation', main=paste('scaffold',scaf),
-            pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
+            cex=0.25, pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
     points( pos$pos[pos$chr==scaf], -abs(pc2.df$snp.cor[pos$chr==scaf]),
             pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
     abline(h=0)
