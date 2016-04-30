@@ -1,3 +1,6 @@
+### THIS SCRIPT IS OUT OF DATE!!  Replaced by tort_272_info/format_locations.R
+
+
 ################################################################
 ################################################################
 #	get raster data for all tortoise locations
