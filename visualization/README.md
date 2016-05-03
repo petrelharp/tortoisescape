@@ -2,8 +2,10 @@ In this directory:
 
 - [map-utils.R](map-utils.R) : source this with `chdir=TRUE` to get
 
-    * `county_lines`
-    * `dem` : elevation raster
+    * `get_counties(x)` : returns a county lines object with same projection as x
+    * `get_elev(x)` : returns an elevation raster with same projection as x (from dem_30)
+    * `get_contours(x)` : returns elevation contours with same projection as x (from dem_30)
+    * `get_shading(x)` : returns an elevation *shading* with same projection as x (from Natural Earth)
     * `.raster.crs` : the projection used by our rasters; project here using `spTransform( , .raster.crs)`
 
 
