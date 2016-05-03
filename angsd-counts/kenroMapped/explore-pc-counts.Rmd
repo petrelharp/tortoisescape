@@ -185,7 +185,7 @@ mean.segsites.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { mean(2 * x 
 mean.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { sum(2 * x * (1-x)) } ) / scaf.len
 usethese <- (scaf.len>10000)
 scaf.summaries <- data.frame( "scaffold length"=scaf.len[usethese],
-                  "seg. sites per bp"=dens.segsites[usethese],
+                  "seg. sites per bp"=as.vector(dens.segsites[usethese]),
                   "divergence at seg sites"=mean.segsites.pi[usethese],
                   "divergence"=mean.pi[usethese]
               )
@@ -249,35 +249,13 @@ First, let's look at the top ten longest scaffolds.
 superlong <- names(sort(scaf.counts,decreasing=TRUE)[1:10])
 for (scaf in superlong) {
     plot( pos$pos[pos$chr==scaf & goodones], abs(pc1.df$snp.cor[pos$chr==scaf & goodones]),
-            xlab='position', ylab='correlation', main=paste('scaffold',scaf),
+            xlab='position', ylab='|correlation|', main=paste('scaffold',scaf),
             cex=0.25, pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
+    mtext(c("PC1","PC2"),side=2,at=c(-1,1)*.75)
     points( pos$pos[pos$chr==scaf], -abs(pc2.df$snp.cor[pos$chr==scaf]),
-            pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
+            cex=0.25, pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
     abline(h=0)
 }
-```
-Huh, scaffold 2062 looks interesting on PC2.
-What's the difference between the high and low correlation SNPs on that scaffold?
-Those seem to line up with intermediate-frequency haplotypes:
-```{r scaf_2062, fig.height=2*fig.dim}
-get_scaf <- function (scaf,pc.num) {
-    cbind( pos[goodones & pos$chr==scaf,2:3],
-        get(paste0("pc",pc.num,".df"))[goodones & pos$chr==scaf,] )
-}
-this.scaf <- "scaffold_2062"
-s2062.pc1 <- get_scaf(this.scaf,1)
-s2062.pc2 <- get_scaf(this.scaf,2)
-cor( cbind( abs(s2062.pc1[,2:6]), abs(s2062.pc2[,c(4,6)]) ) )
-# hist( s2062.pc1$snp.cor, breaks=60, main=paste('SNP correlations on',this.scaf) )
-layout(1:2)
-opar <- par(mar=c(par("mar"),0.1)[c(5,2,3,4)])
-with( s2062.pc1, plot( pos, abs(snp.cor), pch=20, cex=0.5, xlab='', xaxt='n', ylim=c(-1,1),
-                      ylab='correlation', main=paste('SNP correlation,',this.scaf) ) )
-with( s2062.pc2, points( pos, -abs(snp.cor), pch=20, cex=0.5 ) )
-abline(h=0)
-opar <- par(mar=c(opar$mar,0.1)[c(1,2,5,4)])
-with( s2062.pc1, plot( pos, snp.freq, pch=20, cex=0.5, xlab='position', ylab='major allele frequency') )
-par(opar)
 ```
 
 
@@ -294,7 +272,7 @@ hist( by.scaf$snp.1, xlim=range(0,by.scaf,finite=TRUE), breaks=50,
 hist( by.scaf$na.1, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("red",0.5) )
 hist( by.scaf$snp.2, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("purple",0.5) )
 hist( by.scaf$na.2, breaks=50, add=TRUE, freq=TRUE, col=adjustcolor("grey",0.5) )
-legend("topleft", fill=c('blue','red','purple','grey'), legend=outer(c('SNP', 'missingness'),c("PC1","PC2"),paste))
+legend("topright", fill=c('blue','red','purple','grey'), legend=outer(c('SNP', 'missingness'),c("PC1","PC2"),paste))
 ```
 
 ## Is there an enrichment of high-correlation SNPs by scaffold?
@@ -449,7 +427,7 @@ These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
 ## With PC2
 
 We'll also make maps of all the SNPs that have correlation with PC2 above 0.5 
-(there are `r sum(abs(pc2.df$snp.cor[goodones])>0.5)` of these).
+(there are `r sum(abs(pc2.df[["snp.cor"]][goodones])>0.5)` of these).
 ```{r high_cor_maps_2, include=FALSE, cache=TRUE, depends="snp_info"}
 pc.num <- 2
 high.cor.lines <- which( goodones & abs(pc2.df$snp.cor)>0.5 )
@@ -473,15 +451,12 @@ Many of these may have been removed only for being on shortish contigs
 (we required total coverage between `r mindepth` and `r maxdepth`, 
 and at least `r minscaf` SNPs per contig).
 Here is a plot of correlation with PC1 against total depth,
-color is whether it passed these filters or not:
 ```{r all_snps, cache=TRUE, depends="snp_info"}
 usethese <- ( !is.na(abs(pc1.df$snp.cor)) & abs(pc1.df$snp.cor)>0.7 )
 plot( pos$totDepth[usethese], abs(pc1.df$snp.cor[usethese]), pch=20, cex=0.5, log='x', xlim=c(10,550),
      col=adjustcolor("black",0.5),
     xlab='total depth', ylab='correlation with PC1' )
-legend("topright", pch=20, col=c('black','blue','red'), legend=c('filtered','short scaffold','wierd depth') )
 ```
 Looks like most of the high correlation ones are due to *low* coverage,
 i.e., just noise.
-
 
