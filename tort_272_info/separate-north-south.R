@@ -13,7 +13,7 @@ n.torts <- pcs$etort[as.numeric(pc.fac)==4]
 s.torts <- pcs$etort[as.numeric(pc.fac)==1]
 
 # save pcs and locations
-single.csvs <- c("pcs.csv","torts_272_coordinates.csv")
+single.csvs <- c("pcs.csv","272torts_metadata.csv")
 for (csvf in single.csvs) {
     csv <- read.csv(csvf,header=TRUE,stringsAsFactors=FALSE)
     n.csv <- subset( csv, (csv[,1] %in% n.torts) )
