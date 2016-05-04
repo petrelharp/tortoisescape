@@ -22,6 +22,7 @@ do
     wget ${BASEURL}${x}_Shape.xml
     wget ${BASEURL}${x}_Shape.zip
 done
+for x in *zip; do y=$(echo $x | sed -e "s/_Shape.zip//"); mkdir -p $y; unzip -d $y $x; done
 ```
 
 

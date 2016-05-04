@@ -55,6 +55,6 @@ color_hierarchy <- function (hier, chroma=function(h){50}, luminance=function(h)
 }
 
 .expand <- function (x,fac) {
-    mx <- mean(x,na.rm=TRUE)
+    mx <- median(x,na.rm=TRUE)
     mx + (1+fac)*(x-mx)
 }

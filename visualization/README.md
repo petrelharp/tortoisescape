@@ -6,6 +6,7 @@ In this directory:
     * `get_elev(x)` : returns an elevation raster with same projection as x (from dem_30)
     * `get_contours(x)` : returns elevation contours with same projection as x (from dem_30)
     * `get_shading(x)` : returns an elevation *shading* with same projection as x (from Natural Earth)
+    * `get_counties(x)` : returns county lines object cropped to x
     * `.raster.crs` : the projection used by our rasters; project here using `spTransform( , .raster.crs)`
 
 
