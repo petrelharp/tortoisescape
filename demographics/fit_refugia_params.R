@@ -108,115 +108,14 @@ write.csv( dist.df, file=file.path(basedir,"dist-df.csv"), row.names=FALSE )
 # iter.num <- 1
 for (iter.num in 1:100) {
 
-    params <- lapply( init.params, function (x) {
-                x * 0.5+runif(length(x))
-        } )
-    params$refugia.coords <- sampleRandom(habitat,size=2,xy=TRUE)[,1:2]
-
-    # (set and) save out the random seed for reproducibility/debugging
-    new.seed <- as.integer(runif(1)*2e9)
-    set.seed(new.seed)
-
-    outdir <- file.path(basedir, sprintf("iter_%04d",iter.num) )
-    dir.create( outdir )
-    cat(" ... working on", outdir, "\n")
-
-    cat( toJSON(c(params,list(seed=new.seed)), pretty=TRUE), file=file.path(outdir,"params.json") )
-
-    dem <- do.call( model_setup, c( list(pop=pop), params ) )
-
-    mean.dist <- sim_data( dem, sample.config, outdir, ntrees )
-    mean.dist <-  tryCatch(  
-                           sim_data( dem, sample.config, outdir, ntrees ), 
-                           error=function (e) { 
-                               cat("Whoops: skipping this one:\n"); 
-                               cat("  ", e$message,"\n"); NULL } )
-    if (is.null(mean.dist)) { next }  # skip this one
-    rownames(mean.dist) <- colnames(mean.dist) <- sample.ids[sample.order]
-
-    # in the same order as dist.df:
-    sim.dist <- mean.dist[msord,msord][ cbind(
-                    match(dist.df[,1],sample.ids),
-                    match(dist.df[,2],sample.ids) ) ]
-
-    write( sim.dist, file=file.path(outdir,"sim-distances.csv"), ncolumns=1 )
-
-    # mean-square difference:
-    model.score <- mean( (dist.df$generations - sim.dist)^2 )
-
-    write( model.score, file=file.path(outdir,"model.score") )
-
-    ### plotting
-
-    # pcs of the covariance matrix (up to scaling; see McVean)
-    covmat <- (rowMeans(mean.dist[msord,msord]) + colMeans(mean.dist[msord,msord]) - mean(mean.dist[msord,msord]) - mean.dist[msord,msord])
-    pmat <- diag(nrow(covmat)) - 1/nrow(covmat)
-    pcs <- eigen( (pmat %*% covmat %*% t(pmat)) )$vectors[,1:2]
-    pc.pal <- rainbow(n=32, start=4/6, end=0)
-    pc.cols <- apply(pcs, 2, function (x) { pc.pal[cut(x,length(pc.pal))] } )
-
-    # refugia centers
-    refugia.centers <- SpatialPoints(coords=params$refugia.coords,
-                            proj4string=CRS(proj4string(pop$habitat)))
-    refugia <- gBuffer( refugia.centers, width=params$refugia.radii, byid=TRUE )
-
-    # make the plots
-    # pdf(file=file.path(outdir,"trees-and-things.pdf"),width=10,height=5,pointsize=10)
-    png(file=file.path(outdir, "trees-and-things-%02d.png"), 
-        width=10*144, height=5*144, pointsize=10, res=144)
-    layout(t(1:2))
-
-    plot( dist.df$distance/1e3, sim.dist, pch=20, cex=0.5, 
-         xlab="geog dist (km)", ylab="mean TMRCA (y)",
-         col=adjustcolor(dist.df$col,0.5),
-         main="simulated vs distance" )
-    plot( dist.df$generations, sim.dist, pch=20, cex=0.5, xlim=range(dist.df$generations[dist.df$etort1!=dist.df$etort2]),
-         xlab="observed divergence", ylab="mean TMRCA (y)",
-         col=adjustcolor(dist.df$col,0.5),
-         main="simulated vs observed" )
-    dist.lm <- lm( sim.dist ~ dist.df$generations, subset= (dist.df$etort1 != dist.df$etort2) )
-    abline(coef(dist.lm))
-
-    # comparisons to individual tortoises
-    layout(t(1:3))
-    for (tort in paste0("etort-",c(243,35,100,262,218,52,274,90,36))) {
-        ut <- with(dist.df,etort1==tort|etort2==tort)
-        other <- ifelse( dist.df$etort1[ut]==tort, dist.df$etort2[ut], dist.df$etort1[ut] )
-        plot( habitat, main=tort )
-        plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
-        points( sample.points, pch=ifelse(sample.ids==tort,8,20), cex=2, col=pc.cols[,1] )
-        plot( dist.df$distance/1e3, dist.df$generations, pch=20, cex=0.5, ylim=range(dist.df$generations[dist.df$etort1!=dist.df$etort2]),
-             xlab="geog dist (km)", ylab="mean TMRCA (y)", main="observed" )
-        points( dist.df$distance[ut]/1e3, dist.df$generations[ut], pch=20, cex=2,
-             col=pc.cols[other,1] )
-        plot( dist.df$distance/1e3, sim.dist, pch=20, cex=0.5,
-             xlab="geog dist (km)", ylab="mean TMRCA (y)", main="simulated" )
-        points( dist.df$distance[ut]/1e3, sim.dist[ut], pch=20, cex=2,
-             col=pc.cols[other,1] )
+    if (iter.num == 1) {
+        params <- init.params
+    } else { 
+        params <- lapply( init.params, function (x) {
+                    x * (0.5+runif(length(x)))
+            } )
+        params$refugia.coords <- sampleRandom(habitat,size=2,xy=TRUE)[,1:2]
     }
 
-    layout(t(1:2))
-    for (k in 1:ncol(pcs)) {
-        plot( habitat, main=sprintf("PC %d",k) )
-        plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
-        points( sample.points, pch=20, cex=2, col=pc.cols[,k] )
-        # if (interactive() && is.null(locator(1))) { break }
-    }
-
-    tree.output <- trees_from_ms( file.path(outdir,"msoutput.txt") )
-    plot.ntrees <- 4
-
-    for (tree in tree.output[1:plot.ntrees]) {
-        plot( habitat, )
-        plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
-        points( sample.points, pch=20, cex=2, col=pc.cols[,1] )
-        # plot_sample_config( dem, sample.config, add=TRUE, xy=pop.xy, col=north.cols )
-        pp <- plot.phylo( tree, show.tip.label=FALSE )  # tip.color=pc.cols[,k] )  # tip.color=north.cols, cex=0.2 )
-        axisPhylo(1)
-        ab <- abline_phylo(v=dem@t[length(dem@t)], lty=2, col='grey')
-        points( rep(1.05*ab[1],nrow(pcs)), 1:nrow(pcs), pch=20, col=pc.cols[,1][sample.order][order(tfn(tree))] )
-        # if (interactive() && is.null(locator(1))) { break }
-    }
-
-    dev.off()
+    run_sim( params, iter.num )
 }
