@@ -87,11 +87,14 @@ init.params <- list(
         refugia.coords = cbind( x=c(426000,  330000), 
                                 y=c(4000000,3900000) ),   # in meters (UTM)
         refugia.radii = 5e4,       # in meters
-        refugia.time = 650e3/25,   # time refugia began, in generations
+        refugia.time = 380e3/25,   # length of time refugia existed for, in generations
         expansion.time = 270e3/25, # time refugia ended, in generations
         expansion.speed = 0.4,     # in m/gen (not really??)
         expansion.width = 50e3     # in meters, roughly
 )
+# bounds on reasonable places (?) for refugia to be centered
+refugia.bounds <- list( x=c(350000,780000),
+                        y=c(3640000,4200000) )
 
 ### Other (unchanging) parameters
 ntrees <- 500    # Number of trees to simulate.
@@ -101,12 +104,14 @@ basedir <- sprintf("run_%06d",run.id)
 dir.create( basedir )
 cat("Writing out to", basedir, "----\n")
 
-cat( toJSON(init.params, pretty=TRUE), file=file.path(basedir,"params.json") )
+cat( toJSON(c(init.params,list(ntrees=ntrees)), pretty=TRUE), file=file.path(basedir,"params.json") )
 write.csv( dist.df, file=file.path(basedir,"dist-df.csv"), row.names=FALSE )
+
+n.iter <- 0
 
 # explore parameter space
 # iter.num <- 1
-for (iter.num in 1:20) {
+for (iter.num in seq_len(n.iter)) {
 
     if (iter.num == 1) {
         params <- init.params
@@ -115,9 +120,6 @@ for (iter.num in 1:20) {
                     x * (0.5+runif(length(x)))
             } )
         params$refugia.coords <- sampleRandom(habitat,size=2,xy=TRUE)[,1:2]
-        if (params$refugia.time<params$expansion.time) {
-            params[c("refugia.time","expansion.time")] <- params[c("expansion.time","refugia.time")]
-        }
     }
 
     run_sim( params, iter.num, ntrees )
@@ -134,5 +136,23 @@ optim_fun <- function (x) {
     for (k in seq_along(params)) {
         params[[k]][] <- x[param.inds[[k]]]
     }
-    run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100 )
+    out <- run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100 )
+    cat("score:", out,"\n")
+    return(out)
 }
+
+optim( unlist(init.params), optim_fun, 
+     lower=c(0,0,
+             refugia.bounds[['x']][1],refugia.bounds[['x']][1],
+             refugia.bounds[['y']][1],refugia.bounds[['y']][1],
+             0,0,0,0,0), 
+     upper=c(Inf,Inf,
+             refugia.bounds[['x']][2],refugia.bounds[['x']][2],
+             refugia.bounds[['y']][2],refugia.bounds[['y']][2],
+             Inf,Inf,Inf,Inf,Inf), 
+     method="L-BFGS-B",
+     control=list( 
+                 fnscale=1e4,
+                 parscale=c(1e-06, 1e+05, 1e+06, 1e+06, 1e+07, 1e+07, 1e+05, 1e+05, 1e+05, 1e-00, 1e+05),
+                 maxit=25 )
+            )

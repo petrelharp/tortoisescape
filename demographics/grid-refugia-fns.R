@@ -10,7 +10,7 @@
 #' @param sigma Migration rate, in meters/generation.
 #' @param refugia.coords Centers of refugia, in UTM coordinates (meters).
 #' @param refugia.radii Common radius of refugia, in meters.
-#' @param refugia.time Time refugia began, in generations.
+#' @param refugia.time Time refugia existed for, in generations.
 #' @param expansion.time Time refugia ended and expansion began, in generations.
 #' @param expansion.speed Speed of expansion, in meters per generation.
 #' @param expansion.width Width of the expansion, in meters.
@@ -65,7 +65,7 @@ model_setup <- function (
     refugia.demog <- add_to_demography( refugia.demog, tnew=expansion.time,
                                        fn=modify_grid_layer, layer=1, dN=refugia.mask )
     # beginning of refugia: before was the same as now (abruptly)
-    refugia.demog <- add_to_demography( refugia.demog, tnew=refugia.time,
+    refugia.demog <- add_to_demography( refugia.demog, tnew=expansion.time+refugia.time,
                                        pop=refugia.demog[[1]] )
     # add re-expansion to modern day (t.end=0):
     #  note due to speed may effectively end much earlier
@@ -130,7 +130,10 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
                 }
             )
         if (worked) { break }  # skip this one
+        ntries <- ntries+1
     }
+    if (ntries==max.tries) { stop("Failed too many times, stopping.") }
+
     rownames(mean.dist) <- colnames(mean.dist) <- sample.ids[sample.order]
 
     # in the same order as dist.df:
