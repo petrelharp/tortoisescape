@@ -62,7 +62,7 @@ for (kdem in seq_along(demogs)) {
     write.csv( fake.pcs, file=file.path(outdir,"pcs.csv"), row.names=FALSE )
 
     # actual pcs
-    #  of the covariance matrix (up to scaline; see McVean)
+    #  of the covariance matrix (up to scaling; see McVean)
     covmat <- (rowMeans(mean.dist) + colMeans(mean.dist) - mean(mean.dist) - mean.dist)
     pmat <- diag(nrow(covmat)) - 1/nrow(covmat)
     pcs <- eigen( (pmat %*% covmat %*% t(pmat)) )$vectors[,1:5]

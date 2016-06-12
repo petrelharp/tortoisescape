@@ -11,7 +11,7 @@ pcs <- read.csv("pcs.csv")
 pi <- read.csv("all_angsd_snps.pwp.csv",stringsAsFactors=FALSE)
 # from Evan 1/31/15
 pi$pi <- pi$raw_pi * ( 56575857 / 1898838430 )
-# from Evan 2/10//15
+# from Evan 2/10/15
 pi$years <- pi$pi  / 2.064406e-8 / 2
 # referenced in www.sciencedirect.com/science/article/pii/S0006320713003443
 pi$generations <- pi$years / 25

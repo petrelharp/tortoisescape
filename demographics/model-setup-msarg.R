@@ -31,7 +31,7 @@ pop.xy <- xyFromCell(sub.hab,cell=which(pop$accessible))
 pop.points <- SpatialPoints(pop.xy, proj4string=CRS(proj4string(habitat)))
 # only nearest-neighbor migration (king's neighborhood)
 migr <- migration( kern="gaussian", sigma=sqrt(scaling.fac)*tort.sigma, 
-                  radius=res(sub.hab), normalize=1 )
+                  radius=res(sub.hab), normalize=1, discretize=TRUE )
 
 # create a population object for msarg
 npops <- sum(pop$accessible)

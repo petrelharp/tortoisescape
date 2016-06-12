@@ -14,6 +14,7 @@
 #' @param expansion.time Time refugia ended and expansion began, in generations.
 #' @param expansion.speed Speed of expansion, in meters per generation.
 #' @param expansion.width Width of the expansion, in meters.
+#' @param ... Other parameters, ignored.
 model_setup <- function (
                          pop,
                          pop.density,
@@ -24,7 +25,8 @@ model_setup <- function (
                          contraction.speed,
                          expansion.time,
                          expansion.speed,
-                         expansion.width
+                         expansion.width,
+                         ...
                      ) {
 
     ######
@@ -41,6 +43,7 @@ model_setup <- function (
                       radius=3*sigma, normalize=1, discretize=TRUE,
                       disc.fact=3*mean(res(pop$habitat))/sigma )
     migr.mat <- migration_matrix( pop, migration=migr )
+    if (any(migr.mat<0)) { stop("negative migration rates") }
     diag(migr.mat) <- 0
 
 
@@ -59,7 +62,7 @@ model_setup <- function (
                             proj4string=CRS(proj4string(pop$habitat)))
     refugia <- gBuffer( refugia.centers, width=refugia.radii, byid=TRUE )
     refugia.mask <- gContains( gUnaryUnion(refugia), pop.points, byid=TRUE )
-    refugia.demog <- demography( hab.grid )
+    refugia.demog <- ms_demog( hab.grid )
     # endpoint of refugia
     refugia.demog <- add_to_demography( refugia.demog, tnew=expansion.time,
                                        fn=modify_grid_layer, layer=1, dN=refugia.mask )
@@ -104,33 +107,3 @@ sim_data <- function (
     return( mean.dist )
 }
 
-
-#' Makes a plot like `trees-and-things.pdf`.
-plot_results <- function ( 
-                          ) {
-    pdf(file=file.path(outdir,"trees-and-things.pdf"),width=10,height=5,pointsize=10)
-
-    plot( as.vector(geog.dist[l2s,l2s])/1e3, as.vector(mean.dist), pch=20, cex=0.5, 
-         xlab="geog dist (km)", ylab="mean TMRCA (y)",
-         col=adjustcolor(comparison.cols[l2s,l2s],0.5) )
-
-    for (k in 1:ncol(pcs)) {
-        plot( crop(habitat,sample.xy), main=sprintf("PC %d",k) )
-        points( sample.xy, pch=20, cex=2, col=pc.cols[,k] )
-        # if (interactive() && is.null(locator(1))) { break }
-    }
-
-    layout(t(1:2))
-    for (tree in tree.output[1:plot.ntrees]) {
-        plot( crop(habitat,sample.xy) )
-        points( sample.xy, pch=20, cex=2, col=pc.cols[,1] )
-        # plot_sample_config( dem, sample.config, add=TRUE, xy=pop.xy, col=sample.cols )
-        pp <- plot.phylo( tree, show.tip.label=FALSE )  # tip.color=pc.cols[,k] )  # tip.color=sample.cols[l2s], cex=0.2 )
-        axisPhylo(1)
-        ab <- abline_phylo(v=dem@t[length(dem@t)], lty=2, col='grey')
-        points( rep(1.05*ab[1],nrow(pcs)), 1:nrow(pcs), pch=20, col=pc.cols[,1][order(tfn(tree))] )
-        # if (interactive() && is.null(locator(1))) { break }
-    }
-
-    dev.off()
-}
