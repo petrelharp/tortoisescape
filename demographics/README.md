@@ -29,7 +29,9 @@ Functions to do this are in [grid-refugia-fns.R](grid-refugia-fns.R):
 - `model_setup()` : sets up refugia model, as in `model-setup-msarg.R` (takes about 15 seconds)
 - `sim_data()` : simulates data and returns the mean pairwise distance matrix (takes longer)
 
-These are run by `fit_refugia_params.R`, and the `trees-and-things.pdf` plot is produced.
+Running `fit_refugia_params.R` produces many iterations with parameters fairly widely resampled,
+and diagnostic plots for each.  Results can be examined with
+`parse-runs.R`.
 
 
 # Ad hoc models

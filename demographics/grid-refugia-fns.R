@@ -107,7 +107,7 @@ sim_data <- function (
 
 
 #' These aren't real functions, as they don't have passed in everything they need!
-run_sim <- function( params, iter.num, new.seed=as.integer(runif(1)*2e9), do.plots=TRUE, max.tries=5 ) {
+run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9), do.plots=TRUE, max.tries=5 ) {
     outdir <- file.path(basedir, sprintf("iter_%04d",iter.num) )
     dir.create( outdir )
     cat(" ... working on", outdir, "\n")

@@ -82,19 +82,19 @@ source("grid-refugia-fns.R")
 # INITIAL PARAMETERS
 
 init.params <- list(
-        pop.density = 0.005/1e4,   # density in indivs/m^2 : one tortoise per 20 ha in perfect habitat; but one tenth this looks better
-        sigma = 0.5e3,            # m/gen
-        refugia.coords = cbind( x=c(727229,  626639), 
-                                y=c(3803747,3957436) ),   # in meters (UTM)
-        refugia.radii = 5e4,      # in meters
-        refugia.time = 50e4/25,   # time refugia began, in generations
-        expansion.time = 20e4/25, # time refugia ended, in generations
-        expansion.speed = 0.4,    # in m/gen (not really??)
-        expansion.width = 100e3   # in meters, roughly
+        pop.density = 0.004/1e4,   # density in indivs/m^2 : one tortoise per 20 ha in perfect habitat; but one tenth this looks better
+        sigma = 10e3,              # m/gen
+        refugia.coords = cbind( x=c(426000,  330000), 
+                                y=c(4000000,3900000) ),   # in meters (UTM)
+        refugia.radii = 5e4,       # in meters
+        refugia.time = 650e3/25,   # time refugia began, in generations
+        expansion.time = 270e3/25, # time refugia ended, in generations
+        expansion.speed = 0.4,     # in m/gen (not really??)
+        expansion.width = 50e3     # in meters, roughly
 )
 
 ### Other (unchanging) parameters
-ntrees <- 100    # Number of trees to simulate.
+ntrees <- 500    # Number of trees to simulate.
 
 run.id <- floor(1e6*runif(1))
 basedir <- sprintf("run_%06d",run.id)
@@ -106,7 +106,7 @@ write.csv( dist.df, file=file.path(basedir,"dist-df.csv"), row.names=FALSE )
 
 # explore parameter space
 # iter.num <- 1
-for (iter.num in 1:100) {
+for (iter.num in 1:20) {
 
     if (iter.num == 1) {
         params <- init.params
@@ -115,7 +115,24 @@ for (iter.num in 1:100) {
                     x * (0.5+runif(length(x)))
             } )
         params$refugia.coords <- sampleRandom(habitat,size=2,xy=TRUE)[,1:2]
+        if (params$refugia.time<params$expansion.time) {
+            params[c("refugia.time","expansion.time")] <- params[c("expansion.time","refugia.time")]
+        }
     }
 
-    run_sim( params, iter.num )
+    run_sim( params, iter.num, ntrees )
+}
+
+# to translate parameter vector to params
+param.names <- names(init.params)
+param.inds <- lapply( seq_along(init.params), function (k) {
+            sum( unlist(sapply( init.params[ seq_len(k-1) ], length )) ) + seq_len(length(init.params[[k]]))
+        } )
+optim_fun <- function (x) {
+    # put parameters in correct spots
+    params <- init.params
+    for (k in seq_along(params)) {
+        params[[k]][] <- x[param.inds[[k]]]
+    }
+    run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100 )
 }
