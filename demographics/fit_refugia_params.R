@@ -106,12 +106,12 @@ write.csv( dist.df, file=file.path(basedir,"dist-df.csv"), row.names=FALSE )
 
 # explore parameter space
 # iter.num <- 1
-for (iter.num in 1:1) {
+for (iter.num in 1:100) {
 
     params <- lapply( init.params, function (x) {
                 x * 0.5+runif(length(x))
         } )
-
+    params$refugia.coords <- sampleRandom(habitat,size=2,xy=TRUE)[,1:2]
 
     # (set and) save out the random seed for reproducibility/debugging
     new.seed <- as.integer(runif(1)*2e9)
@@ -155,6 +155,11 @@ for (iter.num in 1:1) {
     pc.pal <- rainbow(n=32, start=4/6, end=0)
     pc.cols <- apply(pcs, 2, function (x) { pc.pal[cut(x,length(pc.pal))] } )
 
+    # refugia centers
+    refugia.centers <- SpatialPoints(coords=params$refugia.coords,
+                            proj4string=CRS(proj4string(pop$habitat)))
+    refugia <- gBuffer( refugia.centers, width=params$refugia.radii, byid=TRUE )
+
     # make the plots
     # pdf(file=file.path(outdir,"trees-and-things.pdf"),width=10,height=5,pointsize=10)
     png(file=file.path(outdir, "trees-and-things-%02d.png"), 
@@ -177,7 +182,8 @@ for (iter.num in 1:1) {
     for (tort in paste0("etort-",c(243,35,100,262,218,52,274,90,36))) {
         ut <- with(dist.df,etort1==tort|etort2==tort)
         other <- ifelse( dist.df$etort1[ut]==tort, dist.df$etort2[ut], dist.df$etort1[ut] )
-        plot( raster::crop(habitat,sample.points), main=tort )
+        plot( habitat, main=tort )
+        plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
         points( sample.points, pch=ifelse(sample.ids==tort,8,20), cex=2, col=pc.cols[,1] )
         plot( dist.df$distance/1e3, dist.df$generations, pch=20, cex=0.5, ylim=range(dist.df$generations[dist.df$etort1!=dist.df$etort2]),
              xlab="geog dist (km)", ylab="mean TMRCA (y)", main="observed" )
@@ -191,7 +197,8 @@ for (iter.num in 1:1) {
 
     layout(t(1:2))
     for (k in 1:ncol(pcs)) {
-        plot( raster::crop(habitat,sample.points), main=sprintf("PC %d",k) )
+        plot( habitat, main=sprintf("PC %d",k) )
+        plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
         points( sample.points, pch=20, cex=2, col=pc.cols[,k] )
         # if (interactive() && is.null(locator(1))) { break }
     }
@@ -200,7 +207,8 @@ for (iter.num in 1:1) {
     plot.ntrees <- 4
 
     for (tree in tree.output[1:plot.ntrees]) {
-        plot( raster::crop(habitat,sample.points) )
+        plot( habitat, )
+        plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
         points( sample.points, pch=20, cex=2, col=pc.cols[,1] )
         # plot_sample_config( dem, sample.config, add=TRUE, xy=pop.xy, col=north.cols )
         pp <- plot.phylo( tree, show.tip.label=FALSE )  # tip.color=pc.cols[,k] )  # tip.color=north.cols, cex=0.2 )

@@ -14,7 +14,6 @@
 #' @param expansion.time Time refugia ended and expansion began, in generations.
 #' @param expansion.speed Speed of expansion, in meters per generation.
 #' @param expansion.width Width of the expansion, in meters.
-#' @param ... Other parameters, ignored.
 model_setup <- function (
                          pop,
                          pop.density,
@@ -25,8 +24,7 @@ model_setup <- function (
                          contraction.speed,
                          expansion.time,
                          expansion.speed,
-                         expansion.width,
-                         ...
+                         expansion.width
                      ) {
 
     ######
