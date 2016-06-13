@@ -118,17 +118,17 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
 
     ntries <- 0
     while (ntries < max.tries) {
-        worked <- tryCatch( {
+        # worked <- tryCatch( {
                     dem <- do.call( model_setup, c( list(pop=pop), params ) );
                     # takes 2-4 minutes (and note may have less than 'ntrees' trees due to segfaults)
                     mean.dist <- sim_data( dem, sample.config, outdir, ntrees );
                     TRUE
-                },
-                error=function (e) { 
-                   cat("Whoops: restarting iteration", iter.num, ":\n"); 
-                   cat("  ", e$message,"\n"); FALSE
-                }
-            )
+         #      },
+         #       error=function (e) { 
+         #          cat("Whoops: restarting iteration", iter.num, ":\n"); 
+         #          cat("  ", e$message,"\n"); FALSE
+         #       }
+         #   )
         if (worked) { break }  # skip this one
         ntries <- ntries+1
     }
