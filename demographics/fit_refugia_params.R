@@ -9,8 +9,9 @@ devtools::load_all("~/projects/msarg")
 devtools::load_all("~/projects/patchy-landscapes/landsim")
 
 # load tortoise habitat
+hab.fact <- 32
 full.habitat <- raster("../visualization/nussear_masked.grd")
-habitat <- aggregate( full.habitat, fact=32 )
+habitat <- aggregate( full.habitat, fact=hab.fact )
 
 # population setup
 pop <- population( habitat, genotypes='a', accessible=rep(TRUE,length(values(habitat))), 
@@ -104,7 +105,7 @@ basedir <- sprintf("run_%06d",run.id)
 dir.create( basedir )
 cat("Writing out to", basedir, "----\n")
 
-cat( toJSON(c(init.params,list(ntrees=ntrees)), pretty=TRUE), file=file.path(basedir,"params.json") )
+cat( toJSON(c(init.params,list(ntrees=ntrees,hab.fact=hab.fact)), pretty=TRUE), file=file.path(basedir,"params.json") )
 write.csv( dist.df, file=file.path(basedir,"dist-df.csv"), row.names=FALSE )
 
 # set this to something larger to explore
