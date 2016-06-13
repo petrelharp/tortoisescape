@@ -107,6 +107,7 @@ cat("Writing out to", basedir, "----\n")
 cat( toJSON(c(init.params,list(ntrees=ntrees)), pretty=TRUE), file=file.path(basedir,"params.json") )
 write.csv( dist.df, file=file.path(basedir,"dist-df.csv"), row.names=FALSE )
 
+# set this to something larger to explore
 n.iter <- 0
 
 # explore parameter space
@@ -141,7 +142,8 @@ optim_fun <- function (x) {
     return(out)
 }
 
-optim( unlist(init.params), optim_fun, 
+# otherwise do optimization
+if (n.iter==0) optim( unlist(init.params), optim_fun, 
      lower=c(0,0,
              refugia.bounds[['x']][1],refugia.bounds[['x']][1],
              refugia.bounds[['y']][1],refugia.bounds[['y']][1],
