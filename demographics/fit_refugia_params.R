@@ -84,8 +84,8 @@ source("grid-refugia-fns.R")
 init.params <- list(
         pop.density = 0.004/1e4,   # density in indivs/m^2 : one tortoise per 20 ha in perfect habitat; but one tenth this looks better
         sigma = 10e3,              # m/gen
-        refugia.coords = cbind( x=c(426000,  330000), 
-                                y=c(4000000,3900000) ),   # in meters (UTM)
+        refugia.coords = cbind( x=c( 586000, 650000), 
+                                y=c(3795000,3988000) ),   # in meters (UTM)
         refugia.radii = 5e4,       # in meters
         refugia.time = 380e3/25,   # length of time refugia existed for, in generations
         expansion.time = 270e3/25, # time refugia ended, in generations
@@ -93,7 +93,7 @@ init.params <- list(
         expansion.width = 50e3     # in meters, roughly
 )
 # bounds on reasonable places (?) for refugia to be centered
-refugia.bounds <- list( x=c(350000,780000),
+refugia.bounds <- list( x=c( 350000, 780000),
                         y=c(3640000,4200000) )
 
 ### Other (unchanging) parameters
