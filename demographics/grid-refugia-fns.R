@@ -144,7 +144,8 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
     write( sim.dist, file=file.path(outdir,"sim-distances.csv"), ncolumns=1 )
 
     # mean-square difference:
-    model.score <- mean( (dist.df$generations - sim.dist)^2 )
+    nonself <- ( dist.df$etort1 != dist.df$etort2 )
+    model.score <- mean( (dist.df$generations[nonself] - sim.dist[nonself])^2 )
 
     write( model.score, file=file.path(outdir,"model.score") )
 
@@ -169,30 +170,30 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
             width=10*144, height=5*144, pointsize=10, res=144)
         layout(t(1:2))
 
-        plot( dist.df$distance/1e3, sim.dist, pch=20, cex=0.5, 
+        plot( dist.df$distance[nonself]/1e3, sim.dist[nonself], pch=20, cex=0.5, 
              xlab="geog dist (km)", ylab="mean TMRCA (y)",
-             col=adjustcolor(dist.df$col,0.5),
+             col=adjustcolor(dist.df$col[nonself],0.5),
              main="simulated vs distance" )
-        plot( dist.df$generations, sim.dist, pch=20, cex=0.5, xlim=range(dist.df$generations[dist.df$etort1!=dist.df$etort2]),
+        plot( dist.df$generations[nonself], sim.dist[nonself], pch=20, cex=0.5, 
+             xlim=range(dist.df$generations[nonself]),
              xlab="observed divergence", ylab="mean TMRCA (y)",
-             col=adjustcolor(dist.df$col,0.5),
+             col=adjustcolor(dist.df$col[nonself],0.5),
              main="simulated vs observed" )
-        dist.lm <- lm( sim.dist ~ dist.df$generations, subset= (dist.df$etort1 != dist.df$etort2) )
-        abline(coef(dist.lm))
+        abline(0,1)
 
         # comparisons to individual tortoises
         layout(t(1:3))
         for (tort in paste0("etort-",c(243,35,100,262,218,52,274,90,36))) {
-            ut <- with(dist.df,etort1==tort|etort2==tort)
+            ut <- with(dist.df,(etort1==tort|etort2==tort) & (etort1!=etort2))
             other <- ifelse( dist.df$etort1[ut]==tort, dist.df$etort2[ut], dist.df$etort1[ut] )
             plot( habitat, main=tort )
             plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
             points( sample.points, pch=ifelse(sample.ids==tort,8,20), cex=2, col=pc.cols[,1] )
-            plot( dist.df$distance/1e3, dist.df$generations, pch=20, cex=0.5, ylim=range(dist.df$generations[dist.df$etort1!=dist.df$etort2]),
+            plot( dist.df$distance[nonself]/1e3, dist.df$generations[nonself], pch=20, cex=0.5, 
                  xlab="geog dist (km)", ylab="mean TMRCA (y)", main="observed" )
             points( dist.df$distance[ut]/1e3, dist.df$generations[ut], pch=20, cex=2,
                  col=pc.cols[other,1] )
-            plot( dist.df$distance/1e3, sim.dist, pch=20, cex=0.5,
+            plot( dist.df$distance[nonself]/1e3, sim.dist[nonself], pch=20, cex=0.5,
                  xlab="geog dist (km)", ylab="mean TMRCA (y)", main="simulated" )
             points( dist.df$distance[ut]/1e3, sim.dist[ut], pch=20, cex=2,
                  col=pc.cols[other,1] )
@@ -214,7 +215,7 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
             plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
             points( sample.points, pch=20, cex=2, col=pc.cols[,1] )
             # plot_sample_config( dem, sample.config, add=TRUE, xy=pop.xy, col=north.cols )
-            pp <- plot.phylo( tree, show.tip.label=FALSE )  # tip.color=pc.cols[,k] )  # tip.color=north.cols, cex=0.2 )
+            pp <- plot.phylo( tree, show.tip.label=FALSE, x.lim=range(dem@t) )  # tip.color=pc.cols[,k] )  # tip.color=north.cols, cex=0.2 )
             axisPhylo(1)
             ab <- abline_phylo(v=dem@t[length(dem@t)], lty=2, col='grey')
             points( rep(1.05*ab[1],nrow(pcs)), 1:nrow(pcs), pch=20, col=pc.cols[,1][sample.order][order(tfn(tree))] )
