@@ -7,7 +7,7 @@ library(msarg)
 library(landsim)
 
 # load tortoise habitat
-hab.fact <- 16
+hab.fact <- 8
 full.habitat <- raster("../visualization/nussear_masked.grd")
 habitat <- aggregate( full.habitat, fact=hab.fact )
 
@@ -80,7 +80,7 @@ source("grid-refugia-fns.R")
 ###
 # INITIAL PARAMETERS
 
-good.params <- read.csv("good-results-lt-1e6.csv",header=TRUE,stringsAsFactors=FALSE)
+good.params <- read.csv("good-results-lt-25e4.csv",header=TRUE,stringsAsFactors=FALSE)
 init.params.vec <- as.numeric( good.params[ sample.int(nrow(good.params),1), sapply(good.params,is.numeric)] )
 names(init.params.vec) <- names(good.params)[sapply(good.params,is.numeric)]
 init.params <- list(
