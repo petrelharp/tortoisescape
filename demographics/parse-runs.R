@@ -50,21 +50,21 @@ sd(same$score)/mean(same$score)  # = .037
 
 param.names <- c("pop.density", "sigma", "refugia.coords.1", "refugia.coords.2", "refugia.coords.3", "refugia.coords.4", "refugia.radii", "refugia.time", "expansion.time", "expansion.speed", "expansion.width", "score")
 
-goodones <- ( all.params$score < 1e6 )
+goodones <- ( all.params$score < 0.5e6 )
 
 png( file="all-parameter-pairs.png", width=12*144, height=12*144, res=144, pointsize=10 )
 pairs( all.params[c(which(!goodones),which(goodones)),param.names], 
-      col=ifelse( all.params$score < 1e6, 'red', 'black' )[c(which(!goodones),which(goodones))] )
+      col=ifelse( goodones, 'red', 'black' )[c(which(!goodones),which(goodones))] )
 dev.off()
 
 png( file="all-refugia-pairs.png", width=8*144, height=4*144, res=144, pointsize=10 )
 layout( t(1:2) )
 plot( all.params[,c("refugia.coords.1","refugia.coords.3")], 
-     col=ifelse( all.params$score < 1e6, 'red', 'black' ) )
+     col=ifelse( goodones, 'red', 'black' ) )
 points( all.params[goodones,c("refugia.coords.1","refugia.coords.3")], 
      col="red", pch=20 )
 plot( all.params[,c("refugia.coords.2","refugia.coords.4")], 
-     col=ifelse( all.params$score < 1e6, 'red', 'black' ) )
+     col=ifelse( goodones, 'red', 'black' ) )
 points( all.params[goodones,c("refugia.coords.2","refugia.coords.4")], 
      col="red", pch=20 )
 dev.off()
@@ -80,4 +80,4 @@ dev.off()
 
 # save out the good params to start new things from
 
-write.csv( subset(all.params, score<1e6), file="good-results-lt-1e6.csv", row.names=FALSE )
+write.csv( subset(all.params, goodones), file="good-results-lt-5e5.csv", row.names=FALSE )

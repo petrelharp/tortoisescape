@@ -7,7 +7,7 @@ library(msarg)
 library(landsim)
 
 # load tortoise habitat
-hab.fact <- 16
+hab.fact <- 32
 full.habitat <- raster("../visualization/nussear_masked.grd")
 habitat <- aggregate( full.habitat, fact=hab.fact )
 
