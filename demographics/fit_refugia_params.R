@@ -88,7 +88,7 @@ init.params <- list(
         refugia.coords = cbind( x=c( 586000, 650000), 
                                 y=c(3795000,3988000) ),   # in meters (UTM)
         refugia.radii = 5e4,       # in meters
-        refugia.time = 380e3/25,   # length of time refugia existed for, in generations
+        refugia.time = 2500e3/25,   # length of time refugia existed for, in generations
         expansion.time = 270e3/25, # time refugia ended, in generations
         expansion.speed = 0.4,     # in m/gen (not really??)
         expansion.width = 50e3     # in meters, roughly
