@@ -36,11 +36,11 @@ row.names(sample.points) <- sample.ids <- as.character(sample.coords$id)
 sample.cells <- cellFromXY( pop$habitat, sample.points )
 # the "sample config" to pass to msarg: columns are row, column, layer, #.samples
 sample.config <- sort_sample_config( cbind(
-                       arrayInd( unique(sample.cells), .dim=as.integer(dim(habitat)[c(2,1,3)]) ),
+                       arrayInd( unique(sample.cells), .dim=as.integer(dim(pop$habitat)[c(2,1,3)]) ),
                        n=table(sample.cells) ) )
 # keep track of which sample goes to which simulated sample:
 #  sample.points[k] corresponds to the sample.order[k]-th simulated indiv
-sample.rowcol <- arrayInd( sample.cells, .dim=as.integer(dim(habitat)[c(2,1,3)]) )
+sample.rowcol <- arrayInd( sample.cells, .dim=as.integer(dim(pop$habitat)[c(2,1,3)]) )
 sample.order <- order(sample.rowcol[, 3], sample.rowcol[, 2], sample.rowcol[, 1])
 #  and order(sample.order) is the inverse permutation
 #  so this is the permutation to re-order the ms output
@@ -121,7 +121,7 @@ for (iter.num in seq_len(n.iter)) {
         params <- lapply( init.params, function (x) {
                     x * (0.5+runif(length(x)))
             } )
-        params$refugia.coords <- sampleRandom(habitat,size=2,xy=TRUE)[,1:2]
+        params$refugia.coords <- sampleRandom(pop$habitat,size=2,xy=TRUE)[,1:2]
     }
 
     run_sim( params, iter.num, ntrees )
