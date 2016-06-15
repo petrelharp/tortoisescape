@@ -207,7 +207,6 @@ plot_everything <- function ( base.params, params, dist.df, sim.dist, model.scor
     mean.dist[ cbind( match(dist.df$etort1,sample.ids), match(dist.df$etort2,sample.ids) ) ] <- sim.dist
     mean.dist[lower.tri(mean.dist)] <- t(mean.dist)[lower.tri(mean.dist)]
 
-    ### plotting (not a real function)
     # pcs of the covariance matrix (up to scaling; see McVean)
     covmat <- (rowMeans(mean.dist) + colMeans(mean.dist) - mean(mean.dist) - mean.dist)
     pmat <- diag(nrow(covmat)) - 1/nrow(covmat)
@@ -225,13 +224,13 @@ plot_everything <- function ( base.params, params, dist.df, sim.dist, model.scor
 
     layout(t(1:2))
     plot( dist.df$distance[nonself]/1e3, sim.dist[nonself], pch=20, cex=0.5, 
-         xlab="geog dist (km)", ylab="mean TMRCA (y)",
+         xlab="geog dist (km)", ylab="mean TMRCA (gens)",
          col=adjustcolor(dist.df$col[nonself],0.5),
          main="simulated vs distance" )
     mtext(label, side=3, adj=0)
     plot( dist.df$generations[nonself], sim.dist[nonself], pch=20, cex=0.5, 
          xlim=range(dist.df$generations[nonself]),
-         xlab="observed divergence", ylab="mean TMRCA (y)",
+         xlab="observed divergence", ylab="mean TMRCA (gens)",
          col=adjustcolor(dist.df$col[nonself],0.5),
          main="simulated vs observed" )
     abline(0,1)
@@ -247,11 +246,11 @@ plot_everything <- function ( base.params, params, dist.df, sim.dist, model.scor
         plot( refugia, col=adjustcolor('black',0.25), add=TRUE )
         points( sample.points, pch=ifelse(sample.ids==tort,8,20), cex=2, col=pc.cols[,1] )
         plot( dist.df$distance[nonself]/1e3, dist.df$generations[nonself], pch=20, cex=0.5, 
-             xlab="geog dist (km)", ylab="mean TMRCA (y)", main="observed" )
+             xlab="geog dist (km)", ylab="mean TMRCA (gens)", main="observed" )
         points( dist.df$distance[ut]/1e3, dist.df$generations[ut], pch=20, cex=2,
              col=pc.cols[other,1] )
         plot( dist.df$distance[nonself]/1e3, sim.dist[nonself], pch=20, cex=0.5,
-             xlab="geog dist (km)", ylab="mean TMRCA (y)", main="simulated" )
+             xlab="geog dist (km)", ylab="mean TMRCA (gens)", main="simulated" )
         points( dist.df$distance[ut]/1e3, sim.dist[ut], pch=20, cex=2,
              col=pc.cols[other,1] )
         mtext(model.score, side=3, adj=1)

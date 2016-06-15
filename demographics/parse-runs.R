@@ -44,13 +44,21 @@ same <- get_results("run_all_same")
 sd(same$score) #= 163433
 sd(same$score)/mean(same$score)  # = .037
 
+
+# save out the good params to start new things from
+goodones <- ( all.params$score < 25e4 )
+write.csv( subset(all.params, goodones), file="good-results-lt-25e4.csv", row.names=FALSE )
+
 # plot everything so far
 
+# refugia locations
+full.habitat <- raster("../visualization/nussear_masked.grd")
+r1 <- SpatialPoints( cbind( jitter(all.params$refugia.coords.1), jitter(all.params$refugia.coords.3) ), proj4string=CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0") ) 
+r2 <- SpatialPoints( cbind( jitter(all.params$refugia.coords.2), jitter(all.params$refugia.coords.4) ), proj4string=CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0") ) 
+
+# make plots
 ## holy crap!  there's definately a good region!
-
 param.names <- c("pop.density", "sigma", "refugia.coords.1", "refugia.coords.2", "refugia.coords.3", "refugia.coords.4", "refugia.radii", "refugia.time", "expansion.time", "expansion.speed", "expansion.width", "score")
-
-goodones <- ( all.params$score < 0.5e6 )
 
 png( file="all-parameter-pairs.png", width=12*144, height=12*144, res=144, pointsize=10 )
 pairs( all.params[c(which(!goodones),which(goodones)),param.names], 
@@ -59,6 +67,13 @@ dev.off()
 
 png( file="all-refugia-pairs.png", width=8*144, height=4*144, res=144, pointsize=10 )
 layout( t(1:2) )
+plot(full.habitat)
+points(r1, col='black', pch=20)
+points(r1[goodones], col='red', pch=20)
+plot(full.habitat)
+points(r2, col='black', pch=20)
+points(r2[goodones], col='red', pch=20)
+
 plot( all.params[,c("refugia.coords.1","refugia.coords.3")], 
      col=ifelse( goodones, 'red', 'black' ) )
 points( all.params[goodones,c("refugia.coords.1","refugia.coords.3")], 
@@ -78,6 +93,3 @@ for (x in param.names) {
 }
 dev.off()
 
-# save out the good params to start new things from
-
-write.csv( subset(all.params, goodones), file="good-results-lt-5e5.csv", row.names=FALSE )
