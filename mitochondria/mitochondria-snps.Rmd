@@ -52,7 +52,20 @@ major.allele[majors==0] <- NA
 library(raster)
 library(maptools)
 layer <- raster("../visualization/dem_30")
+source("../visualization/map-utils.R",chdir=TRUE)
+shade <- get_shading(layer)
+contours <- get_contours(layer)
+states <- get_statelines(layer)
+counties <- get_counties(layer)
 player <- function (main='') { plot(layer,legend=FALSE,xlab="",ylab="",xaxt="n",yaxt="n",legend.mar=0,box=FALSE,main=main) }
+pshade <- function (main='',samples=FALSE) { 
+	plot(coords,pch=NA,cex=0.7,ylab="",xlab="", main=main)
+    plot( shade, col=adjustcolor(grey(seq(0,1,length.out=101)),0.25), legend=FALSE, add=TRUE )
+    lines(counties,lwd=0.5)
+    lines(states,lwd=2)
+	scalebar(d=100000,xy=c(-1700000,y=-460000),below="meters",lwd=1.5,label="100km")
+    if (samples) points(coords,pch=20,cex=0.7)
+}
 # read in other info
 pcs <- read.csv(file.path("../tort_272_info","pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
 stopifnot( all( tort.ids %in% pcs$etort ) )
@@ -145,11 +158,12 @@ Haplotypes
 hap.scores <- colMeans(northern.alleles[segfreqs>0.2,])
 north.hap <- (hap.scores>0.5)
 # pdf(file="mt-hap-map.pdf",width=3,height=3,pointsize=10)
+# png(file="mt-hap-map.png",width=3*144,height=3*144,pointsize=10,res=144)
 # par(mar=c(0,0,3,0)+.1)
-player("mitochondrial haplotypes")
+pshade("mitochondrial haplotypes")
 points(coords, pch=19,
         col=adjustcolor(ifelse(rownames(coords@coords)=="etort-50",NA,
-                     ifelse(north.hap,"blue","purple")),0.5), cex=1)
+                     ifelse(north.hap,"purple","blue")),0.5), cex=1)
 points(coords['etort-50'],pch="*")
 # dev.off()
 ```
@@ -198,7 +212,8 @@ A fasta file of the sequences at the segregating sites has been written to [mito
 ```{r build_tree}
 seqs <- read.phyDat("mitochondria-segsites.fasta",format="fasta",type="DNA")
 treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,!names(seqs)%in%c("etort-50","etort-71","etort-97")))))
-plot(treeNJ)
+plot(midpoint(treeNJ))
+add.scale.bar()
 # fit <- pml(treeNJ,data=seqs)
 # mltree <- optim.pml(fit,TRUE)
 ```

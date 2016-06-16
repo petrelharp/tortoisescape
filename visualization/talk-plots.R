@@ -4,6 +4,7 @@ require(raster)
 require(maps)
 require(maptools)
 require(rgdal)
+require(TeachingDemos)
 
 # elevation raster
 dem <- raster("../visualization/dem_30.gri")
@@ -46,11 +47,11 @@ player <- function (main='') {
     lines(counties,lwd=0.5)
 }
 pshade <- function (main='',samples=FALSE) { 
-	plot(tort.coords,pch=NA,cex=0.7,ylab="",xlab="", type='n', main=main)
+	plot(tort.coords,pch=NA,cex=0.7,ylab="",xlab="", main=main)
     plot( shade, col=adjustcolor(grey(seq(0,1,length.out=101)),0.25), legend=FALSE, add=TRUE )
     lines(counties,lwd=0.5)
     lines(states,lwd=2)
-	scalebar(d=100000,xy=c(-1600000,y=-460000),below="meters",lwd=1.5,label="100km")
+	scalebar(d=100000,xy=c(-1700000,y=-460000),below="meters",lwd=1.5,label="100km")
     if (samples) points(tort.coords,pch=20,cex=0.7)
 }
 
@@ -207,4 +208,41 @@ par(mar=c(0,0,1,0)+.5)
 		mtext(side=3,font=2,text="Ivanpah Valley",padj=-1,line=0)
 	scalebar(d=20000,xy=c(x.min+2000,y.max-15000),type="line",below="meters",lwd=1.1,label="20km")
 dev.off()
+
+# make a map of tortoise samples colored
+#	by continuous position on PC1, 
+#	on elevation map
+tort.plotting.pch <- rep(20,nrow(tort.coords@coords))
+tort.plotting.pch[
+        ( pcs$PC2[match(tort.ids,pcs$etort)] > 0 )
+        & ( pcs$PC1[match(tort.ids,pcs$etort)] < 0 )
+    ] <- 17
+
+#png(file="continuous_pc_colors_sample_map.png",res=288,width=2*288,height=3*288,pointsize=10)
+pdf(file="continuous_pc_colors_sample_map.pdf",width=3.5,height=3,pointsize=10)
+par(mar=c(0,0,2,0)+1)
+pshade(main="PCs")
+		points(tort.coords,pch=tort.plotting.pch,cex=0.7,col=pc.cols)
+        subplot.coords <- cbind( x=grconvertX(.08+c(0,0.3),from='nfc',to='user'),
+                                 y=grconvertY(.08+c(0,0.3),from='nfc',to='user') )
+		rect(subplot.coords[1],
+		     subplot.coords[3],
+		     subplot.coords[2],
+		     subplot.coords[4],col="white")
+		subplot(fun = {		par(mgp=c(0.25,0,0));
+                            plot(pcs$PC1,pcs$PC2,
+								col=pc.cols,pch=tort.plotting.pch,cex=0.5,xaxt='n',yaxt='n',
+                                xlab="PC1 (12%)",
+                                ylab="PC2 (2%)",
+                                ylim=c(-0.16,0.16)) ;
+								abline(v=0,col="gray",lty=2) ;
+								lines(x=c(-5,0),y=c(0,0),col="gray",lty=2)
+						},
+                        x=subplot.coords[,"x"], y=subplot.coords[,"y"] )
+		# mtext(side=1,text="PC1 (6.9%)",cex=0.75,adj=0.215,padj=-3)
+		# mtext(side=1,text="PC2 (1.4%)",cex=0.75,adj=-0.55,padj=-19.5,las=2)
+		# mtext("meters",side=4,las=2,padj=-8.5,adj=-0.25)
+	scalebar(d=100000,xy=c(-1570000,y=-560000),type="line",below="meters",lwd=1.5,label="100km")
+dev.off()
+
 

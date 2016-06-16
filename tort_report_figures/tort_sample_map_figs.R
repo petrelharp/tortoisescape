@@ -93,10 +93,7 @@ tort.plotting.colors.discrete <- rep("red",nrow(tort.coords@coords))
 	tort.plotting.colors.discrete[eig.covmat$vectors[,1] > 0] <- "purple"
 tort.plotting.colors.continuous <- rev(rainbow(nind,start=4/6,end=6/6))[as.numeric(cut(eig.covmat$vectors[,1],nind))]
 tort.plotting.pch <- rep(20,nrow(tort.coords@coords))
-	tort.plotting.pch[eig.covmat$vectors[,2] > 0 & eig.covmat$vectors[,1] < 0] <- 17
-		xlab=,
-		ylab=,
-
+tort.plotting.pch[eig.covmat$vectors[,2] > 0 & eig.covmat$vectors[,1] < 0] <- 17
 
 # make a map of tortoise samples colored
 #	by N or S of Ivanpah on elevation raster map
