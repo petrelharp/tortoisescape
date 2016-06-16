@@ -13,6 +13,7 @@ for (outdir in iter.dirs) {
 
     basedir <- dirname(outdir)
     base.params <- fromJSON( file.path(basedir,"params.json") )
+    if (is.null(base.params$hab.fact)) { base.params$hab.fact <- 32 }
     params <- fromJSON( file.path(outdir,"params.json") )
     dist.df <- read.csv( file.path( basedir, "dist-df.csv" ), header=TRUE, stringsAsFactors=FALSE )
     sim.dist <- scan( file.path(outdir,"sim-distances.csv") )

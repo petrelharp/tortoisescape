@@ -197,7 +197,7 @@ A fasta file of the sequences at the segregating sites has been written to [mito
 
 ```{r build_tree}
 seqs <- read.phyDat("mitochondria-segsites.fasta",format="fasta",type="DNA")
-treeNJ <- NJ(dist.dna(as.DNAbin(seqs)))
+treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,!names(seqs)%in%c("etort-50","etort-71","etort-97")))))
 plot(treeNJ)
 # fit <- pml(treeNJ,data=seqs)
 # mltree <- optim.pml(fit,TRUE)

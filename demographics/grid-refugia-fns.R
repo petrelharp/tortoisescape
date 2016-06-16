@@ -156,7 +156,7 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
         # pdf(file=file.path(outdir,"trees-and-things.pdf"),width=10,height=5,pointsize=10)
         png(file=file.path(outdir, "trees-and-things-%02d.png"), 
             width=10*144, height=5*144, pointsize=10, res=144)
-        plot_everything <- function ( base.params, params, dist.df, sim.dist, model.score, tree.output, label=outdir )
+        plot_everything( base.params, params, dist.df, sim.dist, model.score, tree.output, label=outdir )
 
         dev.off()
     }
@@ -172,12 +172,14 @@ plot_everything <- function ( base.params, params, dist.df, sim.dist, model.scor
     # These are the two pairs of twins/repeated samples:
     #   etort-143 etort-297
     #   etort-156 etort-296
+    # and there is one high-error sample:
+    #   etort-50
     # We will omit these.
-    rellies <- c("etort-296","etort-297")
+    omit.samples <- c("etort-296","etort-297")# ,"etort-50")
 
     # actual sampling locations
     sample.coords <- read.csv("../tort_272_info/long-lat.csv",header=TRUE)
-    sample.coords <- subset(sample.coords, ! (sample.coords$id %in% rellies ) )
+    sample.coords <- subset(sample.coords, ! (sample.coords$id %in% omit.samples ) )
     sample.points <- spTransform( 
             SpatialPoints( sample.coords[,1:2], 
                           proj4string=CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0") ), 

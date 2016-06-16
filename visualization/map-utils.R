@@ -13,10 +13,20 @@ library(maptools)
 #' Get county outlines to overlay on a spatial object
 #' @param x The spatial object
 get_counties <- function (x) {
+    the.proj4 <- if (missing(x)) { .raster.proj4 } else { proj4string(x) }
     mojave.outlines <- map("county",c("california","nevada","arizona"),
         xlim=c(-120,-113),ylim=c(31,37), plot=FALSE)
     mojave.outlines.sp <- map2SpatialLines(mojave.outlines,proj4string=CRS("+proj=longlat"))
-    spTransform(mojave.outlines.sp,CRS(proj4string(x)))
+    spTransform(mojave.outlines.sp,CRS(the.proj4))
+}
+
+#' Get state lines to overlay on a spatial object
+#' @param x The spatial object
+get_statelines <- function (x) {
+    the.proj4 <- if (missing(x)) { .raster.proj4 } else { proj4string(x) }
+    state.lines <- map(database="state",regions=c("California","Arizona","Nevada"),plot=FALSE)
+    state.lines.spobj <- map2SpatialLines(state.lines,proj4string=CRS("+proj=longlat"))
+    spTransform(state.lines.spobj,CRS(the.proj4))
 }
 
 

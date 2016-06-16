@@ -118,7 +118,7 @@ posfn <- function (eps) { pifac*( (1-eps)*min(dists$pi) + eps*max(dists$pi) ) }
     abline( pifac*coef(this.lm), col='black' )
     text( 3e2, posfn(.1), labels=sprintf("y = %0.4f x + %0.4f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
 # between
-    plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (years)', 
+    plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (per Kb)', 
         col=adjustcolor("slategrey",.1),
         main="between groups",
         pch=20, cex=0.25, ylim=pifac*range(dists$pi), xlim=c(0,max(dists$distance)) )

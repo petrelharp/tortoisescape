@@ -21,12 +21,14 @@ pop.xy <- xyFromCell(habitat,cell=which(pop$accessible))
 # These are the two pairs of twins/repeated samples:
 #   etort-143 etort-297
 #   etort-156 etort-296
+# and there is one high-error sample:
+#   etort-50
 # We will omit these.
-rellies <- c("etort-296","etort-297")
+omit.samples <- c("etort-296","etort-297")#,"etort-50")
 
 # actual sampling locations
 sample.coords <- read.csv("../tort_272_info/long-lat.csv",header=TRUE)
-sample.coords <- subset(sample.coords, ! (sample.coords$id %in% rellies ) )
+sample.coords <- subset(sample.coords, ! (sample.coords$id %in% omit.samples ) )
 sample.points <- spTransform( 
         SpatialPoints( sample.coords[,1:2], 
                       proj4string=CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0") ), 
@@ -48,7 +50,7 @@ msord <- order(sample.order)
 
 # observed pairwise divergence
 dist.df <- read.csv("../tort_272_info/all_angsd_snps.pwp.csv",header=TRUE,stringsAsFactors=FALSE)
-dist.df <- subset( dist.df, ! ( ( etort1 %in% rellies ) | ( etort2 %in% rellies ) ) )
+dist.df <- subset( dist.df, ! ( ( etort1 %in% omit.samples ) | ( etort2 %in% omit.samples ) ) )
 dist.df$etort1 <- factor(dist.df$etort1,levels=sample.ids)
 dist.df$etort2 <- factor(dist.df$etort2,levels=sample.ids)
 # from Evan 2/10/15
@@ -58,7 +60,7 @@ dist.df$generations <- dist.df$years / 25
 
 # make things necessary to make nice plots of the results
 geog.df <- read.csv("../tort_272_info/geog_distance.csv",header=TRUE,stringsAsFactors=FALSE)
-geog.df <- subset( geog.df, ! ( ( etort1 %in% rellies ) | ( etort2 %in% rellies ) ) )
+geog.df <- subset( geog.df, ! ( ( etort1 %in% omit.samples ) | ( etort2 %in% omit.samples ) ) )
 geog.df$etort1 <- factor(geog.df$etort1,levels=sample.ids)
 geog.df$etort2 <- factor(geog.df$etort2,levels=sample.ids)
 dist.df <- merge(dist.df,geog.df)
