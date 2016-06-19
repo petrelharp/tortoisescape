@@ -205,8 +205,11 @@ matplot(minorfreq,type='l',lty=1,col=adjustcolor(rainbow(32),0.5),main="minor al
 
 More usefully, here's a plot of *total* minor allele frequency:
 ```{r plot_mionrs, fig.width=4*fig.dim, cache=TRUE, dependson="major_minor"}
-plot(rowSums(minors)/rowSums(coverage),pch=20)
+# pdf(file="minor-freq-along-mt.pdf",width=5,height=2,pointsize=10)
+# par(mar=c(3,3,0,0)+.2,mgp=c(2,1,0))
+plot(rowSums(minors)/rowSums(coverage),pch=20,xlab='mitochondria position (bp)',ylab='minor allele frequency')
 abline(h=1/mean(coverage))
+# dev.off()
 ```
 So, in certain regions, at certain sites, there are consistently the same alleles popping up in around 4% of the reads.
 Since we have nuclear coverage of about 1x,
@@ -295,8 +298,13 @@ Now we can plot the error estimates per individual in the two regions against ea
 (the line is $y=x$)
 ```{r compare_regions}
 goodcounts.2 <- data.frame( coverage=colSums(coverage[goodregion.2,]), minor=colSums(minors[goodregion.2,]) )
-plot( with(goodcounts,minor/coverage), with(goodcounts.2,minor/coverage), xlab="region 1", ylab="region 2" )
+# pdf(file="error_estimates.pdf", width=2.5, height=2.7)
+# par(mar=c(3,3,1,0)+.1,mgp=c(2.1,1,0))
+plot( with(goodcounts,minor/coverage), with(goodcounts.2,minor/coverage), 
+     pch=20, main='by individual',
+     xlab="error estimate, region 1", ylab="error estimate, region 2" )
 abline(0,1)
+# dev.off()
 ```
 The correlation between them is 
 `r cor( with(goodcounts.2,minor/coverage), with(goodcounts,minor/coverage) )` (and significant).

@@ -121,10 +121,10 @@ for (tid in paste("etort-",c(285,240,35,273,57,229,191),sep='')) {
 }
 
 # with shading
-for (tid in paste("etort-",c(285,240,35,273,57,229,191),sep='')) {
+for (tid in paste("etort-",c(285,78,240,283,35,273,253,57,71,229,27,191),sep='')) {
   png( file=paste("pwp_",tid,"_shaded.png",sep=''), width=5.5*144, height=5.5/1.7*144, pointsize=10,res=144 )
     layout(t(1:2))
-    par(mar=c(2.5,2.5,0.5,0.5))
+    par(mar=c(2.5,2.5,0.5,0.5)+.1)
     usethese <- ( dist2$etort1 != dist2$etort2 ) & ( ( dist2$etort1 == tid ) | ( dist2$etort2 == tid ) )
     otherone <- ifelse( dist2$etort1[usethese] == tid, dist2$etort2[usethese], dist2$etort1[usethese] )
     thiscolors <- pc.cols[ match(otherone,tort.ids) ]
