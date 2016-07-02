@@ -27,7 +27,7 @@ for (outdir in iter.dirs) {
     png(file=file.path(outdir, "trees-and-things-%02d.png"), 
         width=10*144, height=5*144, pointsize=10, res=144)
 
-    plot_everything( base.params, params, dist.df, sim.dist, model.score, tree.output, label=outdir, plot.ntrees=4 )
+    plot_everything( merge_params(params,base.params), dist.df, sim.dist, model.score, tree.output, label=outdir, plot.ntrees=4 )
 
     dev.off()
 }

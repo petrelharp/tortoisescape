@@ -107,7 +107,8 @@ basedir <- sprintf("run_%06d",run.id)
 dir.create( basedir )
 cat("Writing out to", basedir, "----\n")
 
-cat( toJSON(c(init.params,list(ntrees=ntrees,hab.fact=hab.fact)), pretty=TRUE), file=file.path(basedir,"params.json") )
+base.params <- c(init.params,list(ntrees=ntrees,hab.fact=hab.fact))
+cat( toJSON(base.params, pretty=TRUE), file=file.path(basedir,"params.json") )
 write.csv( dist.df, file=file.path(basedir,"dist-df.csv"), row.names=FALSE )
 
 # set this to something larger to explore
@@ -126,7 +127,7 @@ for (iter.num in seq_len(n.iter)) {
         params$refugia.coords <- sampleRandom(pop$habitat,size=2,xy=TRUE)[,1:2]
     }
 
-    run_sim( params, iter.num, ntrees )
+    run_sim( merge_params(params,base.params), iter.num, ntrees )
 }
 
 # to translate parameter vector to params
@@ -140,7 +141,7 @@ optim_fun <- function (x) {
     for (k in seq_along(params)) {
         params[[k]][] <- x[param.inds[[k]]]
     }
-    out <- run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100 )
+    out <- run_sim( merge_params(params,base.params), iter.num=floor( 1e6*runif(1) ), ntrees=100 )
     cat("score:", out,"\n")
     return(out)
 }

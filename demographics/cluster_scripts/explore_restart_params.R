@@ -127,7 +127,7 @@ for (iter.num in seq_len(n.iter)) {
         params$refugia.coords <- sampleRandom(habitat,size=2,xy=TRUE)[,1:2]
     }
 
-    score <- run_sim( params, iter.num, ntrees )
+    score <- run_sim( params, iter.num, ntrees, pop=pop, do.plots=FALSE, dist.df=dist.df )
     if (score < max.score) { max.score <- score; init.params <- params; which.max.score <- iter.num }
 }
 
@@ -142,7 +142,7 @@ optim_fun <- function (x) {
     for (k in seq_along(params)) {
         params[[k]][] <- x[param.inds[[k]]]
     }
-    out <- run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100 )
+    out <- run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100, pop=pop, do.plots=FALSE, dist.df=dist.df )
     cat("score:", out,"\n")
     return(out)
 }

@@ -28,9 +28,9 @@ get_results <- function (basedir=".") {
     return(all.params)
 }
 
-all.params <- get_results()
+new.all.params <- get_results()
 last.all.params <- if (file.exists("all-results.csv")) { read.csv("all-results.csv", header=TRUE) } else { NULL }
-all.params <- merge( all.params, last.all.params, all.x=TRUE, all.y=TRUE )
+all.params <- merge( new.all.params, last.all.params, all.x=TRUE, all.y=TRUE )
 all.params <- all.params[ order(all.params$score,decreasing=FALSE), ]
 
 write.csv(all.params, file="all-results.csv", row.names=FALSE)

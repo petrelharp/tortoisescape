@@ -24,7 +24,8 @@ model_setup <- function (
                          contraction.speed,
                          expansion.time,
                          expansion.speed,
-                         expansion.width
+                         expansion.width,
+                         ...
                      ) {
 
     ######
@@ -106,8 +107,15 @@ sim_data <- function (
 }
 
 
-#' These aren't real functions, as they don't have passed in everything they need!
-run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9), do.plots=TRUE, max.tries=5 ) {
+run_sim <- function( params, 
+                    iter.num, 
+                    ntrees, 
+                    pop,
+                    dist.df,
+                    new.seed=as.integer(runif(1)*2e9), 
+                    do.plots=TRUE, 
+                    max.tries=5
+                ) {
     outdir <- file.path(basedir, sprintf("iter_%06d",iter.num) )
     dir.create( outdir )
     cat(" ... working on", outdir, "\n")
@@ -153,10 +161,12 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
     # do the plots
     if (do.plots) {
 
+        tree.output <- trees_from_ms( file.path(outdir,"msoutput.txt") )
+
         # pdf(file=file.path(outdir,"trees-and-things.pdf"),width=10,height=5,pointsize=10)
         png(file=file.path(outdir, "trees-and-things-%02d.png"), 
             width=10*144, height=5*144, pointsize=10, res=144)
-        plot_everything( base.params, params, dist.df, sim.dist, model.score, tree.output, label=outdir )
+        plot_everything( params, dist.df, sim.dist, model.score, tree.output, label=outdir )
 
         dev.off()
     }
@@ -165,9 +175,9 @@ run_sim <- function( params, iter.num, ntrees, new.seed=as.integer(runif(1)*2e9)
     return(model.score)
 }
 
-plot_everything <- function ( base.params, params, dist.df, sim.dist, model.score, tree.output, plot.ntrees=4, label="" ) {
+plot_everything <- function ( params, dist.df, sim.dist, model.score, tree.output, plot.ntrees=4, label="" ) {
     full.habitat <- raster("../visualization/nussear_masked.grd")
-    habitat <- aggregate( full.habitat, fact=base.params$hab.fact )
+    habitat <- aggregate( full.habitat, fact=params$hab.fact )
 
     # These are the two pairs of twins/repeated samples:
     #   etort-143 etort-297
@@ -175,7 +185,7 @@ plot_everything <- function ( base.params, params, dist.df, sim.dist, model.scor
     # and there is one high-error sample:
     #   etort-50
     # We will omit these.
-    omit.samples <- c("etort-296","etort-297")# ,"etort-50")
+    omit.samples <- if (is.null(params$omit.samples)) { c("etort-296","etort-297") }  else { params$omit.samples }
 
     # actual sampling locations
     sample.coords <- read.csv("../tort_272_info/long-lat.csv",header=TRUE)
@@ -284,3 +294,10 @@ plot_everything <- function ( base.params, params, dist.df, sim.dist, model.scor
 
 }
 
+#' Return the list x augmented by things in y that aren't in x.
+merge_params <- function (x,y) {
+    for (k in setdiff(names(y),names(x))) {
+        if (is.null(x[[k]])) { x[[k]] <- y[[k]] }
+    }
+    return(x)
+}

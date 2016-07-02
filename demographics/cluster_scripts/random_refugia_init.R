@@ -120,7 +120,7 @@ optim_fun <- function (x) {
     for (k in seq_along(params)) {
         params[[k]][] <- x[param.inds[[k]]]
     }
-    out <- run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100 )
+    out <- run_sim( params, iter.num=floor( 1e6*runif(1) ), ntrees=100, do.plots=FALSE )
     cat("score:", out,"\n")
     return(out)
 }
