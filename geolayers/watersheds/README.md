@@ -8,6 +8,16 @@ to file geodatabase (their shapefile was missing, grrr!!) [WBD_National_931.gdb/
 What we want out of this are the layers named
 `WBDHUn`, where `n` is even and ranges from 2 (coarsest) to 12 (finest).
 This *can* be read with `readOGR()`.
+```
+mkdir -p WBD; cd WBD
+BASEURL="ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/WBD/FileGDB931"
+wget ${BASEURL}/WBD_National_931.gdb.zip
+mkdir -p WBD_Metadata; cd WBD_Metadata
+for x in HU2 HU4 HU6 HU8 HU10 HU12 HU14 HU16 Line _FeatureDataset
+do
+    wget ${BASEURL}/WBD_Metadata/WBD${x}_FGDC.xml
+done
+```
 
 ## Hydrography
 
@@ -15,6 +25,7 @@ Downloaded national data from the [National Hydrography Dataset](http://nhd.usgs
 (of which WBD is actually a part)
 for subbasins 1807, 1809, 1810, 1606, 1501, and 1503 to [NHD/](NHD/):
 ```
+mkdir -p NHD; cd NHD
 BASEURL="ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/NHD/HU4/HighResolution/Shape/NHD_H_"
 for x in 1807 1809 1810 1606 1501 and 1503
 do

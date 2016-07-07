@@ -11,8 +11,12 @@ source("watersheds-fns.R")
 
 # stuff for plotting
 tort.coords.obj <- load("../../tort_272_info/geog_coords.RData")
-tort.coords <- get(tort.loc.obj)
+tort.coords <- get(tort.coords.obj)
 
+
+dem <- get_elev()
+conts <- get_contours(dem)
+shade <- get_shading(dem)
 
 wbd.list <- lapply( 2*(1:5), function (wbd_num) {
             gClip( 
@@ -22,16 +26,11 @@ wbd.list <- lapply( 2*(1:5), function (wbd_num) {
                      dem )
     } )
 
-dem <- get_elev()
-conts <- get_contours(dem)
-shade <- get_shading(dem)
 
-
-hierarchies <- c( list( 
-                       rep(1,length(wbd.list[[1]])),
-                       lapply( seq_along(wbd.list)[-1], function (k) {
-                          hierarchy( wbd.list[[k]], wbd.list[[k-1]] )
-        } ) ) )
+hierarchies <- c( list( rep(1,length(wbd.list[[1]])) ),
+                  lapply( seq_along(wbd.list)[-1], function (k) {
+                      hierarchy( wbd.list[[k]], wbd.list[[k-1]] ) } ) 
+                 )
 
 
 cols <- color_hierarchy( hierarchies )
