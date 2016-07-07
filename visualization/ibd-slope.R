@@ -11,7 +11,7 @@ pcs <- read.csv("pcs.csv")
 pi <- read.csv("all_angsd_snps.pwp.csv",stringsAsFactors=FALSE)
 # from Evan 1/31/15
 pi$pi <- pi$raw_pi * ( 56575857 / 1898838430 )
-# from Evan 2/10//15
+# from Evan 2/10/15
 pi$years <- pi$pi  / 2.064406e-8 / 2
 # referenced in www.sciencedirect.com/science/article/pii/S0006320713003443
 pi$generations <- pi$years / 25
@@ -118,7 +118,7 @@ posfn <- function (eps) { pifac*( (1-eps)*min(dists$pi) + eps*max(dists$pi) ) }
     abline( pifac*coef(this.lm), col='black' )
     text( 3e2, posfn(.1), labels=sprintf("y = %0.4f x + %0.4f", pifac*coef(this.lm)[2], pifac*coef(this.lm)[1]) )
 # between
-    plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (years)', 
+    plot( pifac*pi ~ distance, data=dists, xlab='distance (km)', ylab='mean divergence (per Kb)', 
         col=adjustcolor("slategrey",.1),
         main="between groups",
         pch=20, cex=0.25, ylim=pifac*range(dists$pi), xlim=c(0,max(dists$distance)) )

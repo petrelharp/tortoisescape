@@ -31,7 +31,7 @@ pop.xy <- xyFromCell(sub.hab,cell=which(pop$accessible))
 pop.points <- SpatialPoints(pop.xy, proj4string=CRS(proj4string(habitat)))
 # only nearest-neighbor migration (king's neighborhood)
 migr <- migration( kern="gaussian", sigma=sqrt(scaling.fac)*tort.sigma, 
-                  radius=res(sub.hab), normalize=1 )
+                  radius=res(sub.hab), normalize=1, discretize=TRUE )
 
 # create a population object for msarg
 npops <- sum(pop$accessible)
@@ -76,11 +76,7 @@ barrier.demog[[2]]@M <- barrier.mat
 
 barrier.demog <- add_to_demography( barrier.demog, tnew=barrier.begin.time, pop=barrier.demog[[1]] )
 
-if (!file.exists("barrier-demography-msarg.RData")) {
-    save(barrier.demog, sample.config, pop.xy, file="barrier-demography-msarg.RData")
-} else {
-    warning("File 'barrier-demography-msarg.RData' already exists.")
-}
+save(barrier.demog, sample.config, pop.xy, file="barrier-demography-msarg.RData")
 
 plot(barrier.demog,xy=pop.xy)
 
@@ -128,9 +124,5 @@ plot(refugia.demog,xy=pop.xy)
 #     }
 # }
 
-if (!file.exists("refugia-demography-msarg.RData")) {
-    save(refugia.demog, sample.config, pop.xy, file="refugia-demography-msarg.RData")
-} else {
-    warning("File 'refugia-demography-msarg.RData' already exists.")
-}
+save(refugia.demog, sample.config, pop.xy, file="refugia-demography-msarg.RData")
 
