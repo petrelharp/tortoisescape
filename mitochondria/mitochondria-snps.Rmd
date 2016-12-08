@@ -133,8 +133,7 @@ plot( segregating, segfreqs, xlab="position", ylab="minor allele frequency" )
 There are `r length(segregating)` such sites,
 of which `r sum(segfreqs>0.2)` are at minor allele frequency above 20%.
 
-Here are maps of those 58 sites;
-alleles more common in northern tortoises than in southern ones are colored black.
+Here are maps of those 58 sites:
 ```{r seg_maps, fig.width=3*fig.dim}
 northern.torts <- (pcs$PC1>0)
 northern.freqs <- rowMeans( ismajor[segregating,northern.torts], na.rm=TRUE )
@@ -144,9 +143,9 @@ northern.alleles[(northern.freqs>southern.freqs),] <- !northern.alleles[(norther
 layout(t(1:3))
 for (k in segregating[segfreqs>0.2]) {
     kk <- match(k,segregating)
-    player(paste("site",k))
+    pshade(paste("site",k))
     points(coords, pch=19,
-            col=adjustcolor(ifelse(northern.alleles[kk,],"blue","purple"),0.5), cex=1)
+            col=adjustcolor(ifelse(northern.alleles[kk,],"purple","blue"),0.5), cex=1)
     # if (interactive() && is.null(locator(1))) break
 }
 ```
@@ -154,16 +153,35 @@ for (k in segregating[segfreqs>0.2]) {
 Haplotypes
 ==========
 
-```{r get_haplotypes}
-hap.scores <- colMeans(northern.alleles[segfreqs>0.2,])
+Here we compute a "haplotype score":
+for each SNP that is at frequency above 20%,
+we say that the allele more common in northern tortoises is the "northern" allele,
+and then find the percent of each tortoise's SNPs that are northern.
+On the left are haplotype scores against PC1;
+on the right is a map with tortoises whose scores are above 0.5 colored purple.
+```{r get_haplotypes, fig.height=2*fig.dim}
+hap.scores <- colMeans(northern.alleles[segfreqs>0.2,],na.rm=TRUE)
 north.hap <- (hap.scores>0.5)
+north.outliers <- head(names(sort(hap.scores[hap.scores>0.5],decr=FALSE)),10)
+south.outliers <- head(names(sort(hap.scores[hap.scores<0.5],decr=TRUE)),10)
+mt.cols <- adjustcolor(ifelse(rownames(coords@coords)=="etort-50",NA,
+                    ifelse(rownames(coords@coords)%in%north.outliers,"black",
+                    ifelse(rownames(coords@coords)%in%south.outliers,"red",
+                     ifelse(north.hap,"purple","blue")))),0.5)
+layout(t(1:2))
+plot( pcs[match(names(hap.scores),pcs$etort),"PC1"], hap.scores,
+     xlab='PC1', ylab='percent northern SNPs',
+     type='n')
+text( pcs[match(names(hap.scores),pcs$etort),"PC1"], hap.scores,
+     labels=gsub("etort.","",gsub(" .*","",names(hap.scores))),
+     col=mt.cols )
 # pdf(file="mt-hap-map.pdf",width=3,height=3,pointsize=10)
 # png(file="mt-hap-map.png",width=3*144,height=3*144,pointsize=10,res=144)
 # par(mar=c(0,0,3,0)+.1)
 pshade("mitochondrial haplotypes")
-points(coords, pch=19,
-        col=adjustcolor(ifelse(rownames(coords@coords)=="etort-50",NA,
-                     ifelse(north.hap,"purple","blue")),0.5), cex=1)
+text(coords, # pch=19,
+     labels=gsub("etort.","",gsub(" .*","",names(hap.scores))),
+        col=mt.cols, cex=1)
 points(coords['etort-50'],pch="*")
 # dev.off()
 ```
@@ -184,14 +202,14 @@ rare.alleles.1 <- (rowMeans(nall,na.rm=TRUE)<0.25)
 rare.alleles.2 <- (rowMeans(nall,na.rm=TRUE)>0.75)
 colmat[rare.alleles.1,] <- ifelse(nall[rare.alleles.1,],"red","grey")
 colmat[rare.alleles.2,] <- ifelse(nall[rare.alleles.2,],"grey","red")
-png(file="mt-haplotypes.png",width=5*288,height=2.5*288,res=288,pointsize=8)
+# png(file="mt-haplotypes.png",width=5*288,height=2.5*288,res=288,pointsize=8)
 par(mar=c(3,0,2,0)+.1)
 plot( col(nall), row(nall), 
      main="mitochondrial haplotypes",
         col=adjustcolor(colmat,0.75),
         pch=15, xlab='', xaxt='n', yaxt='n', ylab='' )
 axis(1, at=seq_along(tort.ids), labels=gsub(" (sheared2)","",tort.ids[order(pcs$PC1)],fixed=TRUE), cex=0.25, las=3, cex.axis=0.25 )
-dev.off()
+# dev.off()
 ```
 
 Trees
@@ -209,11 +227,17 @@ Biostrings::writeXStringSet(seqs,"mitochondria-segsites.fasta")
 
 A fasta file of the sequences at the segregating sites has been written to [mitochondria-segsites.fasta](mitochondria-segsites.fasta).
 
-```{r build_tree}
+```{r build_tree, fig.height=7*fig.dim}
 seqs <- read.phyDat("mitochondria-segsites.fasta",format="fasta",type="DNA")
-treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,!names(seqs)%in%c("etort-50","etort-71","etort-97")))))
+treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,!names(seqs)%in%c("etort-50","etort-71","etort-97","etort-109","etort-78")))))
 plot(midpoint(treeNJ))
 add.scale.bar()
 # fit <- pml(treeNJ,data=seqs)
 # mltree <- optim.pml(fit,TRUE)
 ```
+
+**So:** there are two mitochondrial clades, that are fairly separated.
+Each has some relatively minor differentiation;
+and in some cases the more common subclade has the derived SNP.
+This is unsuprising.
+

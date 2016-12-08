@@ -205,11 +205,8 @@ matplot(minorfreq,type='l',lty=1,col=adjustcolor(rainbow(32),0.5),main="minor al
 
 More usefully, here's a plot of *total* minor allele frequency:
 ```{r plot_mionrs, fig.width=4*fig.dim, cache=TRUE, dependson="major_minor"}
-# pdf(file="minor-freq-along-mt.pdf",width=5,height=2,pointsize=10)
-# par(mar=c(3,3,0,0)+.2,mgp=c(2,1,0))
 plot(rowSums(minors)/rowSums(coverage),pch=20,xlab='mitochondria position (bp)',ylab='minor allele frequency')
 abline(h=1/mean(coverage))
-# dev.off()
 ```
 So, in certain regions, at certain sites, there are consistently the same alleles popping up in around 4% of the reads.
 Since we have nuclear coverage of about 1x,
@@ -298,13 +295,59 @@ Now we can plot the error estimates per individual in the two regions against ea
 (the line is $y=x$)
 ```{r compare_regions}
 goodcounts.2 <- data.frame( coverage=colSums(coverage[goodregion.2,]), minor=colSums(minors[goodregion.2,]) )
-# pdf(file="error_estimates.pdf", width=2.5, height=2.7)
-# par(mar=c(3,3,1,0)+.1,mgp=c(2.1,1,0))
 plot( with(goodcounts,minor/coverage), with(goodcounts.2,minor/coverage), 
      pch=20, main='by individual',
      xlab="error estimate, region 1", ylab="error estimate, region 2" )
 abline(0,1)
-# dev.off()
 ```
 The correlation between them is 
-`r cor( with(goodcounts.2,minor/coverage), with(goodcounts,minor/coverage) )` (and significant).
+`r cor( with(goodcounts.2,minor/coverage), with(goodcounts,minor/coverage) )` (and significant:
+`r summary(lm( with(goodcounts,minor/coverage) ~ with(goodcounts.2,minor/coverage)))`).
+
+## Combined
+
+Combining these regions:
+```{r combined_estimate}
+muhat.both <- sum(minors[c(goodregion,goodregion.2),])/sum(coverage[c(goodregion,goodregion.2),])
+muhat.se <- sqrt(muhat.both*(1-muhat.both)/sum(coverage[c(goodregion,goodregion.2),]))
+muhat.ci <- muhat.both + c(-2,2)*sqrt(muhat.both*(1-muhat.both)/sum(coverage[c(goodregion,goodregion.2),]))
+```
+we get $\hat \mu = `r muhat.both`$, 
+with a 95% confidence interval of `r muhat.ci`
+and a standard error of `r muhat.se`.
+This is across `r length(goodregion)+length(goodregion.2)` bases,
+with a total of `r sum(coverage[c(goodregion,goodregion.2),])` sequenced bases,
+of which `r sum(minors[c(goodregion,goodregion.2),])` did not agree with the major allele.
+
+```{r writeup_plot}
+# for writeup
+
+pdf(file="minor-freq-along-mt.pdf",width=5,height=2,pointsize=10)
+par(mar=c(3,3,0,0)+.2,mgp=c(2,1,0))
+plot(rowSums(minors)/rowSums(coverage),pch=20,cex=0.5,
+     xlab='mitochondria position (bp)',
+     ylab='error frequency')
+abline(h=1.45/mean(coverage))
+dev.off()
+
+pdf(file="error_estimate_correlation.pdf", width=6, height=2.7)
+par(mar=c(3,3,3,1)+.1,mgp=c(2.1,1,0))
+layout(t(1:2))
+
+cov.vals <- with(rbind(goodcounts,goodcounts.2), { seq(min(coverage),max(coverage),length.out=50) } )
+quants <- sapply( c(.001,.999), function (q) { qpois( q, cov.vals*muhat ) } )
+plot( minor ~ coverage, xlab="total coverage", ylab="number of errors", 
+     pch=20, main='errors by individual',
+     data=rbind(goodcounts,goodcounts.2) )
+abline(0, muhat)
+matlines( cov.vals, quants, lty=1, type='l', col='red')
+
+plot( 1000*with(goodcounts,minor/coverage), 1000*with(goodcounts.2,minor/coverage), 
+     pch=20, main='per kb in two regions',
+     xlab=paste0(min(goodregion),"-",max(goodregion)," bp"), 
+     ylab=paste0(min(goodregion.2),"-",max(goodregion.2)," bp")
+     )
+abline(0,1)
+
+dev.off()
+```
