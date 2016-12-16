@@ -150,6 +150,12 @@ for (k in segregating[segfreqs>0.2]) {
 }
 ```
 
+Here are the correlations of these SNPs with PC1:
+```{r mt_pc1_cor}
+pc1cor <- apply( ismajor[segregating[segfreqs>0.2],], 1, function (x) cor(x,pcs$PC1[match(colnames(ismajor),pcs$etort)],use='pairwise') )
+sort(abs(pc1cor))
+```
+
 Haplotypes
 ==========
 
@@ -241,3 +247,16 @@ Each has some relatively minor differentiation;
 and in some cases the more common subclade has the derived SNP.
 This is unsuprising.
 
+
+Assignment table
+================
+
+For reference here is the PC1 score and haplotype assignment for each tortoise:
+
+```{r}
+ttab <- data.frame( pc1_score=pcs[match(names(hap.scores),pcs$etort),"PC1"], hap_score=hap.scores )
+ttab$PC <- ifelse( ttab$pc1_score > 0, "N", "S" )
+ttab$mt <- ifelse( ttab$hap_score < 0.5, "N", "S" )
+ttab <- cbind(ttab, coordinates(coords)[match(rownames(ttab),row.names(coords)),])
+ttab
+```

@@ -199,6 +199,18 @@ pairs(scaf.summaries)
 
 # Correlation coefficients
 
+This plot shows the number of SNPs having at least a certain absolute correlation with PC1
+that pass the coverage conditions above:
+```{r cor_cdf}
+filtered <- ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) )
+plot( head(sort(abs(pc1.df$snp.cor[filtered]),decr=TRUE),10000), 
+        ylab="absolute correlation with PC", ylim=c(0.4,1),
+        xlab="SNP order", pch=20, cex=0.5 )
+points( head(sort(abs(pc2.df$snp.cor[filtered]),decr=TRUE),10000), 
+        col='red', pch=20, cex=0.5 )
+legend("topright",pch=20,col=c("black","red"),legend=c("PC1","PC2"))
+```
+
 And, here are the distributions of correlation coefficients with the PCs:
 ```{r cor_hists}
 layout(t(1:2))
@@ -395,11 +407,12 @@ for (scaf in outliers) {
 Long scaffolds:
 ```{r map_scafs_list, results="asis", echo=FALSE}
 list_to_mdlist <- function (x) { cat('\n',paste0('- ',paste(x,collapse='\n- ')),'\n',sep='','\n') }
-list_to_mdlist( paste0('[', superlong, '](', c(superlong,outliers), '_maps/high_cor/index.html', ')') )
+list_to_mdlist( paste0('[', superlong, '](', superlong, '_maps/high_cor/index.html', ')') )
 ```
+
 Scaffolds with many high-correlation SNPs:
 ```{r map_scafs_list_outliers, results="asis", echo=FALSE}
-list_to_mdlist( paste0('[', outliers, '](', c(superlong,outliers), '_maps/high_cor/index.html', ')') )
+list_to_mdlist( paste0('[', outliers, '](', outliers, '_maps/high_cor/index.html', ')') )
 ```
 
 
