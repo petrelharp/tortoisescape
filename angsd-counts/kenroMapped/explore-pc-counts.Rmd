@@ -111,7 +111,6 @@ and the correlation is
 $$  ( \text{covariance} ) / \sqrt{ ( N / n_I )( 1 - N/n_I ) \sigma^2_v } . $$
 
 ```{r pc_count_connection, include=FALSE, cache=TRUE}
-pc.num <- 1
 pcs <- read.csv(file.path(tortdir,"tort_272_info","pcs.csv"),header=TRUE,stringsAsFactors=FALSE)
 get_pc_cors <- function (pc.num){
     # correlation of PCs with counts

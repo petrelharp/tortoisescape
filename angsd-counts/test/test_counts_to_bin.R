@@ -7,7 +7,7 @@ pos <- read.table(posfile,header=TRUE)
 
 binfile <- "test.bin"
 nbytes <- 1
-system(paste("Rscript ../counts-to-bin.R",countsfile,binfile,nbytes))
+system(paste("Rscript ../../count-utils/counts-to-bin.R",countsfile,binfile,nbytes))
 
 nindivs <- ncol(counts)/4
 

@@ -165,7 +165,7 @@ we say that the allele more common in northern tortoises is the "northern" allel
 and then find the percent of each tortoise's SNPs that are northern.
 On the left are haplotype scores against PC1;
 on the right is a map with tortoises whose scores are above 0.5 colored purple.
-```{r get_haplotypes, fig.height=2*fig.dim}
+```{r get_haplotypes, fig.width=4*fig.dim, fig.height=2*fig.dim}
 hap.scores <- colMeans(northern.alleles[segfreqs>0.2,],na.rm=TRUE)
 north.hap <- (hap.scores>0.5)
 north.outliers <- head(names(sort(hap.scores[hap.scores>0.5],decr=FALSE)),10)
@@ -233,9 +233,16 @@ Biostrings::writeXStringSet(seqs,"mitochondria-segsites.fasta")
 
 A fasta file of the sequences at the segregating sites has been written to [mitochondria-segsites.fasta](mitochondria-segsites.fasta).
 
-```{r build_tree, fig.height=7*fig.dim}
+```{r build_tree, fig.width=3*fig.dim, fig.height=7*fig.dim}
+layout(t(1:2))
 seqs <- read.phyDat("mitochondria-segsites.fasta",format="fasta",type="DNA")
-treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,!names(seqs)%in%c("etort-50","etort-71","etort-97","etort-109","etort-78")))))
+#
+usethese <- !names(seqs)%in%c("etort-50")
+treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,usethese),model='N')))
+plot(midpoint(treeNJ))
+add.scale.bar()
+usethese <- !names(seqs)%in%c("etort-50","etort-71","etort-97","etort-109","etort-78")
+treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,usethese)),model='N'))
 plot(midpoint(treeNJ))
 add.scale.bar()
 # fit <- pml(treeNJ,data=seqs)
@@ -260,3 +267,35 @@ ttab$mt <- ifelse( ttab$hap_score < 0.5, "N", "S" )
 ttab <- cbind(ttab, coordinates(coords)[match(rownames(ttab),row.names(coords)),])
 ttab
 ```
+
+For the writeup
+===============
+
+```{r plots}
+usethese <- !names(seqs)%in%c("etort-50","etort-71","etort-97","etort-109","etort-78")
+treeNJ <- NJ(dist.dna(as.DNAbin(subset(seqs,usethese)),model='N'))
+
+hap.scores <- colMeans(northern.alleles[segfreqs>0.2,],na.rm=TRUE)
+north.hap <- (hap.scores<0.5)
+north.outliers <- head(names(sort(hap.scores[hap.scores>0.5],decr=FALSE)),8)
+south.outliers <- head(names(sort(hap.scores[hap.scores<0.5],decr=TRUE)),8)
+mt.cols <- ifelse(rownames(coords@coords)=="etort-50",NA,
+                    ifelse(rownames(coords@coords)%in%north.outliers,"skyblue4",
+                    ifelse(rownames(coords@coords)%in%south.outliers,"violet",
+                     ifelse(north.hap,"purple","blue"))))
+names(mt.cols) <- rownames(coords@coords)
+
+pdf(file="../writeups/mitochondrial_haplotypes.pdf", width=5, height=2, pointsize=10)
+par(mar=c(1,1,1,1)+.1,mgp=c(1.1,1,0))
+layout(t(1:2))
+plot(midpoint(treeNJ),show.tip.label=FALSE)
+with( list2env(.PlotPhyloEnv$last_plot.phylo), {
+         point.offset <- 0
+         points(xx[1:Ntip(treeNJ)] + point.offset, yy[1:Ntip(treeNJ)], 
+                    col=mt.cols[match(treeNJ$tip.label,names(mt.cols))], pch=20, cex = 1)
+            } )
+add.scale.bar()
+pshade("Mitochondrial haplotypes")
+points(coords, pch=20,
+        col=mt.cols, cex=1)
+dev.off()

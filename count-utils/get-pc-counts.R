@@ -22,6 +22,8 @@ so we will estimate the covariance by\
 and the correlation by\
     ( cov ) / sqrt( ( ( A - A^2 / N ) / N ) * ( ( D - C^2 / N ) / N ) )\
         = ( B * N - A * C ) / sqrt( ( A * N - A^2 ) * ( D * N - C^2 ) )\
+
+Outputs to (counts file without .gz).pcNcounts.5bin, where N is the PC number.
 "
 
 arglist <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
@@ -42,7 +44,7 @@ do.text <- FALSE # write out in text? (if not, binary)
 # read in the site information
 tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
 outsuffix <- sprintf(if (do.text) { ".pc%dcounts.txt" } else { ".pc%dcounts.5bin" }, pc.num)
-outfile <- paste0(gsub(".counts.*","",countfile),outsuffix)  # .5bin means binary, five columns
+outfile <- paste0(gsub(".gz$","",countfile),outsuffix)  # .5bin means binary, five columns
 headerfile <- if ( do.text ) { outfile } else { paste0(outfile,".header") }
 
 # the count file
