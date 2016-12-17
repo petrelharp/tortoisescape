@@ -52,7 +52,7 @@ if (grepl(".counts.gz$",countfile)) {
     count.con <- gzfile(countfile,open="r")
     count.header <- scan(count.con,nlines=1,what="char")
     read_fun <- function (blocksize) { scan(count.con,nlines=blocksize) }
-} else if (grepl(".counts.bin",countfile)) {
+} else if (grepl(".bin",countfile)) {
     count.con <- if (!grepl(".counts.bin.gz$",countfile)) { file(countfile,open="rb") } else { gzfile(countfile,open="rb") }
     count.header <- scan(paste0(countfile,".header"),what="char")
     attr(count.con,"nbytes") <- 1
