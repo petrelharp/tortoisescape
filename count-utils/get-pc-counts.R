@@ -5,25 +5,28 @@ usage <- "Usage:\
 \
 The counts file can be text, gzipped (.counts.gz) or binary (.counts.bin.gz, as output by counts-to-bin.R, one byte per int).\
 Details:\
-To compute the correlation and covariance of each site with a vector, say, PC1:\
+To compute the correlation and covariance of each site with a vector of weights, say, PC1:\
 If at a given site:\
     c(i) = major allele count in indiv i\
     n(i) = sample size, i.e. coverage of indiv i\
     p(i) = c(i)/n(i)\
     v(i) = vector of weights\
-then we need these things:\
-    A = sum_i p(i)\
-    B = sum_i p(i) * v(i)\
-    C = sum_{i : n(i)>0} v(i)\
-    D = sum_{i : n(i)>0} v(i)^2\
-    N = #{ i : n(i) > 0 }\
+then we need these things (followed by their name in the header):\
+    A = sum_i p(i)                 -- sum_freq : sum of major allele frequencies  \
+    B = sum_i p(i) * v(i)          -- freq_prod : inner product of major allele frequencies with PC1 \
+    C = sum_{i : n(i)>0} v(i)      -- sum_weights :  \
+    D = sum_{i : n(i)>0} v(i)^2    -- sum_weights_sq : \
+    N = #{ i : n(i) > 0 }          -- num_nonzero : number of sampled individuals \
 so we will estimate the covariance by\
     ( B - A * C / N ) / N\
 and the correlation by\
     ( cov ) / sqrt( ( ( A - A^2 / N ) / N ) * ( ( D - C^2 / N ) / N ) )\
         = ( B * N - A * C ) / sqrt( ( A * N - A^2 ) * ( D * N - C^2 ) )\
 
-Outputs to (counts file without .gz).pcNcounts.5bin, where N is the PC number.
+Outputs to (counts file without .gz).pcNcounts.5bin, where N is the PC number,
+with columns A, B, C, D, and N as above.  Note that columns C and D are not redundant
+because the sum is over individuals who don't have missing data at that site, which
+varies by site.
 "
 
 arglist <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
@@ -44,7 +47,7 @@ do.text <- FALSE # write out in text? (if not, binary)
 # read in the site information
 tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
 outsuffix <- sprintf(if (do.text) { ".pc%dcounts.txt" } else { ".pc%dcounts.5bin" }, pc.num)
-outfile <- paste0(gsub(".gz$","",countfile),outsuffix)  # .5bin means binary, five columns
+outfile <- paste0(gsub(".counts.*","",countfile),outsuffix)  # .5bin means binary, five columns
 headerfile <- if ( do.text ) { outfile } else { paste0(outfile,".header") }
 
 # the count file
@@ -52,7 +55,7 @@ if (grepl(".counts.gz$",countfile)) {
     count.con <- gzfile(countfile,open="r")
     count.header <- scan(count.con,nlines=1,what="char")
     read_fun <- function (blocksize) { scan(count.con,nlines=blocksize) }
-} else if (grepl(".bin",countfile)) {
+} else if (grepl("counts.bin",countfile)) {
     count.con <- if (!grepl(".counts.bin.gz$",countfile)) { file(countfile,open="rb") } else { gzfile(countfile,open="rb") }
     count.header <- scan(paste0(countfile,".header"),what="char")
     attr(count.con,"nbytes") <- 1
@@ -78,7 +81,7 @@ pcs$angsd.id <- count.ids[count.ids[,2]=="A",1]
 
 pcvec <- pcs[[paste0("PC",pc.num)]]
 
-# this returns an 3 x nsites matrix,
+# this returns a 5 x nsites matrix,
 # then the rows are, for each allele:
 #   A = sum_i p(i)         -- sum of major allele frequencies
 #   B = sum_i p(i) * v(i)  -- inner product of major allele frequencies with PC1
