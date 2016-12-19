@@ -4,3 +4,14 @@ server.info
 *.aux
 *.log
 *.swp
+inference/nussear*
+inference/many-combinations
+geolayers/nussear
+geolayers/multigrid
+inference-testing/*.RData
+inference/10x
+inference/16x
+inference/128x
+inference/256x
+*/figure
+*/cache

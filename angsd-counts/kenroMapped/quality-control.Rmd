@@ -200,5 +200,3 @@ plot( true.lambdas, exp(coverage.lms[2,]),
      xlab='mean total coverage', ylab='poisson mean estimate' )
 abline(0,1)
 ```
-- 
-

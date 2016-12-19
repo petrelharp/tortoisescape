@@ -1,0 +1,50 @@
+require(raster)
+require(maps)
+require(maptools)
+require(rgdal)
+
+tort.loc.obj <- load(file.path(gsub("tortoisescape.*","tortoisescape",normalizePath(getwd())),"tort_272_info/geog_coords.RData"))
+layer <- raster("../geolayers/alternatives/alt_pref_pda.tif")
+dem.name <- list.files("../geolayers/expanded/64x",pattern="dem_30.grd",full.names=TRUE)
+dem <- raster(dem.name[1])
+dem <- projectRaster(dem,layer)
+nus <- raster("../geolayers/nussear/habitat-model/nussear_gt_three.gri")
+nus <- projectRaster(nus,layer)
+nus[abs(nus)<.1] <- NA
+
+# and get state lines in bold
+state.lines <- map(database="state",regions=c("California","Arizona","Nevada"),plot=FALSE)
+state.lines.spobj <- map2SpatialLines(state.lines,proj4string=CRS(proj4string(layer)))
+state.lines.spobj <- spTransform(state.lines.spobj,CRS(proj4string(layer)))
+
+plot( nus, col=adjustcolor("blue",.5), xaxt='n', yaxt='n' )
+contour(dem,col=adjustcolor("black",0.2),add=TRUE)
+lines(state.lines.spobj)
+
+raster_GCS_CRS_proj4 <- CRS(scan("../raster_GCS_CRS_proj4.txt",what="char",sep="\n"))
+state.lines.spobj <- map2SpatialLines(state.lines,proj4string=CRS("+proj=longlat"))
+state.lines.spobj <- spTransform(state.lines.spobj,raster_GCS_CRS_proj4)
+
+
+        contour(dem,col=adjustcolor("black",0.2),main=layer.names[k])
+        plot(layer,add=TRUE)
+        points(tort.locs,pch=20,cex=0.5)
+        contour(dem,col=adjustcolor("black",0.2))
+        contour(dem,col=adjustcolor("black",0.2),xaxt='n',yaxt='n')
+        plot(layer>0,add=TRUE)
+        plot(layer>0,add=TRUE,col=adjustcolor("black",0.6))
+        contour(dem,col=adjustcolor("black",0.2),xaxt='n',yaxt='n')
+        plot(layer>0,add=TRUE,col=adjustcolor("black",0.6))
+        points(tort.locs,pch=20,cex=0.5)
+        tort.locs <- spTransform(get(tort.loc.obj),CRSobj=CRS(proj4string(layer)))
+        points(tort.locs,pch=20,cex=0.5)
+        points(tort.locs,pch=20,cex=0.5,col='red')
+nus <- raster("../nussear/habitat-model/nussear_gt_three.gri")
+nus <- projectRaster(nus,layer)
+plot(nus)
+table(values(nus))
+nus[abs(nus)<.1] <- NA
+plot(nus,col=grey(.2))
+history()
+history(100)
+history(1000)
