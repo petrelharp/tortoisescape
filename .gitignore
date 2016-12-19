@@ -4,6 +4,7 @@ server.info
 *.aux
 *.log
 *.swp
+*.out
 inference/nussear*
 inference/many-combinations
 geolayers/nussear
@@ -13,5 +14,13 @@ inference/10x
 inference/16x
 inference/128x
 inference/256x
-*/figure
-*/cache
+figure
+*_figure
+cache
+*_cache
+files
+*_files
+temp
+inference/test-rasters/*x
+angsd-counts/kenroMapped/272torts_snp1e6_minmapq20minq30_map2kenro*
+angsd-counts/galapagosMapped/272torts_snp1e6_minmapq20minq30*
