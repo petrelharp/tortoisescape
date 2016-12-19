@@ -1,0 +1,204 @@
+---
+title: "SNP clinality"
+date: "`r date()`"
+---
+
+```{r setup, include=FALSE}
+library(pander)
+library(raster)
+library(maptools)
+# library(phonTools)  # for fastacf
+options(scipen=3)
+fig.dim <- 5
+knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+# locations and labels
+tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
+coord.obj <- load(file.path(tortdir,"tort_272_info","geog_coords.RData"))
+coords <- get(coord.obj)
+tort.ids <- row.names(coords)
+tort.names <- gsub(" .*","",tort.ids)  # remove the " (sheared)"
+nindivs <- length(tort.ids)
+```
+
+```{r snp_info, include=FALSE, cache=TRUE}
+datadir <- "."
+bincountfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin")
+persitefile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin.persite.stats")
+perindivfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.perindividual.hists")
+posfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz")
+# maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
+persite <- read.table(persitefile,header=TRUE)
+perindiv <- read.table(perindivfile,header=TRUE)
+colnames(perindiv) <- tort.names
+pos <- read.table(posfile,header=TRUE)
+# scaffolds
+scaf.counts <- table( pos$chr )
+```
+
+```{r count_connection, include=FALSE}
+# the counts themselves
+bincount <- file(bincountfile,open="rb")
+attr(bincount,"nindivs") <- nindivs
+attr(bincount,"nbytes") <- 1
+read_bincounts <- function (bincount,lines) {
+    line.coords <- 4*(lines-1)*attr(bincount,"nbytes")*attr(bincount,"nindivs")
+    output <- matrix( integer(4*length(lines)*attr(bincount,"nindivs")), nrow=length(lines) )
+    for (k in seq_along(lines)) {
+        seek(bincount,line.coords[k])
+        output[k,] <- readBin( bincount, what=integer(),
+                              n=4*attr(bincount,"nindivs"),
+                              size=attr(bincount,"nbytes"),
+                              signed=(attr(bincount,"nbytes")>2) )
+    }
+    output[output>=256^attr(bincount,"nbytes")-1] <- NA
+    return(output)
+}
+```
+
+```{r checks, include=FALSE}
+stopifnot( nrow(persite)==nrow(pos) )
+```
+
+There are `r nrow(persite)` total SNPs.
+We first compute the total coverage at all sites except those in the largest depth bin
+(greater than per-individual coverage `r nrow(perindiv)-1`):
+```{r calcs}
+mean.coverage <- colSums( sweep(perindiv,1,c(0:(nrow(perindiv)-2),0),"*") )/nrow(persite)
+```
+
+# Per-site statistics
+
+First we should filter out bad-looking sites.
+Here are distributions of the statistics we have:
+```{r persite_hists}
+nInd.table <- table(persite$nInd)
+max.coverage.table <- table(persite$max_coverage)
+min.coverage.table <- table(persite$min_coverage)
+total.coverage <- persite$total_A + persite$total_C + persite$total_G + persite$total_T
+total.coverage.table <- table(total.coverage)
+
+plot( nInd.table, main="number of individuals covered",
+     xlab='number of individuals', ylab='number of sites' )
+plot( as.numeric(names(max.coverage.table)), as.numeric(max.coverage.table), log='xy',
+     xlab='max coverage', ylab='number of sites' )
+plot( as.numeric(names(min.coverage.table)), as.numeric(min.coverage.table), log='xy',
+     xlab='min coverage', ylab='number of sites' )
+plot( as.numeric(names(total.coverage.table)), as.numeric(total.coverage.table), log='xy',
+     xlab='total coverage', ylab='number of sites' )
+plot( as.numeric(names(total.coverage.table)), as.numeric(total.coverage.table), xlim=c(0,800),
+     xlab='total coverage', ylab='number of sites' )
+hist(log(persite$sd_coverage),breaks=100, main='SD of per-individual coverage')
+hist(persite$heterozygosity,breaks=100, main='mean heterozygosity')
+
+do.these <- ( total.coverage < 600 & persite$heterozygosity > 0 )
+plot( hexbin::hexbin( total.coverage[do.these], persite$sd_coverage[do.these], xbins=100 ) )
+plot( hexbin::hexbin( total.coverage[do.these], persite$heterozygosity[do.these], xbins=100 ) )
+plot( hexbin::hexbin( persite$sd_coverage[do.these], persite$heterozygosity[do.these], xbins=100 ) )
+
+```
+
+
+
+# Are coverages Poisson?
+
+Short answer: **no.**
+
+Here are the distributions of coverage by individual:
+```{r perindiv}
+matplot( 0:(nrow(perindiv)-1), perindiv, type='l', log='y',
+       xlab='coverage', ylab='number of sites' )
+matplot( 0:(nrow(perindiv)-1), perindiv, type='l', xlim=c(0,30),
+       xlab='coverage', ylab='number of sites' )
+```
+For each, we'll fit a Poisson distribution:
+using Poisson probabilities, we expect
+$p_k = e^{-\lambda} \lambda^k/k!$
+and so $\log (k! p_k) = -\lambda + k \log \lambda$;
+in other words, if coverage were Poisson, these plots would be linear:
+```{r pos_fit}
+cbins <- 0:40
+matplot( cbins, (log(perindiv[1+cbins,])+lfactorial(cbins)), type='l',
+        xlab='coverage', ylab='log(k! * number of sites)' )
+cbins <- 2:10
+matplot( cbins, (log(perindiv[1+cbins,])+lfactorial(cbins)), type='l',
+        xlab='coverage', ylab='log(k! * number of sites)' )
+```
+Here's estimated $\lambda$ from various segments of bins:
+```{r est_pos}
+maxk.list <- 3:30
+est.covs <- do.call( rbind, lapply( maxk.list, function (maxk) {
+        cbins <- 2:maxk
+        coverage.lms <- apply( log(perindiv[1+cbins,])+lfactorial(cbins), 2, function (x) coef(lm( x ~ cbins )) )
+        return(exp(coverage.lms[2,]))
+    } ) )
+matplot( maxk.list, est.covs, xlab='coverage bin cutoff', ylab='estimated lambda', type='l' )
+```
+And here are those estimates from bins 2-3 and 2-4 against total coverage per individual:
+```{r est_pos_vs_cov}
+layout(t(1:2))
+plot(mean.coverage, est.covs[1,])
+abline(0,1)
+plot(mean.coverage, est.covs[2,])
+abline(0,1)
+```
+This doesn't seem to be getting anywhere.
+- 
+
+## Test of the method
+
+Here's a quick check the method above works with simulated data.
+
+
+```{r test_pois}
+true.lambdas <- sort(4*runif(20))
+nobs <- 1e6
+maxcount <- 40
+x <- do.call( cbind, lapply( true.lambdas, function (z) { tabulate(1+rpois(nobs,z),nbins=maxcount+1) } ) )
+p <- sweep(x,2,colSums(x),"/")
+exp.p <- outer(0:maxcount, true.lambdas, function (a,b) { exp(-b)*(b^a)/factorial(a) })
+plot(as.vector(p),exp.p)
+abline(0,1)
+plot(log(p)+lfactorial(0:maxcount), outer(0:maxcount, true.lambdas, function (a,b) { -b + a*log(b) } ) )
+abline(0,1)
+```
+
+
+For each, we'll fit a Poisson distribution:
+using Poisson probabilities, we expect
+$p_k = e^{-\lambda} \lambda^k/k!$
+and so $\log (k! p_k) = -\lambda + k \log \lambda$;
+in other words, if coverage were Poisson, these plots would be linear:
+```{r pos_fit}
+
+
+cbins <- 0:40
+matplot( cbins, (log(x[1+cbins,])+lfactorial(cbins)), type='l',
+        xlab='coverage', ylab='log(k! * number of sites)' )
+matplot( cbins, outer( cbins, true.lambdas, function (a,b) { -b + a*log(b) } ), type='l' )
+
+cbins <- 2:10
+matplot( cbins, (log(x[1+cbins,])+lfactorial(cbins)), type='l',
+        xlab='coverage', ylab='log(k! * number of sites)' )
+matplot( cbins, outer( cbins, true.lambdas, function (a,b) { -b + a*log(b) } ), type='l' )
+
+```
+This looks pretty good for 2-5, with a different regime clearly taking over past then.
+Here's total coverage per individual against the estimated $\lambda$ from these bins:
+```{r est_pos}
+maxk.list <- 3:10
+est.covs <- do.call( rbind, lapply( maxk.list, function (maxk) {
+        cbins <- 2:maxk
+        coverage.lms <- apply( log(x[1+cbins,])+lfactorial(cbins), 2, function (z) coef(lm( z[is.finite(z)] ~ cbins[is.finite(z)] )) )
+        return(exp(coverage.lms[2,]))
+    } ) )
+matplot( maxk.list, est.covs, xlab='coverage bin cutoff', ylab='estimated lambda', type='l' )
+
+
+cbins <- 2:5
+coverage.lms <- apply( log(x[1+cbins,])+lfactorial(cbins), 2, function (x) coef(lm( x ~ cbins )) )
+plot( true.lambdas, exp(coverage.lms[2,]), 
+     xlab='mean total coverage', ylab='poisson mean estimate' )
+abline(0,1)
+```
+- 
+
