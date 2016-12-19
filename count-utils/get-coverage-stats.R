@@ -1,7 +1,7 @@
 #!env Rscript
 
 usage <- "Usage:
-    Rscript get-pc-counts.R (name of counts file) > stats.tsv
+    Rscript get-coverage-stats.R (name of counts file) > stats.tsv
 The counts file can be text, gzipped (.counts.gz) or binary (.counts.bin.gz, as output by 
 counts-to-bin.R, one byte per int), in four-column _A _C _G _T format.
 
@@ -14,6 +14,9 @@ Outputs a tab-separated table of:
   sd_coverage
   heterozygosity
 to stdout.
+
+A heterozygosity of -1 means that no sample had more than 1 read, so that heterozygosity 
+could not be computed.
 "
 
 arglist <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
@@ -116,18 +119,18 @@ do_stats <- function (counts) {
 }
 
 # loop through the file
-writeLines(paste0(paste0(header.names,collapse='\t'),'\n'), headerfile)
+writeLines(paste0(header.names,collapse='\t'), headerfile)
 
 nlines <- 0
 while (length(counts <- read_fun(blocksize))>0) {
     dim(counts) <- c(4*nindivs,length(counts)/(4*nindivs))
     # rownames(counts) <- count.header
     nlines <- nlines+ncol(counts)
-    cat("row ", nlines, "\n")
+    cat("row ", nlines, "\n",file=stderr())
     stats <- do_stats(counts)
     write.table( t(stats), file=outcon, append=TRUE, sep="\t", row.names=FALSE, col.names=FALSE )
     # for testing purposes:
-    if (nlines > 1e6) { break }
+    # if (nlines > 1e6) { break }
 }
 try(close(outcon))
 try(close(count.con))
