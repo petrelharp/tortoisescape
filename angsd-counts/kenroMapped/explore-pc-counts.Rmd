@@ -28,6 +28,7 @@ scaf.info <- read.table(file.path(datadir,"GopAga1.0.softmasked.scafflength"),he
 names(scaf.info) <- c("chr","length")
 # maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
 pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE,stringsAsFactors=FALSE)
+scaf.info <- subset(scaf.info,chr%in%pos$chr)
 pos$chr <- factor(pos$chr,levels=scaf.info$chr)
 # scaffolds
 scaf.counts <- table( pos$chr )
@@ -285,7 +286,6 @@ plot( pc2.df$snp.freq, pc2.df$na.cor, pch='.', col=adjustcolor("black",0.5), mai
 
 Here is a plot of how the larger correlations fall out on the scaffolds:
 ```{r along_the_genome, fig.width=4*fig.dim}
-layout(1:2)
 
 zz <- ifelse(goodones & abs(pc1.df$snp.cor)>0.5, abs(pc1.df$snp.cor), NA)
 scafplot( zz, ylim=c(0,1), ylab='abs(correlation)', main='correlation with PC1')
@@ -309,7 +309,7 @@ for (scaf in superlong) {
     plot( pos$pos[pos$chr==scaf & goodones], abs(pc1.df$snp.cor[pos$chr==scaf & goodones]),
             xlab='position', ylab='|correlation|', main=paste('scaffold',scaf),
             cex=0.25, pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
-    mtext(c("PC1","PC2"),side=2,at=c(-1,1)*.75)
+    mtext(c("PC1","PC2"),side=2,at=c(1,-1)*.75)
     points( pos$pos[pos$chr==scaf], -abs(pc2.df$snp.cor[pos$chr==scaf]),
             cex=0.25, pch=20, col=adjustcolor('black',0.25), ylim=c(-1,1) )
     abline(h=0)
@@ -340,7 +340,7 @@ by scaffold:
 ```{r high_cor_by_scaf, fig.height=2*fig.dim}
 cor.breaks <- seq(.75,.9,by=.05)
 num.highcors <- sapply( cor.breaks, function (cb) {
-            tapply( (pc1.df$snp.cor >= cb) & (pos$totDepth > mindepth), pos$chr, sum, na.rm=TRUE )
+            tapply( (pc1.df$snp.cor >= cb) & (pos$totDepth > mindepth) & (pos$totDepth < maxdepth), pos$chr, sum, na.rm=TRUE )
         } )
 dens.highcors <- sweep(num.highcors,1,scaf.len,"/")
 outliers <- rownames(num.highcors)[num.highcors[,2]>8]
@@ -453,7 +453,7 @@ for (scaf in outliers) {
 Long scaffolds:
 ```{r map_scafs_list, results="asis", echo=FALSE}
 list_to_mdlist <- function (x) { cat('\n',paste0('- ',paste(x,collapse='\n- ')),'\n',sep='','\n') }
-list_to_mdlist( paste0('[', superlong, '](', superlong, '_maps/high_cor/index.html', ')') )
+list_to_mdlist( paste0('[', superlong, '](', superlong, '_maps/centered/index.html', ')') )
 ```
 
 Scaffolds with many high-correlation SNPs:
@@ -467,11 +467,11 @@ list_to_mdlist( paste0('[', outliers, '](', outliers, '_maps/high_cor/index.html
 ## With PC1
 
 We'll make maps of all the SNPs that have correlation with PC1 above 0.85 
-(there are `r sum(abs(pc1.df$snp.cor[goodones])>0.85)` of these).
+(there are `r sum(abs(pc1.df$snp.cor[( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) ])>0.85)` of these).
 ```{r high_cor_maps, include=FALSE, cache=TRUE, depends="snp_info"}
 pc.num <- 1
-high.cor.lines <- which( goodones & abs(pc1.df$snp.cor)>0.85 )
-thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
+high.cor.lines <- which( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth )  & abs(pc1.df$snp.cor)>0.85 )
+thisdir <- sprintf("cor_pc%d_gt_0.85_maps",pc.num)
 dir.create(thisdir,showWarnings=FALSE)
 png( filename=file.path(thisdir,"snp_map%03d.png"), 
         width=5*144, height=5*144, pointsize=10, res=144 )
@@ -486,10 +486,10 @@ These are in [`r thisdir`](`r file.path(thisdir,"index.html")`).
 ## With PC2
 
 We'll also make maps of all the SNPs that have correlation with PC2 above 0.5 
-(there are `r sum(abs(pc2.df[["snp.cor"]][goodones])>0.5)` of these).
+(there are `r sum(abs(pc2.df[["snp.cor"]][( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) ])>0.5)` of these).
 ```{r high_cor_maps_2, include=FALSE, cache=TRUE, depends="snp_info"}
 pc.num <- 2
-high.cor.lines <- which( goodones & abs(pc2.df$snp.cor)>0.5 )
+high.cor.lines <- which( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth )  & abs(pc2.df$snp.cor)>0.5 )
 thisdir <- sprintf("cor_pc%d_gt_0.5_maps",pc.num)
 dir.create(thisdir,showWarnings=FALSE)
 png( filename=file.path(thisdir,"snp_map%03d.png"), 
