@@ -287,19 +287,33 @@ plot( pc2.df$snp.freq, pc2.df$na.cor, pch='.', col=adjustcolor("black",0.5), mai
 Here is a plot of how the larger correlations fall out on the scaffolds:
 ```{r along_the_genome, fig.width=4*fig.dim}
 
-zz <- ifelse(goodones & abs(pc1.df$snp.cor)>0.5, abs(pc1.df$snp.cor), NA)
-scafplot( zz, ylim=c(0,1), ylab='abs(correlation)', main='correlation with PC1')
+zz <- ifelse(goodones & abs(pc1.df$snp.cor)>0.7, abs(pc1.df$snp.cor), NA)
+scafplot( zz, ylab='abs(correlation)', main='correlation with PC1')
+abline(h=0.8,col='red')
 # points( scaf.pos/1e6, tapply(zz,pos$chr,mean,na.rm=TRUE), col='orange', cex=0.25 )
 # points( scaf.pos/1e6, tapply(ifelse(goodones,abs(pc1.df$snp.cor),NA),pos$chr,mean,na.rm=TRUE), col='red', pch=20, cex=0.25 )
 
 zz <- ifelse(goodones & abs(pc2.df$snp.cor)>0.3, abs(pc2.df$snp.cor), NA)
-scafplot( zz, ylim=c(0,1), ylab='abs(correlation)', main='correlation with PC2')
+scafplot( zz, ylab='abs(correlation)', main='correlation with PC2')
 # points( scaf.pos/1e6, tapply(zz,pos$chr,mean,na.rm=TRUE), col='orange', cex=0.25 )
 # points( scaf.pos/1e6, tapply(ifelse(goodones,abs(pc2.df$snp.cor),NA),pos$chr,mean,na.rm=TRUE), col='red', pch=20, cex=0.25 )
 ```
 
+Do outliers in correlation with the two PCs coincide?
+These scaffolds have at least one outlier in both senses:
+(note these cutoffs are above the 99.99% tail)
+```{r highcor_table}
+mean(pc1.df$snp.cor[goodones]<0.75)
+mean(pc2.df$snp.cor[goodones]<0.5)
+levels(pos$chr)[which(pmin(tapply( pc1.df$snp.cor>0.75 & goodones, pos$chr, sum ), tapply( pc2.df$snp.cor>0.5 & goodones, pos$chr, sum ) )>0)]
+```
+
 
 # By scaffold
+
+The mitochondrial haplotype has correlation above 0.8 with PC1.
+There are `r sum(tapply( pc1.df$snp.cor>0.8 & goodones, pos$chr, sum ))` SNPs
+on `r sum(tapply( pc1.df$snp.cor>0.8 & goodones, pos$chr, sum )>0)` scaffolds that pass this threshold.
 
 First, let's look at the top ten longest scaffolds.
 **Above zero** are *absolute* correlations with **PC1**, and below  are with **PC2**:
