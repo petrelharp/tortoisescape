@@ -23,11 +23,15 @@ nindivs <- length(tort.ids)
 datadir <- "."
 countfile <- file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.counts.gz")
 bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin"
+# scaffold info
+scaf.info <- read.table(file.path(datadir,"GopAga1.0.softmasked.scafflength"),header=TRUE,stringsAsFactors=FALSE)
+names(scaf.info) <- c("chr","length")
 # maf <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.mafs.gz"),header=TRUE)
-pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE)
+pos <- read.table(file.path(datadir,"272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz"),header=TRUE,stringsAsFactors=FALSE)
+pos$chr <- factor(pos$chr,levels=scaf.info$chr)
 # scaffolds
 scaf.counts <- table( pos$chr )
-minscaf <- 1e3  # minimum number of snps per scaffold
+minscaf <- 400  # minimum number of snps per scaffold
 long.scafs <- names(scaf.counts)[scaf.counts>=minscaf]
 # apply filters
 mindepth <- 150 # minimum totalDepth
@@ -36,6 +40,32 @@ goodones <- ( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) )
 # minind <- 250   # minimum nInd -- RESULTS IN NO SNPs
 # goodones <- goodones & ( maf$nInd >= minind )
 goodones <- goodones & ( pos$chr %in% long.scafs )
+```
+
+```{r plot_scafs, include=FALSE, cache=TRUE}
+# whatnot to plot things 'along the genome'
+scaf.len <- scaf.info$length[match(levels(pos$chr),scaf.info$chr)]
+scaf.breaks <- c(0,cumsum(as.numeric(scaf.len)))
+scaf.pos <- scaf.breaks[-1]-diff(scaf.breaks)/2
+plotpos <- function (chrom,pos) { return(scaf.breaks[chrom]+pos) }
+scafplot <- function (y,
+        pch=20, cex=0.5,
+        col=adjustcolor("black",0.75),
+        xlab='cumulative position (Mb)',
+        ylab='', add=FALSE, ...) {
+    # y is a vector of length nrow(pos)
+    # whose non-NA entries will be plotted
+    use.these <- is.finite(y)
+    xx <- plotpos(pos$chr[use.these],pos$pos[use.these])
+    yy <- y[use.these]
+    if (!add) plot( xx/1e6, yy, type='n', 
+                xaxt='n', xlab=xlab, ylab=ylab, ... )
+    rect(xleft=scaf.breaks[-length(scaf.breaks)]/1e6, xright=scaf.breaks[-1]/1e6,
+            ybottom=par('usr')[3], ytop=par("usr")[4], col=c(adjustcolor('blue',0.2),NA),
+            border=NA )
+    points( xx/1e6, yy, pch=pch, cex=cex, col=col )
+}
+scafpoints <- function (...) { scafplot(...,add=TRUE) }
 ```
 
 ```{r count_connection, include=FALSE}
@@ -174,11 +204,10 @@ hist(1-pc1.df$snp.freq[goodones[seq_along(pc1.df$snp.freq)]],breaks=1000, xlim=c
 Some more summary statistics.
 We don't have the scaffold lengths handy, so we'll just use the maximal position of a SNP:
 Here is the density of segregating sites,
-mean divergence at segregating sites 
+mean divergence at segregating sites (calculated as $2p(1-p)$, where $p$ is the minor allele frequency),
 and mean divergence overall,
 on scaffolds of length at least 10Kb:
 ```{r sum_stats_by_scaf}
-scaf.len <- tapply( pos$pos, pos$chr, max)  # not quite length...
 dens.segsites <- scaf.counts/scaf.len
 mean.segsites.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { mean(2 * x * (1-x)) } )
 mean.pi <- tapply( pc1.df$snp.freq, pos$chr, function (x) { sum(2 * x * (1-x)) } ) / scaf.len
@@ -251,6 +280,24 @@ plot( pc1.df$snp.freq, pc1.df$na.cor, pch='.', col=adjustcolor("black",0.5), mai
 plot( pc2.df$snp.freq, pc2.df$na.cor, pch='.', col=adjustcolor("black",0.5), main="missingness",
         xlim=c(0,1), ylim=c(-1,1), xlab="frequency", ylab="correlation with PC2" )
 ```
+
+# "Along the genome"
+
+Here is a plot of how the larger correlations fall out on the scaffolds:
+```{r along_the_genome, fig.width=4*fig.dim}
+layout(1:2)
+
+zz <- ifelse(goodones & abs(pc1.df$snp.cor)>0.5, abs(pc1.df$snp.cor), NA)
+scafplot( zz, ylim=c(0,1), ylab='abs(correlation)', main='correlation with PC1')
+# points( scaf.pos/1e6, tapply(zz,pos$chr,mean,na.rm=TRUE), col='orange', cex=0.25 )
+# points( scaf.pos/1e6, tapply(ifelse(goodones,abs(pc1.df$snp.cor),NA),pos$chr,mean,na.rm=TRUE), col='red', pch=20, cex=0.25 )
+
+zz <- ifelse(goodones & abs(pc2.df$snp.cor)>0.3, abs(pc2.df$snp.cor), NA)
+scafplot( zz, ylim=c(0,1), ylab='abs(correlation)', main='correlation with PC2')
+# points( scaf.pos/1e6, tapply(zz,pos$chr,mean,na.rm=TRUE), col='orange', cex=0.25 )
+# points( scaf.pos/1e6, tapply(ifelse(goodones,abs(pc2.df$snp.cor),NA),pos$chr,mean,na.rm=TRUE), col='red', pch=20, cex=0.25 )
+```
+
 
 # By scaffold
 
