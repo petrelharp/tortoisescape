@@ -45,22 +45,24 @@ goodones <- goodones & ( pos$chr %in% long.scafs )
 
 ```{r plot_scafs, include=FALSE, cache=TRUE}
 # whatnot to plot things 'along the genome'
-scaf.len <- scaf.info$length[match(levels(pos$chr),scaf.info$chr)]
+scaf.len <- as.numeric(scaf.info$length[match(levels(pos$chr),scaf.info$chr)])
+names(scaf.len) <- levels(pos$chr)
 scaf.breaks <- c(0,cumsum(as.numeric(scaf.len)))
 scaf.pos <- scaf.breaks[-1]-diff(scaf.breaks)/2
-plotpos <- function (chrom,pos) { return(scaf.breaks[chrom]+pos) }
-scafplot <- function (y,
+scafplot <- function (y, scafs=TRUE,
         pch=20, cex=0.5,
         col=adjustcolor("black",0.75),
         xlab='cumulative position (Mb)',
         ylab='', add=FALSE, ...) {
     # y is a vector of length nrow(pos)
     # whose non-NA entries will be plotted
+    the.scafs <- levels(pos$chr)[scafs]
+    scaf.breaks <- c(0,cumsum(as.numeric(scaf.len[scafs])))
     use.these <- is.finite(y)
-    xx <- plotpos(pos$chr[use.these],pos$pos[use.these])
+    xx <- scaf.breaks[match(pos$chr[use.these],the.scafs)] + pos$pos[use.these]
     yy <- y[use.these]
     if (!add) plot( xx/1e6, yy, type='n', 
-                xaxt='n', xlab=xlab, ylab=ylab, ... )
+                xlab=xlab, ylab=ylab, ... )
     rect(xleft=scaf.breaks[-length(scaf.breaks)]/1e6, xright=scaf.breaks[-1]/1e6,
             ybottom=par('usr')[3], ytop=par("usr")[4], col=c(adjustcolor('blue',0.2),NA),
             border=NA )
@@ -533,3 +535,23 @@ plot( pos$totDepth[usethese], abs(pc1.df$snp.cor[usethese]), pch=20, cex=0.5, lo
 Looks like most of the high correlation ones are due to *low* coverage,
 i.e., just noise.
 
+
+# Haplotypes
+
+Now let's get some length statistics on possible haplotypes.
+First we restrict to only scaffolds having correlation with PC1 at least 0.8.
+```{r which_highcor}
+high.cor.snps <- which( ( pos$totDepth >= mindepth ) & ( pos$totDepth <= maxdepth ) & (abs(pc1.df$snp.cor)>0.8) )
+high.cor.scafs <- unique( pos$chr[high.cor.snps] )
+```
+There are `r length(high.cor.scafs)` of these, 
+with total length `r sum(scaf.len[match(high.cor.scafs,levels(pos$chr))])`,
+with is `r sum(scaf.len[match(high.cor.scafs,levels(pos$chr))])/sum(scaf.len)` of the genome.
+Together they have `r nrow(subset(pos,chr%in%high.cor.scafs))` SNPs,
+a density of `r nrow(subset(pos,chr%in%high.cor.scafs))/sum(scaf.len[match(high.cor.scafs,levels(pos$chr))])*1000` per Kb.
+For comparison, the 16.5Kb of mitochondria has 34 SNPs with correlation above 0.8,
+a density of 2 per Kb.
+Here are all their SNPs:
+```{r highcor_scafs}
+scafplot( ifelse(seq_len(nrow(pos))%in%high.cor.snps,abs(pc1.df$snp.cor),NA), scaf=high.cor.scafs )
+```
