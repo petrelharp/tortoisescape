@@ -17,6 +17,17 @@ posfile <- arglist[2]
 scaffold <- arglist[3]
 positions <- if (length(arglist)>3) { strsplit(arglist[4],":")[[1]] } else { c(0,Inf) }
 
+outfile <- sprintf("%s-haplotypes.png",scaffold)
+
+if (file.exists(outfile)) {
+    stop(sprintf("File %s exists!  Not plotting.",outfile))
+} else {
+    cat("Plotting to", file.path(getwd(),outfile),".\n")
+}
+
+require(methods)
+
+
 # SNP info, and which lines the relevant SNPs are in
 pos <- read.table(pipe(sprintf("zcat %s | grep -n '%s\\>' | sed -e 's/:/\t/'", posfile, scaffold)),
         header=FALSE,stringsAsFactors=FALSE)
@@ -70,16 +81,15 @@ major.col <- ifelse( totals[,1]==max.counts, 1,
 # major allele frequencies by individual
 major.coverage <- counts[ cbind( as.vector(outer(4*(0:(nindivs-1)),major.col,"+")), rep(1:ncol(counts),each=nindivs) ) ]
 major.freqs <- major.coverage / as.vector(coverage) 
-major.freqs[!is.finite(major.freqs)] <- 0
+major.freqs[!is.finite(major.freqs)] <- NA
 dim(major.freqs) <- dim(major.coverage) <- c(nindivs,ncol(counts))
 
 # color SNPs based on polarization
 northern.indivs <- which(pcs$PC1 > 0.04)
 southern.indivs <- which(pcs$PC1 < -0.04)
 
-ns.freqs <- rbind( north=colMeans( major.freqs[northern.indivs,] ),
-                   south=colMeans( major.freqs[southern.indivs,] ) 
-               )
+ns.freqs <- rbind( north=colMeans( major.freqs[northern.indivs,], na.rm=TRUE ),
+                   south=colMeans( major.freqs[southern.indivs,], na.rm=TRUE ) )
 
 # partition types according to:
 #  - if overall frequency is less than 20%, color major allele grey and minor black
@@ -89,20 +99,20 @@ ns.freqs <- rbind( north=colMeans( major.freqs[northern.indivs,] ),
 
 # in this table, first column is color for major allele; second is color for others
 snp.type <- ifelse( 
-            colMeans(major.freqs)<0.1, 'small',
+            is.na(ns.freqs[1,]) | is.na(ns.freqs[2,]) | abs(colMeans(major.freqs,na.rm=TRUE)-0.5)>0.4, 'small',
             ifelse(abs(ns.freqs[1,]-ns.freqs[2,])>=0.2, 'ns', 'other') )
 
 snp.polarization <- sign( ns.freqs['north',]-ns.freqs['south',] )
 
 # matrix of colors corresponding to per-individual major allele
-major.colmat <- matrix("",nrow=nrow(major.freqs),ncol=ncol(major.freqs))
+major.colmat <- matrix(NA,nrow=nrow(major.freqs),ncol=ncol(major.freqs))
 major.colmat[,snp.type=='small'] <- ifelse(major.freqs[,snp.type=='small']>0.5,'grey','black')
-major.colmat[,snp.type=='ns'] <- ifelse(((major.freqs[,snp.type=='ns']-0.5)*snp.polarization[snp.type=='ns'])>=0,'blue','purple')
-major.colmat[,snp.type=='other'] <- ifelse(((major.freqs[,snp.type=='other']-0.5)*snp.polarization[snp.type=='other'])>=0,'cyan','plum')
+major.colmat[,snp.type=='ns'] <- ifelse(sweep((major.freqs-0.5),2,snp.polarization,"*")[,snp.type=='ns']>=0,'blue','purple')
+major.colmat[,snp.type=='other'] <- ifelse(sweep((major.freqs-0.5),2,snp.polarization,"*")[,snp.type=='other']>=0,'cyan','plum')
 major.colmat[coverage==0] <- NA
 
 # matrix of colors corresponding to per-individual minor allele if present
-minor.colmat <- matrix("",nrow=nrow(major.freqs),ncol=ncol(major.freqs))
+minor.colmat <- matrix(NA,nrow=nrow(major.freqs),ncol=ncol(major.freqs))
 minor.colmat[,snp.type=='small'] <- ifelse((1-major.freqs)[,snp.type=='small']>0.5,'grey','black')
 minor.colmat[,snp.type=='ns'] <- ifelse((0.5-major.freqs[,snp.type=='ns'])*(ns.freqs[1,snp.type=='ns']-ns.freqs[2,snp.type=='ns'])>=0,'blue','purple')
 minor.colmat[,snp.type=='other'] <- ifelse((0.5-major.freqs[,snp.type=='other'])*(ns.freqs[1,snp.type=='other']-ns.freqs[2,snp.type=='other'])>=0,'cyan','plum')
@@ -111,13 +121,21 @@ minor.colmat[(coverage-major.coverage)==0] <- NA
 # plotting order
 plot.ord <- order(pcs$PC1)
 
-# png(file="mt-haplotypes.png",width=5*288,height=2.5*288,res=288,pointsize=8)
-opar <- par(mar=c(1,1,8,1)+.1)
-plot( row(major.colmat[plot.ord,]), col(major.colmat[plot.ord,]), 
+maxheight <- 32
+png(file=outfile,width=6*288,height=floor(min(maxheight,ncol(major.colmat)*3/272)*288),res=288,pointsize=8)
+layout(t(1:2),widths=c(1,4))
+opar <- par(mar=c(1,3,8,1)+.1)
+plot( rowSums(totals), pos$pos/1e6, type='l',
+        xlab='', ylab='', xaxt='n', yaxt='n' )
+axis(3)
+mtext("total coverage", side=3, line=3)
+plot( row(major.colmat[plot.ord,]), pos$pos[col(major.colmat)]/1e6, 
      main=sprintf("haplotypes on %s",scaffold),
         col=adjustcolor(major.colmat[plot.ord,],0.75),
         bg=adjustcolor(minor.colmat[plot.ord,],0.75),
         pch=21, cex=0.5,
-        xlab='', xaxt='n', yaxt='n', ylab='' )
+        xlab='', xaxt='n', ylab='' )
 axis(3, at=seq_along(tort.ids), labels=gsub(" (sheared2)","",tort.ids[plot.ord],fixed=TRUE), cex=0.25, las=3, cex.axis=0.25 )
 par(opar)
+dev.off()
+
