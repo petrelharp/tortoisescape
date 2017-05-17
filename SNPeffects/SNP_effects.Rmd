@@ -1,0 +1,206 @@
+---
+title: "SNP clinality"
+date: "`r date()`"
+---
+
+```{r setup, include=FALSE}
+library(pander)
+library(raster)
+library(maptools)
+# library(phonTools)  # for fastacf
+options(scipen=3)
+fig.dim <- 5
+knitr::opts_chunk$set(fig.height=fig.dim,fig.width=2*fig.dim,fig.align='center')
+# locations and labels
+tortdir <- gsub("tortoisescape.*","tortoisescape",getwd())
+coord.obj <- load(file.path(tortdir,"tort_272_info","geog_coords.RData"))
+coords <- get(coord.obj)
+tort.ids <- row.names(coords)
+tort.names <- gsub(" .*","",tort.ids)  # remove the " (sheared)"
+nindivs <- length(tort.ids)
+
+# coverage cutoffs
+min_coverage <- 150
+max_coverage <- 500
+```
+
+```{r data, include=FALSE}
+if (FALSE) {
+    # full data
+    lowfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.SNPeff.LOW.snpNumbers.gz"
+    modfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.SNPeff.MODERATE.snpNumbers.gz"
+    highfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.SNPeff.HIGH.snpNumbers.gz"
+    posfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.pos.gz"
+    bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.counts.bin"
+    scafcovfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.coverage_by_scaffold.gz"
+} else {
+    lowfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.SNPeff.LOW.snpNumbers"
+    highfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.SNPeff.HIGH.snpNumbers"
+    modfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.SNPeff.MODERATE.snpNumbers"
+    posfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.pos.gz"
+    bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.counts.bin"
+    scafcovfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.coverage_by_scaffold.gz"
+}
+
+low_snps <- scan(lowfile)
+moderate_snps <- scan(modfile)
+high_snps <- scan(highfile)
+
+pos <- read.table(posfile,header=TRUE, stringsAsFactors=FALSE)
+pos$chr <- factor(pos$chr, levels=unique(pos$chr))
+nsnps <- nrow(pos)
+
+effect <- factor(x=rep(1L, nsnps), )
+levels(effect) <- c("none", "low", "moderate", "high")
+effect[low_snps] <- "low"
+effect[moderate_snps] <- "moderate"
+effect[high_snps] <- "high"
+
+rm(low_snps); rm(moderate_snps); rm(high_snps);
+
+## GET THIS A BETTER WAY?
+scaffolds <- data.frame(name=levels(pos$chr),
+                        start=tapply(pos$pos, pos$chr, min),
+                        end=tapply(pos$pos, pos$chr, max))
+scaffolds$length <- scaffolds$end - scaffolds$start
+scaffolds$nsnps <- tapply(pos$totDepth > min_coverage & pos$totDepth < max_coverage, pos$chr, sum)
+scaffolds$mean_coverage <- with(subset(pos, totDepth > min_coverage & totDepth < max_coverage),
+                                    tapply(totDepth, chr, mean))
+
+orig_scaf_coverage <- read.table(scafcovfile, header=TRUE)
+scaf_coverage <- orig_scaf_coverage[,-(1:4)]/orig_scaf_coverage[,"num_sites"]
+rownames(scaf_coverage) <- orig_scaf_coverage[,"scaffold_name"]
+rm(orig_scaf_coverage)
+```
+
+```{r plot_setup, include=FALSE}
+effect_cols <- c(none='grey', low='blue', moderate='orange', high='red')
+
+# plot stuff "along the genome" in windows
+dscaff <- 0
+scaf_starts <- c(0, cumsum(scaffolds$end)+dscaff)
+alg <- function (x, subset=TRUE, xlab="genome position (bp)", ...) {
+    locs <- pos$pos[subset] + scaf_starts[pos$chr[subset]]
+    plot(locs, x, ...)
+}
+# @param window Length of windows in bp.
+alg_win <- function (x, window, subset=TRUE, fun='mean', xlab="genome position (bp)", ...) {
+    max_len <- max(scaffolds$end)
+    locs <- pos$pos[subset] + scaf_starts[pos$chr[subset]]
+    winfac <- cut(locs + max_len*as.numeric(pos$chr[subset]), 
+                  breaks=ceiling((max(locs)+nlevels(pos$chr)*max_len)/window))
+    winlocs <- tapply(locs, winfac, mean)
+    plot(winlocs, tapply(x, winfac, fun), ...)
+}
+```
+
+```{r count_connection, include=FALSE}
+# the counts themselves
+bincount <- file(bincountfile,open="rb")
+attr(bincount,"nindivs") <- nindivs
+attr(bincount,"nbytes") <- 1
+read_bincounts <- function (bincount,lines) {
+    line.coords <- 4*(lines-1)*attr(bincount,"nbytes")*attr(bincount,"nindivs")
+    output <- matrix( integer(4*length(lines)*attr(bincount,"nindivs")), nrow=length(lines) )
+    for (k in seq_along(lines)) {
+        seek(bincount,line.coords[k])
+        output[k,] <- readBin( bincount, what=integer(),
+                              n=4*attr(bincount,"nindivs"),
+                              size=attr(bincount,"nbytes"),
+                              signed=(attr(bincount,"nbytes")>2) )
+    }
+    output[output>=256^attr(bincount,"nbytes")-1] <- NA
+    return(output)
+}
+```
+
+*From Evan:* We have 3 files designated HIGH/MODERATE/LOW that are lists of
+numbers. These numbers correspond to the SNP numbers (so 1 corresponds to the
+first row of data in the counts file). The numbers in the HIGH file were
+categorized as high impact, so stuff like premature stop codons and stuff.
+Details are in the [snpEff manual](http://snpeff.sourceforge.net/SnpEff_manual.html). 
+There's more information that I can pull for each SNP, like what exactly the
+effect is and if it's in UTR/coding etc...
+
+
+Here are how many we have in each category:
+```{r numbers}
+table(effect)
+```
+
+We will look at, by SNP category:
+
+0. Coverage
+1. Mean realized homozygosity 
+   (probability that two alleles from the same individual agree)
+2. Mean outcrossing homozygosity 
+   (probability that two alleles from different individuals differ, as a function of distance)
+3. Joint regional allele frequncy distribution 
+   (joint distribution of 'sample allele frequency', 
+   mean number of alleles obtained after choosing one allele per individual,
+   with the set of SNPs fixed)
+
+
+# Coverage
+
+First let's check that everything looks reasonable
+and pick some coverage cutoffs.
+Here are total coverage histograms by type:
+```{r coverage_dist}
+
+all_hist <- hist(pos$totDepth[pos$totDepth<=1000], plot=FALSE, breaks=50)
+depth_hists <- tapply(pmin(1000,pos$totDepth), effects, hist, breaks=all_hist$breaks, plot=FALSE)
+
+plot(0, type='n', xlim=range(all_hist$breaks), ylim=range(lapply(depth_hists, "[[", "density")),
+     xlab="total coverage", ylab="density")
+for (k in seq_along(depth_hists)) {
+    lines(depth_hists[[k]]$mids, depth_hists[[k]]$density, col=effect_cols[k])
+}
+legend("topright", legend=levels(effects), lty=1, col=effect_cols)
+abline(v=c(min_coverage, max_coverage), lty=3)
+
+```
+
+We'll restrict to sites with total coverage between `r min_coverage` and `r max_coverage`
+(the vertical lines in the previous plot).
+Within these bounds, do the different catgories have statistically significantly different
+mean total coverages?
+```{r mean_coverage}
+good_snps <-  with(pos, totDepth > min_coverage & totDepth < max_coverage)
+summary(lm(pos$totDepth ~ effect, subset=good_snps))
+```
+Yes - SNPs with an effect have lower coverage,
+but the difference *decreases* with SNP effect.
+This looks to be due to a bimodality in total coverage,
+with decreasing contributions of the lower mode to larger effect SNPs.
+
+**To-do:** get actual scaffold lengths.
+
+Here are mean coverages by scaffold:
+```{r scaf_coverages}
+hist(scaffolds$mean_coverage, breaks=50, main='mean coverage by scaffold')
+plot(scaffolds$length, scaffolds$nsnps, pch=20, xlab='scaffold length (bp)', ylab='# of snps')
+layout(t(1:2))
+plot(scaffolds$length, scaffolds$mean_coverage, pch=20, xlab='scaffold length (bp)', 
+     ylab='mean coverage')
+plot(scaffolds$nsnps, scaffolds$mean_coverage, pch=20, xlab='# of snps by scaffold', 
+     ylab='mean coverage')
+```
+This range is **much** higher than expected due to chance.
+
+And, here is a plot of mean coverage along the genome:
+```{r coverage_alg}
+alg_win( pos$totDepth[good_snps], window=1e5, subset=good_snps, ylab='mean coverage')
+```
+
+To get coverages by individual and by scaffold,
+we've used
+```
+../count-utils/get-coverage-by-scaffold.R 272torts_snp1e6_minmapq20minq30_map2kenro10K.counts.bin.gz 500 272torts_snp1e6_minmapq20minq30_map2kenro10K.coverage_by_scaffold.gz
+```
+
+```{r coverage_by_scaffold}
+rel_scaf_coverage <- sweep(scaf_coverage, 2, colMeans(scaf_coverage), "/")
+ind_order <- order(colMeans(scaf_coverage))
+scaf_means <- rowMeans(scaf_coverage)
+```

@@ -117,3 +117,14 @@ test_coverage_by_scaffold <- function (min_coverage, max_coverage) {
 
 test_coverage_by_scaffold(0,100)
 test_coverage_by_scaffold(40,50)
+
+##########
+context("Testing get-scaffold.R")
+
+getscaf <- function (scaf) {
+    as.matrix(read.table(pipe(sprintf("../get-scaffold.R %s %s", bincountsfile, scaf)), header=FALSE))
+}
+
+for (scaf in levels(pos$chr)) {
+    expect_equivalent(getscaf(scaf), counts[pos$chr==scaf,])
+}

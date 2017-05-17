@@ -19,7 +19,7 @@ scaffold <- arglist[2]
 
 posfile <- paste0(gsub("[.]counts[.].*","",countfile),".pos.gz")
 if (!file.exists(posfile)) { stop(sprintf("Cannot find position file %s", posfile)) }
-awkscript <- sprintf("zcat %s | awk 'BEGIN {z=0} /%s/ {if (z==0) print FNR; z=1} !/%s/ {if (z==1) { print FNR; exit} }'", posfile, scaffold, scaffold)
+awkscript <- sprintf("zcat %s | awk 'BEGIN {z=0} /%s/ {if (z==0) print FNR; z=1} !/%s/ {if (z==1) { print FNR; exit} } END { print FNR+1 }'", posfile, scaffold, scaffold)
 # minus one for the header
 scaf_lines <- scan(pipe(awkscript)) - 1
 
@@ -27,7 +27,7 @@ scaf_lines <- scan(pipe(awkscript)) - 1
 if (grepl(".counts.gz$",countfile)) {
     count.con <- gzfile(countfile,open="r")
     count.header <- scan(count.con,nlines=1,what="char")
-    read_fun <- function (start, end) { scan(count.con, skip=start-1, nlines=end-start+1) }
+    read_fun <- function (start, end) { scan(count.con, skip=start-1, nlines=end-start) }
 } else if (grepl("counts.bin",countfile)) {
     count.con <- if (!grepl(".counts.bin.gz$",countfile)) { file(countfile,open="rb") } else { gzfile(countfile,open="rb") }
     count.header <- scan(paste0(gsub(".gz$","",countfile),".header"),what="char")
@@ -39,7 +39,7 @@ if (grepl(".counts.gz$",countfile)) {
         #  --> zero-based index
         seek(count.con, where=(start-1)*line_length, rw="r")
         readBin( count.con, what=integer(),
-                  n=line_length*(end-start+1),
+                  n=line_length*(end-start),
                   size=attr(count.con,"nbytes"),
                   signed=(attr(count.con,"nbytes")>2) )
     }
@@ -56,4 +56,4 @@ id_factor <- factor(count.ids[,"angsd.id"], levels=indiv.ids)
 out <- read_fun(scaf_lines[1], scaf_lines[2])
 # dim(out) <- c(line_length, end-start+1)
 
-write(out, file=stdout(), ncolumns=line_length)
+write(out, file=stdout(), ncolumns=4*nindivs)
