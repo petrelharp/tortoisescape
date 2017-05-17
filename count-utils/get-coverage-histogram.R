@@ -1,4 +1,4 @@
-#!env Rscript
+#!/usr/bin/env Rscript
 
 usage <- "Usage:
     Rscript get-coverage-histogram.R (name of counts file) (maximum count) > coverage.tsv
@@ -77,8 +77,9 @@ while (length(counts <- read_fun(blocksize))>0) {
     # for testing purposes:
     # if (nlines > 1e6) { break }
 }
+
 write.table( hists, file=outcon, append=TRUE, sep="\t", row.names=FALSE, col.names=FALSE )
-try(close(outcon))
+
 try(close(count.con))
 
 

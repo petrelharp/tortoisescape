@@ -1,4 +1,4 @@
-#!env Rscript
+#!/usr/bin/env Rscript
 
 usage <- "Usage:\
     Rscript get-pc-counts.R (name of counts file) (pc number)\

@@ -1,20 +1,54 @@
-#!env Rscript
+#!/usr/bin/env Rscript
 
 usage <- "Convert read counts dumped by ANGSD to binary format.
 Stores these in binary format, [nbytes] bytes each. The default is 1 byte (max value 255),
-with values truncated at the maximum.\
+with values truncated at the maximum. Reads in roughly (chunksize) values at once (default 1e8).
 Usage:\
-    counts-to-bin.R (counts file) (output file) [nbytes]\
+    counts-to-bin.R (counts file) (output file) [chunksize] [nbytes]\
 "
 
 arglist <- if (interactive()) { scan(what='') } else { commandArgs(TRUE) }
 if ( length(arglist) < 2 ) { stop(usage) }
 countsfile <- arglist[1]
 outfile <- arglist[2]
-nbytes <- if (length(arglist)>2) { as.integer(arglist[3]) } else { 1L }
+chunksize <- if (length(arglist)>2) { as.numeric(arglist[3]) } else { 1e8 }
+nbytes <- if (length(arglist)>3) { as.integer(arglist[4]) } else { 1L }
 maxcounts <- as.integer(256^nbytes-1)
 
-count.con <- gzfile(countsfile,open="r")
+if (file.exists(outfile)) {
+    stop(sprintf("Output file %s already exists.", outfile))
+}
+
+#' Open for reading or writing
+#'
+#' Use to open stdin/stdout or process substitution things correctly
+#'   from  http://stackoverflow.com/questions/15784373/process-substitution
+#'
+#' @param arg A text string: one of "-", "[/dev/]stdin", "[/dev/]stdout", or a file name (including a file descriptor, e.g. "/dev/fd3").
+#'
+#' @return A connection, from one of `stdout()`, `stdin()`, `fifo()`, or `file()`.
+#'
+#' @export
+openread <- function(arg, open='r') {
+    if (arg %in% c("-", "/dev/stdin","stdin")) {
+       stdin()
+    } else if (grepl("^/dev/fd/", arg)) {
+       fifo(arg, open = open)
+    } else {
+       file(arg, open = open)
+    }
+}
+openwrite <- function(arg, open='w') {
+    if (arg %in% c("-", "/dev/stdout","stdout")) {
+       stdout()
+    } else if (grepl("^/dev/fd/", arg)) {
+       fifo(arg, open = open)
+    } else {
+       file(arg, open = open)
+    }
+}
+
+count.con <- openread(countsfile)
 count.header <- scan(count.con,nlines=1,what="char")
 count.ids <- do.call(rbind,strsplit(count.header,"_"))
 colnames(count.ids) <- c("angsd.id","base")
@@ -23,13 +57,11 @@ nindivs <- nrow(count.ids)/4
 headerfile <- paste0(outfile,".header")
 cat( paste(count.header,collapse="\t"), "\n", sep='', file=headerfile )
 
-# number of values to read at once
-chunksize <- 1e8
 # number of rows to read at once
 chunklines <- floor(chunksize/length(count.header))
 
 cat(paste("Writing to ", outfile, "\n"))
-outcon <- file(outfile,open="wb")
+outcon <- openwrite(outfile,open="wb")
 
 while (length(counts <- scan(count.con,what=integer(),nlines=chunklines))>0) {
     writeBin( pmin(counts,maxcounts), outcon, size=nbytes )
