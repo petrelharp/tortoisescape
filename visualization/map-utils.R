@@ -10,6 +10,10 @@ library(maptools)
 
 .thisdir <- file.path(normalizePath("."))
 
+.ivanpah.bbox <- structure(c(-1754578, -233915.5, -1722266, -176116.9),
+    .Dim = c(2L, 2L), .Dimnames = list(c("Easting", 
+    "Northing"), c("min", "max")))
+
 #' Get county outlines to overlay on a spatial object
 #' @param x The spatial object
 get_counties <- function (x) {

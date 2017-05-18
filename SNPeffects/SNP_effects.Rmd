@@ -24,6 +24,44 @@ min_coverage <- 150
 max_coverage <- 500
 ```
 
+```{r plot_setup, include=FALSE}
+source("../visualization/map-utils.R", chdir=TRUE)
+load("../tort_272_info/geog_coords.RData") # provides tort.coords
+# elevation raster
+dem <- raster("../visualization/dem_30.gri")
+shade <- get_shading(dem)
+contours <- get_contours(dem)
+states <- get_statelines(dem)
+counties <- get_counties(dem)
+pshade <- function (main='',samples=FALSE, ...) { 
+	plot(tort.coords,pch=NA,cex=0.7,ylab="",xlab="", main=main, ...)
+    plot( shade, col=adjustcolor(grey(seq(0,1,length.out=101)),0.25), legend=FALSE, add=TRUE )
+    lines(counties,lwd=0.5)
+    lines(states,lwd=2)
+	scalebar(d=100000,xy=c(-1700000,y=-460000),below="meters",lwd=1.5,label="100km")
+    if (samples) points(tort.coords,pch=20,cex=0.7)
+}
+```
+
+```{r indiv_info, include=FALSE}
+indivs <- read.csv("../tort_272_info/272torts_metadata.csv", 
+                   header=TRUE, stringsAsFactors=FALSE)
+# angsd IDs are in order by tort IDs
+indivs$angsd.id <- paste0("ind", seq(0,length.out=272))
+# genomic PCs
+pcs <- read.csv(file.path("..","tort_272_info","pcs.csv"), 
+                header=TRUE, stringsAsFactors=FALSE)
+# remove " (sheared)" from some names
+indivs$etort <- gsub(" .*", "", indivs$EM_Tort_ID)
+row.names(tort.coords) <- gsub(" .*", "", row.names(tort.coords))
+pcs$etort <- gsub(" .*", "", pcs$etort)
+# check
+stopifnot(all(row.names(tort.coords) == indivs$etort))
+stopifnot( all( indivs$etort == pcs$etort ) )
+# colors
+pc.cols <- adjustcolor( ifelse( pcs$PC1 > 0, "blue", "purple" ), .25 )
+```
+
 ```{r data, include=FALSE}
 if (FALSE) {
     # full data
@@ -31,14 +69,14 @@ if (FALSE) {
     modfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.SNPeff.MODERATE.snpNumbers.gz"
     highfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.SNPeff.HIGH.snpNumbers.gz"
     posfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.pos.gz"
-    bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.counts.bin"
+    bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.counts.bin.gz"
     scafcovfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.coverage_by_scaffold.gz"
 } else {
     lowfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.SNPeff.LOW.snpNumbers"
     highfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.SNPeff.HIGH.snpNumbers"
     modfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.SNPeff.MODERATE.snpNumbers"
     posfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.pos.gz"
-    bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.counts.bin"
+    bincountfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.counts.bin.gz"
     scafcovfile <- "272torts_snp1e6_minmapq20minq30_map2kenro10K.first5milSNPs.coverage_by_scaffold.gz"
 }
 
@@ -66,18 +104,30 @@ scaffolds$length <- scaffolds$end - scaffolds$start
 scaffolds$nsnps <- tapply(pos$totDepth > min_coverage & pos$totDepth < max_coverage, pos$chr, sum)
 scaffolds$mean_coverage <- with(subset(pos, totDepth > min_coverage & totDepth < max_coverage),
                                     tapply(totDepth, chr, mean))
+rownames(scaffolds) <- NULL
 
-orig_scaf_coverage <- read.table(scafcovfile, header=TRUE)
+# coverages by individual x scaffold
+orig_scaf_coverage <- read.table(scafcovfile, header=TRUE, stringsAsFactors=FALSE)
+orig_scaf_coverage$scaffold_name <- factor(orig_scaf_coverage$scaffold_name, 
+                                           levels=levels(scaffolds$name))
+
+stopifnot(all(orig_scaf_coverage[,1] == scaffolds$name))
+stopifnot(all(orig_scaf_coverage$num_sites == scaffolds$nsnps))
+
 scaf_coverage <- orig_scaf_coverage[,-(1:4)]/orig_scaf_coverage[,"num_sites"]
 rownames(scaf_coverage) <- orig_scaf_coverage[,"scaffold_name"]
+
+# mean coverage by individual
+indiv_mean_coverage <- colSums(orig_scaf_coverage[,-(1:4)])/sum(orig_scaf_coverage$num_sites)
+
 rm(orig_scaf_coverage)
 ```
 
-```{r plot_setup, include=FALSE}
+```{r plot_fns, include=FALSE}
 effect_cols <- c(none='grey', low='blue', moderate='orange', high='red')
 
 # plot stuff "along the genome" in windows
-dscaff <- 0
+dscaff <- 0 # spacing between scaffolds
 scaf_starts <- c(0, cumsum(scaffolds$end)+dscaff)
 alg <- function (x, subset=TRUE, xlab="genome position (bp)", ...) {
     locs <- pos$pos[subset] + scaf_starts[pos$chr[subset]]
@@ -149,14 +199,14 @@ Here are total coverage histograms by type:
 ```{r coverage_dist}
 
 all_hist <- hist(pos$totDepth[pos$totDepth<=1000], plot=FALSE, breaks=50)
-depth_hists <- tapply(pmin(1000,pos$totDepth), effects, hist, breaks=all_hist$breaks, plot=FALSE)
+depth_hists <- tapply(pmin(1000,pos$totDepth), effect, hist, breaks=all_hist$breaks, plot=FALSE)
 
 plot(0, type='n', xlim=range(all_hist$breaks), ylim=range(lapply(depth_hists, "[[", "density")),
      xlab="total coverage", ylab="density")
 for (k in seq_along(depth_hists)) {
     lines(depth_hists[[k]]$mids, depth_hists[[k]]$density, col=effect_cols[k])
 }
-legend("topright", legend=levels(effects), lty=1, col=effect_cols)
+legend("topright", legend=levels(effect), lty=1, col=effect_cols)
 abline(v=c(min_coverage, max_coverage), lty=3)
 
 ```
@@ -196,11 +246,89 @@ alg_win( pos$totDepth[good_snps], window=1e5, subset=good_snps, ylab='mean cover
 To get coverages by individual and by scaffold,
 we've used
 ```
-../count-utils/get-coverage-by-scaffold.R 272torts_snp1e6_minmapq20minq30_map2kenro10K.counts.bin.gz 500 272torts_snp1e6_minmapq20minq30_map2kenro10K.coverage_by_scaffold.gz
+../count-utils/get-coverage-by-scaffold.R 272torts_snp1e6_minmapq20minq30_map2kenro10K.counts.bin.gz 150 500 272torts_snp1e6_minmapq20minq30_map2kenro10K.coverage_by_scaffold.gz
 ```
 
+Let $C_{xi}$ be the total number of genotyped alleles of individual $i$ mapping to scaffold $x$,
+which is what is computed by `get-coverage-by-scaffold.R` above.
+First, we normalize this, dividing by individual mean coverage:
+$R_{xi} = C_{xi} / \mu_i$, where $\mu_i$ is the *total* coverage of individual $i$.
+There is significant sharing of patterns of coverage between scaffolds:
+we see this by 
+computing the covariance matrix between scaffolds of relative per-individual coverages,
+and doing PCA on this covariance matrix.
 ```{r coverage_by_scaffold}
-rel_scaf_coverage <- sweep(scaf_coverage, 2, colMeans(scaf_coverage), "/")
-ind_order <- order(colMeans(scaf_coverage))
-scaf_means <- rowMeans(scaf_coverage)
+rel_scaf_coverage <- sweep(scaf_coverage, 2, indiv_mean_coverage, "/")
+# this is the SAME THING as scaffolds$mean_coverage
+# scaffolds$relative_coverage <- rowMeans(scaf_coverage)
+
+coverage_cov <- cov(t(rel_scaf_coverage))
+scaf_pcs <- eigen(coverage_cov)
+
+pairs(scaf_pcs$vectors[,1:4], main="PCs of coverage by scaffold")
+head(scaf_pcs$values)
 ```
+The first PC explains `r scaf_pcs$values[1]^2/sum(scaf_pcs$values^2)` of the variance.
+
+In this plot, there is one line per individual,
+and the x-axis gives the scaffolds, ordered by PC1.
+```{r show_per_indiv}
+scaf_ord <- order(scaf_pcs$vectors[,1])
+matplot(rel_scaf_coverage[scaf_ord,], type='l')
+```
+
+Which individuals are showing different patterns?
+We measure this by taking the correlation of an individual's coverage pattern
+with the scaffold PC1:
+```{r indiv_coverages, fig.width=3*fig.dim, fig.height=1.8*fig.dim}
+indivs$scafPC <- as.vector(cor(scaf_pcs$vectors[,1], rel_scaf_coverage))
+scaf_cor_cutoff <- -0.7
+# scaf_cor_colors <- rgb(colorRamp(brewer.pal(name='RdYlBu',n=3),alpha=1.0)((1+indivs$scafPC)/2)/255)
+scaf_cor_colors <- adjustcolor(ifelse(indivs$scafPC>scaf_cor_cutoff,'blue','red'),0.5)
+scaf_cor_cex <- pmax(0.5,3*abs(indivs$scafPC))
+
+layout(t(1:2))
+plot(indivs$scafPC, xlab='individual', ylab='correlation',
+     col=scaf_cor_colors, cex=scaf_cor_cex, pch=20,
+     main='correlation of coverage with scaffold PC1')
+abline(h=scaf_cor_cutoff)
+pshade()
+points(tort.coords, pch=20,
+       cex=scaf_cor_cex,
+       col=scaf_cor_colors)
+pshade(xlim=.ivanpah.bbox["Easting",], ylim=.ivanpah.bbox["Northing",])
+points(tort.coords, pch=20,
+       cex=scaf_cor_cex,
+       col=scaf_cor_colors)
+```
+
+Let's look at some of these wierd scaffolds.
+Here is coverage on the top few, plotted in a few different ways:
+```{r wierd_scaffold}
+scaffolds[head(order(scaf_pcs$vectors[,1], decreasing=TRUE)),]
+scaf_to_coverage <- function (x) {
+    As <- which(1:ncol(x) %% 4 == 1)
+    out <- x[,As]
+    for (k in 1:3) { out <- out + x[,As+k] }
+    return(out)
+}
+get_coverage <- function (scafname) {
+    scaf_to_coverage(as.matrix(read.table(pipe(sprintf("../count-utils/get-scaffold.R %s %s", bincountfile, scafname)))))
+}
+show_scaf <- function (this_coverage) {
+    image(1:nrow(this_coverage), z=this_coverage, xlab='SNP number', ylab='individual', yaxt='n')
+    plot(row(this_coverage), col(this_coverage), cex=this_coverage/colMeans(this_coverage)/10, col=adjustcolor('black',0.5), xlab='SNP number', ylab='individual', yaxt='n')
+    invisible(this_coverage)
+}
+scafs <- lapply(scaffolds$name[head(order(scaf_pcs$vectors[,1], decreasing=TRUE))], get_coverage)
+layout(t(1:2))
+for (ts in scafs) { show_scaf(ts) }
+```
+
+Here's some scaffolds from the middle of the pack, for comparison:
+```{r middle_scaffolds}
+mid_scafs <- lapply(scaffolds$name[order(scaf_pcs$vectors[,1], decreasing=TRUE)[500:504]], get_coverage)
+layout(t(1:2))
+for (ts in mid_scafs) { show_scaf(ts) }
+```
+
