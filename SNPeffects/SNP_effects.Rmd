@@ -1,5 +1,5 @@
 ---
-title: "SNP clinality"
+title: "SNP coverages"
 date: "`r date()`"
 ---
 
@@ -104,6 +104,7 @@ scaffolds$length <- scaffolds$end - scaffolds$start
 scaffolds$nsnps <- tapply(pos$totDepth > min_coverage & pos$totDepth < max_coverage, pos$chr, sum)
 scaffolds$mean_coverage <- with(subset(pos, totDepth > min_coverage & totDepth < max_coverage),
                                     tapply(totDepth, chr, mean))
+scaffolds$mean_coverage_noQC <- with(pos, tapply(totDepth, chr, mean))
 rownames(scaffolds) <- NULL
 
 # coverages by individual x scaffold
@@ -267,14 +268,22 @@ scaf_pcs <- eigen(coverage_cov)
 
 pairs(scaf_pcs$vectors[,1:4], main="PCs of coverage by scaffold")
 head(scaf_pcs$values)
+scaffolds$scafPC1 <- scaf_pcs$vectors[,1]
+
+layout(t(1:2))
+plot(scaffolds$scafPC1, scaffolds$mean_coverage, xlab='scaffold PC1', ylab='mean coverage')
+plot(scaffolds$scafPC1, scaffolds$mean_coverage_noQC, xlab='scaffold PC1', ylab='mean coverage without QC', ylim=c(0,1000))
 ```
-The first PC explains `r scaf_pcs$values[1]^2/sum(scaf_pcs$values^2)` of the variance.
+The first PC explains `r scaf_pcs$values[1]^2/sum(scaf_pcs$values^2)` of the variance,
+and is highly correlated with mean coverage at SNPs passing our coverage cutoffs.
 
 In this plot, there is one line per individual,
 and the x-axis gives the scaffolds, ordered by PC1.
-```{r show_per_indiv}
+```{r show_per_indiv, fig.height=2*fig.dim, fig.width=3*fig.dim}
 scaf_ord <- order(scaf_pcs$vectors[,1])
-matplot(rel_scaf_coverage[scaf_ord,], type='l')
+matplot(rel_scaf_coverage[scaf_ord,], type='l', 
+        xlab='scaffold, ordered by PC1', 
+        ylab='coverage relative to individual mean' )
 ```
 
 Which individuals are showing different patterns?
@@ -284,7 +293,8 @@ with the scaffold PC1:
 indivs$scafPC <- as.vector(cor(scaf_pcs$vectors[,1], rel_scaf_coverage))
 scaf_cor_cutoff <- -0.7
 # scaf_cor_colors <- rgb(colorRamp(brewer.pal(name='RdYlBu',n=3),alpha=1.0)((1+indivs$scafPC)/2)/255)
-scaf_cor_colors <- adjustcolor(ifelse(indivs$scafPC>scaf_cor_cutoff,'blue','red'),0.5)
+scaf_cor_colors <- adjustcolor(ifelse(indivs$scafPC>scaf_cor_cutoff,
+                                      ifelse(indivs$scafPC>0,'blue','orange'), 'red'),0.5)
 scaf_cor_cex <- pmax(0.5,3*abs(indivs$scafPC))
 
 layout(t(1:2))
@@ -303,8 +313,11 @@ points(tort.coords, pch=20,
 ```
 
 Let's look at some of these wierd scaffolds.
-Here is coverage on the top few, plotted in a few different ways:
-```{r wierd_scaffold}
+Here is coverage on the top few, normalized by mean per-individual coverage on each scaffold,
+plotted in two different ways:
+Note that problematic high-coverage regions have a lot of SNPs in a small window.
+(Also: marks on the bottom denote SNPs that we throw out due to wierd coverage.)
+```{r wierd_scaffold, cache=TRUE}
 scaffolds[head(order(scaf_pcs$vectors[,1], decreasing=TRUE)),]
 scaf_to_coverage <- function (x) {
     As <- which(1:ncol(x) %% 4 == 1)
@@ -315,20 +328,33 @@ scaf_to_coverage <- function (x) {
 get_coverage <- function (scafname) {
     scaf_to_coverage(as.matrix(read.table(pipe(sprintf("../count-utils/get-scaffold.R %s %s", bincountfile, scafname)))))
 }
-show_scaf <- function (this_coverage) {
-    image(1:nrow(this_coverage), z=this_coverage, xlab='SNP number', ylab='individual', yaxt='n')
-    plot(row(this_coverage), col(this_coverage), cex=this_coverage/colMeans(this_coverage)/10, col=adjustcolor('black',0.5), xlab='SNP number', ylab='individual', yaxt='n')
-    invisible(this_coverage)
+selfname <- function (x) { names(x) <- x; x }
+scafs <- lapply(selfname(as.character(scaffolds$name[head(order(scaf_pcs$vectors[,1], decreasing=TRUE))])), get_coverage)
+mid_scafs <- lapply(selfname(as.character(scaffolds$name[order(scaf_pcs$vectors[,1], decreasing=TRUE)[503:504]])), get_coverage)
+```
+```{r plot_wierd_scafs, fig.width=6*fig.dim}
+show_scaf <- function (scafname, this_coverage) {
+    matplot(subset(pos,chr==scafname)$pos, apply(this_coverage, 2, convolve, y=c(rep(1,20)/20,rep(0,nrow(this_coverage)-20))), 
+            xlab='position (bp)', ylab='individual',
+            main='running mean of coverage by individual for 20 SNPs', type='l')
+    rug(subset(pos,chr==scafname & (totDepth<min_coverage | totDepth > max_coverage))$pos)
+    rel_coverage <- sweep(this_coverage, 2, colMeans(this_coverage), "/")
+    # rel_coverage <- sweep(rel_coverage, 1, rowMeans(rel_coverage), "/")
+    image(subset(pos,chr==scafname)$pos, z=rel_coverage, xlab='position (bp)', ylab='individual', yaxt='n', main=paste("relative coverage", scafname))
+    # plot(row(rel_coverage), col(rel_coverage), cex=rel_coverage/colMeans(rel_coverage)/10, col=adjustcolor('black',0.5), xlab='SNP number', ylab='individual', yaxt='n')
+    matplot(subset(pos,chr==scafname)$pos, apply(rel_coverage, 2, convolve, y=c(rep(1,20)/20,rep(0,nrow(rel_coverage)-20))), 
+            xlab='position (bp)', ylab='individual',
+            main='running mean of relative coverage by individual for 20 SNPs', type='l')
+    rug(subset(pos,chr==scafname & (totDepth<min_coverage | totDepth > max_coverage))$pos)
+    invisible(rel_coverage)
 }
-scafs <- lapply(scaffolds$name[head(order(scaf_pcs$vectors[,1], decreasing=TRUE))], get_coverage)
-layout(t(1:2))
-for (ts in scafs) { show_scaf(ts) }
+layout(t(1:3))
+for (k in seq_along(scafs)) { show_scaf(names(scafs)[[k]], scafs[[k]]) }
 ```
 
 Here's some scaffolds from the middle of the pack, for comparison:
-```{r middle_scaffolds}
-mid_scafs <- lapply(scaffolds$name[order(scaf_pcs$vectors[,1], decreasing=TRUE)[500:504]], get_coverage)
-layout(t(1:2))
-for (ts in mid_scafs) { show_scaf(ts) }
+```{r middle_scaffolds, fig.width=6*fig.dim}
+layout(t(1:3))
+for (k in seq_along(mid_scafs)) { show_scaf(names(mid_scafs)[[k]], mid_scafs[[k]]) }
 ```
 
