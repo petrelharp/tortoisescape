@@ -1,0 +1,533 @@
+########################################
+# Program: Biostrings (version 2.42.1), a Bioconductor package
+# Rundate: Sat May 27 23:31:33 2017
+########################################
+#=======================================
+#
+# Aligned_sequences: 2
+# 1: NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence
+# 2: scaffold23396
+# Matrix: NA
+# Gap_penalty: 14.0
+# Extend_penalty: 4.0
+#
+# Length: 6318
+# Identity:    3106/6318 (49.2%)
+# Similarity:    NA/6318 (NA%)
+# Gaps:        1675/6318 (26.5%)
+# Score: -12952.17
+#
+#
+#=======================================
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence     1 TCCCAGCGACAATATTCAGCCAATACCAGCAAATAAATCCCAAGAAGCGG     50
+                                                                                                                                              | |  | |||    || ||  || |  || |   ||  | ||| ||  |
+scaffold23396                                                                                                                           5857 GCTCTTCCACA----TC-GCGCATGCGTGCGAGGGAA--CGAAGTAGGCG   5899
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence    51 TCAGGCGACTGGATCGTCAATTCTAATATGACTCCTCCTCTGAGAAGCAT    100
+                                                                                                                                             ||  ||  | ||     ||  |||    ||  |||| ||| | |  || |
+scaffold23396                                                                                                                           5900 TCGTGCTGCAGGG----CA--TCT----TGGTTCCTGCTCCG-GCCGCGT   5938
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   101 CCATTGGTATGAAATTATTGTACACTATGGTTATAGTTCAAGAAAATGAA    150
+                                                                                                                                              |       |||  |    | |  |  |||  | |       | | |   
+scaffold23396                                                                                                                           5939 GCTCC----TGAGGTGCGGGCAGCCGGTGGACACAC------ACACTC--   5976
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   151 CAAAAATAAACACATCATGTGGTAA--TAGTTTTTAACTAACCACTGCAA    198
+                                                                                                                                             ||   | |  | | |||   || |   | |||| | ||    |   || |
+scaffold23396                                                                                                                           5977 CAGCCACAGCCGCTTCAAA-GGCAGCTTCGTTTCTTACGTGGCCGGGCGA   6025
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   199 TACAAATAGTGAACTCTTTATTCATCCGCATTGCTCTGAATGATCTTTTT    248
+                                                                                                                                             |     ||    || ||       || |  ||||| |   ||  ||  | 
+scaffold23396                                                                                                                           6026 TGT---TACCCCACACTACGGCAGTCGG--TTGCTGTC--TGGCCTGATG   6068
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   249 TCAATATCGCGCTATCATCCAAATGGTGTCGCCCGAACTGGAATGAAATA    298
+                                                                                                                                             | |       | || |             |||| |||| ||   | ||  
+scaffold23396                                                                                                                           6069 TTA-------GATACC-------------CGCCTGAACGGGGTGGGAAGG   6098
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   299 AATTATTCATGATGTGGGC-----GGGGTTAGTCGTCGTATAAATGACCA    343
+                                                                                                                                               |  ||| |||| ||| |     |||| | ||  || | |  |||   |
+scaffold23396                                                                                                                           6099 GCTC-TTCCTGATATGGACCCACTGGGGCTTGTTCTC-TGTGGATGGGGA   6146
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   344 AGTTCCGGAGTGAATTGCGCACTTCGCATTCGGCTTCCAACTTGTGTTGT    393
+                                                                                                                                               |     ||  ||| |   ||  | ||  | | |||    | || ||| 
+scaffold23396                                                                                                                           6147 CAT-----AGGAAATGG---ACCCCACACACAGGTTC----TGGTCTTG-   6183
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   394 ATCGTCCGAAGATCATAGAACGTAAGTGGGGTTTTTGGTTTTCTTCTGGT    443
+                                                                                                                                                                      | ||| || ||| ||  || | || 
+scaffold23396                                                                                                                           6184 -------------------------GGGGGATTATTGCTTGGCTGCAGG-   6207
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   444 TTCAGCGTGTGAATTGTGGAGGTTA-GCTCATGTGTCAATTGTTGCCCAA    492
+                                                                                                                                                       |||      | || | |||  ||  | ||||  ||||   
+scaffold23396                                                                                                                           6208 ----------GAA------AAGTCATGCTGCTGGATAAATTACTGCC---   6238
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   493 TACATTGTAGGTATTCTGTATACGTGGTCGCATTTAGTAGTTTAAAATTC    542
+                                                                                                                                                | ||| ||| ||||             |||||     | |||  |  
+scaffold23396                                                                                                                           6239 ---ACTGT-GGTCTTCT-------------CATTTC----TGTAATCTGG   6267
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   543 CTCGTTCTAAAACGCCTCAAATACCGTGTCATACTCGCGCCTTCGCGGCA    592
+                                                                                                                                             ||  || |        | |||||       | |||  |            
+scaffold23396                                                                                                                           6268 CTAATTTTT-------TGAAATAA------ACACTTCC------------   6292
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   593 AAACTGGCACGAATCTACATGTGGCTTAAATTAATTTATTGGAAGGCTCT    642
+                                                                                                                                              || ||      || ||  |||   ||| ||          | |||||  
+scaffold23396                                                                                                                           6293 -AATTG------ATTTA--TGT---TTACAT----------GGAGGCTGA   6320
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   643 TATTTAATTTATTGGAAGGCTCTTATTTTCTTCGTAGTGCTAGTCGAAGA    692
+                                                                                                                                                | ||   || || |  |||| |  | |   |  ||| |  ||    |
+scaffold23396                                                                                                                           6321 CTATCAA---ATAGGTAT-CTCT-AGATACAAAGCTGTGGTTCTC----A   6361
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   693 GCTGTATATGAGCACAATTCATTATTTGGC-GCGTAGTTTTTTTTTTTTT    741
+                                                                                                                                              ||||  ||  |||||          |||| || ||||            
+scaffold23396                                                                                                                           6362 TCTGTGAATT-GCACA----------TGGCAGCTTAGT------------   6388
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   742 TTTGTTTAATAAAACAATGAAACTGTCGACTGAAGAGTCGATGTAAAAAT    791
+                                                                                                                                                                  |||  |  ||| ||  | |||  ||  ||
+scaffold23396                                                                                                                           6389 ---------------------ACTACCAGCTGTAGTATTGATACAAGTAT   6417
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   792 CCTAGCGATTGTGCGTGTAGATGGCGAAATAAATCCCTCACACGTTACCG    841
+                                                                                                                                                    || || |       ||| || |  | ||               
+scaffold23396                                                                                                                           6418 T------ATGGTCC-------TGGTGACACCAGTCT--------------   6440
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   842 TAAGTGACGTCATCCATGGG--CTGAATTCCCGCCTTCTATTGTGCTACT    889
+                                                                                                                                               |||||  | |||| | ||  |||  |    |  | ||||     ||||
+scaffold23396                                                                                                                           6441 --AGTGAATTAATCCCTTGGTTCTGTGT----GATTCCTATA----TACT   6480
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   890 GCGGCAAGGCTCGGATCTCTACCACGTGGTGGCGGCCATATTGGAAAGCG    939
+                                                                                                                                             |  |||| |     | || | | | |||         | |||   || ||
+scaffold23396                                                                                                                           6481 GAAGCAACGAAAATAACTTTTC-ATGTG---------AGATTT--AACCG   6518
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   940 CTTCATGTGGCTTTGTCGTCTTTCTTTATTAGGTCTCACCATGTCTTGTG    989
+                                                                                                                                              || ||||  | |    || ||| ||||  ||  |  |  ||| | |  |
+scaffold23396                                                                                                                           6519 -TTGATGT--CAT----GTTTTTGTTTAC-AGAACAAA--ATGGCATCAG   6558
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   990 ATGAAGGAAAACTCTTTGTCGGTGGTCTGAATTTTGAAACCACAGAGGAA   1039
+                                                                                                                                             |||| ||||| |||||||| ||||| |||| |||||| ||||  ||  | 
+scaffold23396                                                                                                                           6559 ATGAGGGAAAGCTCTTTGTTGGTGGACTGAGTTTTGATACCAATGAACAG   6608
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1040 AGCTTGGAGCAAGTGTTTAGCAAATATGGACAGGTTGCTGAAGGTATGCG   1089
+                                                                                                                                                 |||||||||| |||  |||||| |||||| |  ||||||||| |  
+scaffold23396                                                                                                                           6609 TCACTGGAGCAAGTCTTTTCCAAATACGGACAGATATCTGAAGGTAAGAA   6658
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1090 TGGGCCTTTTTTTTTATTTTTTTTAAAATTAGT---TCTTAAG-GTTTTT   1135
+                                                                                                                                                                     ||||| |||   | | | | ||||| 
+scaffold23396                                                                                                                           6659 C-----------------------AAAATAAGTGGGTGTGATGAGTTTTA   6685
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1136 TTTTTTTGTTTTTTTTCCTCC-TACTAAAGCAATGTGTGTTTT-CAGTGG   1183
+                                                                                                                                             | ||||| |  |  |   |   | | || |   | | |||||| ||||||
+scaffold23396                                                                                                                           6686 TCTTTTTATGATAGTGGATATGTGCCAATGGTGTCTTTGTTTTTCAGTGG   6735
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1184 TTGTGGTGAAGGATCGGGAAAGCAAGAGATCCAGAGGCTTTGGCTTTGTC   1233
+                                                                                                                                             | |||||||| || || || | | || |||||||||||||||| ||||||
+scaffold23396                                                                                                                           6736 TCGTGGTGAAAGACCGAGAGACCCAGCGATCCAGAGGCTTTGGATTTGTC   6785
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1234 ACATTTGAGAATCCTGAAGATGCCAAGGATGCTATGATGGCAATGAATGG   1283
+                                                                                                                                             || ||||||||    || ||||| || ||||| |||||||| ||||||||
+scaffold23396                                                                                                                           6786 ACTTTTGAGAACATAGATGATGCTAAAGATGCAATGATGGCCATGAATGG   6835
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1284 GAAGGTAAATGCACACATAGTAACAAATCCTTTTAGGTGTAAAGAGCAAA   1333
+                                                                                                                                              |||||||      |  | ||     ||  ||| ||    |  | ||| |
+scaffold23396                                                                                                                           6836 AAAGGTAAG-----ATTTTGTGTTCCATTTTTTCAGAGACAGTGTGCAGA   6880
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1334 TCTGATTCACTGTCTTAAGTTTATAACTGCCAGGAGGTTGGTGTTTATTG   1383
+                                                                                                                                              |||   ||   || | |   |||       |||||     ||||| |  
+scaffold23396                                                                                                                           6881 GCTG---CAGAATCATGA---TATCCAGAGGAGGAGTAGTCTGTTTCTAA   6924
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1384 CTGGG-ATATGTAACATATGTGGCAT---ATTG------TCCTTGATATT   1423
+                                                                                                                                              |  | | |  ||||   || ||  |   | ||      || |  ||  |
+scaffold23396                                                                                                                           6925 TTAAGTAGAATTAACCATTGAGGGTTTAGAATGGCAAAATCATAAATGAT   6974
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1424 TGCATACTACCACTAGATGGTCACTGTATTA----ATTAATAATGCTATG   1469
+                                                                                                                                             |    | |   | ||  | | ||  | | |     ||||| | | ||| |
+scaffold23396                                                                                                                           6975 TCAGGAATTAAAGTATTTTGACAACGCAATGGAATATTAAAATTTCTA-G   7023
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1470 AAGGCACTAG-GTAACCGCCTTGTATTTTGCAACCTCTAGATATAAACTT   1518
+                                                                                                                                             |||   |||  ||||  | |  || |     ||  | || |   || || 
+scaffold23396                                                                                                                           7024 AAGCAGCTAAAGTAATGGGCAAGTCTA----AAAATATAAAGGAAACCTA   7069
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1519 GA--GGTAAACTGCCTTTCTTGAACTGTGAAGGCCCTTTAATTTACTTAT   1566
+                                                                                                                                             ||  || | ||   || ||||    | | |||   |  || |||  || |
+scaffold23396                                                                                                                           7070 GATAGGCAGACATGCTCTCTTA---TTTCAAG---CAATATTTTTATTTT   7113
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1567 TCTAAGCCA---AAACAGTAATTGAAATTAATAACATG-TTCTAAAAAGG   1612
+                                                                                                                                             |    ||     ||| | || || |   |  | || || |||| |    |
+scaffold23396                                                                                                                           7114 TGAGTGCTCTGTAAATATTATTTAATGGTCGTGACTTGATTCTGATTTTG   7163
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1613 TGTATAGTTATAAATCATGACTAA-ACAAAGCACAAAGAC--------AA   1653
+                                                                                                                                               ||| |    ||| ||| |   | |||||  || || ||        | 
+scaffold23396                                                                                                                           7164 GATATGGGGGCAAACCATTATGGACACAAATGACTAAAACTTTTTCCAAT   7213
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1654 GTGTAAT-TCAGT--GAACAGTACACTGA----CTTAAATGGCTAAAAAT   1696
+                                                                                                                                              | || | | |||  | ||||   | |      ||||  ||||      |
+scaffold23396                                                                                                                           7214 TTCTACTGTAAGTTTGGACAGCTTATTTGGCAGCTTATTTGGCAGCTGCT   7263
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1697 GTCCATTAAACAGT--AAATC-TGACAATATGGCTTAACTTTTTTAATTT   1743
+                                                                                                                                             ||||  | ||   |  ||| | ||  ||||  | |  ||| ||    |||
+scaffold23396                                                                                                                           7264 GTCCTGTTAAGTTTTAAAAGCATGTAAATAGTGAT--ACTATTCATTTTT   7311
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1744 TTTTTTTTTTATATATATAGTCTGTAGATGGCCGTCAAATCCGTGTTGAT   1793
+                                                                                                                                             ||||| | || | | | |||||||| ||||| ||||||||  | ||||| 
+scaffold23396                                                                                                                           7312 TTTTTCTGTTTTGTTTTTAGTCTGTTGATGGGCGTCAAATTAGAGTTGAC   7361
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1794 CAGGCTGGCAAGTCCTCCAATGATAGGAGAGGTGGTTACAGAGGTGGCTC   1843
+                                                                                                                                             ||||| || || || ||| |  | ||     |||| || ||||| || ||
+scaffold23396                                                                                                                           7362 CAGGCAGGTAAATCATCCGAAAACAGATCCCGTGGATATAGAGGGGGTTC   7411
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1844 TTCTGGAGGCAGAGGGTTCTTCCGTGGAGGCAGAGGCCGAGGTTGGTATA   1893
+                                                                                                                                              || || |||||||| || ||||||||||||||||| |||||  ||    
+scaffold23396                                                                                                                           7412 ATCAGGTGGCAGAGGCTTTTTCCGTGGAGGCAGAGGTCGAGG--GG----   7455
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1894 CATACTTTAGTGACATTGCAATATAGACTTGGAATATATATATGTTCTGG   1943
+                                                                                                                                                                      | | |||  | | || |      ||
+scaffold23396                                                                                                                           7456 -------------------------GCCGTGGCTTCTCTAGA------GG   7474
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1944 TAAACTTTTCCATAATACAAAGGGAAGAGTTAGCTCCCAGTAGATCTCAG   1993
+                                                                                                                                             |||                         ||||||     |||  |    |
+scaffold23396                                                                                                                           7475 TAA-------------------------GTTAGC-----GTAACT----G   7490
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1994 AATAACAATTAATAA--GAAGAAAGTCTAGCTTTGCACTAGTTACATGGG   2041
+                                                                                                                                             | |  |||| | | |  ||| ||  |||            ||| ||    
+scaffold23396                                                                                                                           7491 ATTTTCAATAACTGACTGAAAAACTTCT------------GTTTCA----   7524
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2042 AGTAGGGGAAATGGGTTACTTGAAAGCAGTTCTAGTGTAGTGCTGGCTCC   2091
+                                                                                                                                                      |||| |||| |||      |||||    || || || | | 
+scaffold23396                                                                                                                           7525 ---------AATGTGTTAATTG------GTTCTT---TATTG-TGTC-CA   7554
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2092 TGAAAGCTCCGAATCGGGCACAATGCACAGAGATGGCTGCCTACACACTA   2141
+                                                                                                                                             |  |||    ||   ||      || | | ||| |     |||   |  |
+scaffold23396                                                                                                                           7555 TTCAAG----GA---GG------TGGAGACAGAGG-----CTATGGAGGA   7586
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2142 ATAGTACAACTTTTATTTTTCCTTGAGTGAATTTTAGATGGTGGTTCATT   2191
+                                                                                                                                             |     ||  ||| |||   ||   ||||   |  | ||  ||| ||   
+scaffold23396                                                                                                                           7587 AG----CAGATTTGATT---CCAGAAGTGG--TGGATATAATGGATC---   7624
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2192 TGCTATGTAAACAGTAATTTAGAAATAAGGTATACCATAAGAATCATGAC   2241
+                                                                                                                                                    || | | || | ||| |  | |||| ||   | |||     | 
+scaffold23396                                                                                                                           7625 -------TAGAGACTACTATAGCAGCA-GGTAAACACAATGAA-----AG   7661
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2242 TATATTGTTTAACCTTTCCCGGTAGACAAATTGCAGACTGACATTCCCGT   2291
+                                                                                                                                             || | |||   |  ||          |||| ||| |||||          
+scaffold23396                                                                                                                           7662 TAGACTGTAAGAGGTT----------CAAACTGCTGACTG----------   7691
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2292 CCCTACCCATTTGAATTAACTATAAGGATACTTTTTGTAGCAGCTTTTAA   2341
+                                                                                                                                                       ||||           ||    |||||||  || ||     
+scaffold23396                                                                                                                           7692 ----------TTGA-----------GG----TTTTTGTCACAACTG----   7712
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2342 AGGGTATGTCAACCCTCATAAAAGGCATTATTGCCTGATAGAGAACCATA   2391
+                                                                                                                                                         |||| | | ||  || | |  | |||  | ||   | |
+scaffold23396                                                                                                                           7713 ------------CCCTGAAATAACTCACT-TAACTTGACTGGGATGTA-A   7748
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2392 ATTTGTT-ATTTTTGGTAGTGCTGGGCGGTATGACCAAAAATTTATATCA   2440
+                                                                                                                                             ||| ||| | |     |||| | |           ||||| | ||     
+scaffold23396                                                                                                                           7749 ATTGGTTCAGTCCCAATAGTACAG-----------CAAAAGTGTA-----   7782
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2441 CGGTATTTTTTTTATTATATCGGTATCACGGTATTTGACGGTATTTTTTT   2490
+                                                                                                                                                             || |  ||||      |  |||| | || |||  
+scaffold23396                                                                                                                           7783 ----------------ATGTGTGTAT------AGATGACAGCATGTTT--   7808
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2491 TCCCCATGCATGATTACGTGACCACCCCAAACACCCCCAACCCCAAACAC   2540
+                                                                                                                                                 |||                     |||||                 
+scaffold23396                                                                                                                           7809 ----CATA--------------------AAACAA----------------   7818
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2541 CCCCCCATCCCCTTCACATAAATAAACCTTACGGACCAGGCAGCCGCAGG   2590
+                                                                                                                                                            ||||   | |   ||    || ||       ||||
+scaffold23396                                                                                                                           7819 ---------------ACATTTGTTACTTTTT---ACTAG-------CAGG   7843
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2591 CACCCCCGACAGCTCACAGAGCCTCCTGGCAATTTTTCTTACTATTTCCG   2640
+                                                                                                                                              |           |||  |       |||| ||                 
+scaffold23396                                                                                                                           7844 AA-----------TCAAGG-------TGGCTAT-----------------   7858
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2641 GGTTGCGCGCGTGACGTCAGCGTGCGCGTGACGTCAGCGCGCACAACCCG   2690
+                                                                                                                                             |||  |       | |||  |  | | ||  |  ||| |   |||||   
+scaffold23396                                                                                                                           7859 GGTGAC-------AGGTCTTCAGGAGGGTC-CTACAGAG---ACAAC---   7894
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2691 GAAATAGTAAGAAAAATTGCCAGGAGGCGCCCACACCGGTATGCCGGTAA   2740
+                                                                                                                                                 ||           || |||                  |  ||||||
+scaffold23396                                                                                                                           7895 ----TA-----------TGACAG------------------TTACGGTAA   7911
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2741 GTTAAAATTTTTTATCATCTTTTTTAAAAAAACCGGTGTTCGGTATATAC   2790
+                                                                                                                                             |||                ||  || ||||           || |   | 
+scaffold23396                                                                                                                           7912 GTT----------------TTAGTTCAAAA-----------GGGAACGAA   7934
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2791 CGGTATACCGCCCAGCACTAATTTTTGGTTAGGTTAACATGCCCTATAAC   2840
+                                                                                                                                                ||||| |||           || ||     |  | ||  |   | ||
+scaffold23396                                                                                                                           7935 GAATATACTGCC-----------TTGGGAGCTCTCTAAAT--CGATTGAC   7971
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2841 CTGGGCTTTTATCTCTTTCCTGCACTAGAGTTGGGACAGGTTAACATTCG   2890
+                                                                                                                                             |||    || || |||          | | |   |  ||| | |      
+scaffold23396                                                                                                                           7972 CTG----TTGATGTCTG---------AAAATACTGTAAGGCTCA------   8002
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2891 TGTAGTTTTATAAAACACGAACTTTTTTTGTGCAGGTGGTGGTGGAGACA   2940
+                                                                                                                                              || |    |||  ||||   |||| ||  |||                 
+scaffold23396                                                                                                                           8003 -GTTGGACCATACCACACT--CTTTGTTCTTGCCC---------------   8034
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2941 GAGGATATGGTGGAAGCAGCCGCTTTGAAAACAGAAGTGGAGGTTACCAA   2990
+                                                                                                                                                 ||| |    || ||| |  |||| || |||                
+scaffold23396                                                                                                                           8035 ----ATAAG----AACCAGTCTGTTTGCAACCAG----------------   8060
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2991 AGCAGTGGATCCAGGGATTACTATGGCAGGTAAGTTTTGTGAATGCTCTG   3040
+                                                                                                                                              ||  ||||      |||   | || ||  ||| ||              
+scaffold23396                                                                                                                           8061 -GCCTTGGA------GATG--TTTGCCACTTAAATT--------------   8087
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3041 TAAGACTTCATTCTATTTTGATATTTGTTCTCCTGACATGGCCTGTGTCT   3090
+                                                                                                                                                  ||| ||| || |     || |||      ||| || ||||  |||
+scaffold23396                                                                                                                           8088 -----CTTAATTTTAATGC---ATGTGTAG----GACTTG-CCTGGATCT   8124
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3091 CTCGTGGCAGGAGTCA--TGGAAGCTATGGTGATCGTTCCGGAGGATCCT   3138
+                                                                                                                                                  ||||  | |||  || |    ||  | | | | || || | ||  
+scaffold23396                                                                                                                           8125 AA---GGCA--AATCAAGTGTAGTAAATACTCA-CATACCTGAAGTTC--   8166
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3139 ACAGGGATAGTTATG-ACAGCTATAGTAAGTATGTGGGGAAGTTACTAGA   3187
+                                                                                                                                                  || | ||| | | | ||  ||      | |    ||   |||  |
+scaffold23396                                                                                                                           8167 -----GAGAATTAAGCAAAACTCCAGATGCCCTCT----AACAAACTTTA   8207
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3188 GAGGAGGGTGGAAAGGGTGGTACGTCAGTTGTGATCTTCGTGTTCCATCC   3237
+                                                                                                                                                 |||||||   |||  ||   ||  ||  | |||             
+scaffold23396                                                                                                                           8208 ATCAAGGGTGG---GGGACGT---TCTCTTAAGCTCT-------------   8238
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3238 AGTGA--TGGCTCTTAACTTCTCAATTTCTCAATTTGCCTCTAATGCATG   3285
+                                                                                                                                             |||||  | || || | | ||| || |    |||                
+scaffold23396                                                                                                                           8239 AGTGAACTAGCACT-AGCCTCTGAAAT----AAT----------------   8267
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3286 TGTTGGTTCTGTCCTGGCTACAGGCAATAAGTGTTGGGTAGACATAGCTG   3335
+                                                                                                                                                                ||||| | |||             |  ||||
+scaffold23396                                                                                                                           8268 -------------------ACAGGGAGTAA-------------AATGCTG   8285
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3336 GGAAGGGTATGTAGTACCAGTTTAGGGGAGGTGATGCTGGAATCTGTGCC   3385
+                                                                                                                                             | |   || |                       |||||    || |||||
+scaffold23396                                                                                                                           8286 GAACTTGTCT-----------------------ATGCT----TCGGTGCC   8308
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3386 TTTACAACTGTGCCTGCTTCTTGTCCTCAGCTACACAA---GAGTAAAAT   3432
+                                                                                                                                             ||||||| |||||||||||||||||||||||||||||    |||||||| 
+scaffold23396                                                                                                                           8309 TTTACAATTGTGCCTGCTTCTTGTCCTCAGCTACACACAACGAGTAAAAA   8358
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3433 CCATTCCTGACTCAAGATCGTCCTTCCAATGGCTGTATTTATAAAGATTT   3482
+                                                                                                                                              | |||||||||||||||||||||||||||||||||||||||||||||||
+scaffold23396                                                                                                                           8359 TCCTTCCTGACTCAAGATCGTCCTTCCAATGGCTGTATTTATAAAGATTT   8408
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3483 TTGGAGCTTCGCCGAA-TCGTT--TGTGTAGTATATCTACTTGTGTT--C   3527
+                                                                                                                                             |||||||||||| ||| |||||  ||||||||| |||||||||| ||  |
+scaffold23396                                                                                                                           8409 TTGGAGCTTCGCTGAAATCGTTATTGTGTAGTACATCTACTTGTATTTTC   8458
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3528 ACTTTTTT--TTTTAATAG-----ACCTAGTTA------GCCTGACAGCT   3564
+                                                                                                                                             |||||| |  | |||  ||     | || || |      |||||||||||
+scaffold23396                                                                                                                           8459 ACTTTTGTAGTATTATCAGTTCTGATCTTGTCAAACACAGCCTGACAGCT   8508
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3565 TCTCTAATAAGTGGGACAGCTGTGTTTCAAAGGCTTTATCTTTGGACACC   3614
+                                                                                                                                             |||   |||||  || |     || ||   || |||| |||||    |  
+scaffold23396                                                                                                                           8509 TCTGATATAAGATGGTC-----TGATT---AGACTTT-TCTTT----AAG   8545
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3615 TAATCTCATTCTTAAAGT-----TACTGTGTTCTGCAAGGATATTCCTAT   3659
+                                                                                                                                              || |||  | |  ||||     || | | || || ||| |         
+scaffold23396                                                                                                                           8546 AAAGCTCTGTTTCCAAGTGTTTTTAATCTTTTTTGAAAGCA---------   8586
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3660 CCTACT-ATGCTGTTCCATTCAAGCTGATCAGGTGGGGCTGCTCCCCCTT   3708
+                                                                                                                                              ||||  ||  | ||  || |    |||| ||    || || |     ||
+scaffold23396                                                                                                                           8587 -CTACGGATTTTATTTTATCCTCTGTGATAAGCCAAGG-TGTT-----TT   8629
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3709 CTGGTTAAGTAGTGCTAGGAAGTAACTTCCTAAGCGGATGGGTGCTGTTG   3758
+                                                                                                                                              |    |||| ||| |  |  |   |  |||||         | | ||| 
+scaffold23396                                                                                                                           8630 TTTTAAAAGTTGTGAT--GTTGGGGC--CCTAA---------TTCAGTTT   8666
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3759 GTTGATGGGCAGAGAAGCACCTGTATTAGTA-GCAGACTGCTAGGCCTGT   3807
+                                                                                                                                              ||||  |  ||| ||| |||| || |   | |   ||||  ||  ||| 
+scaffold23396                                                                                                                           8667 TTTGA--GATAGAAAAGGACCTTTAATTCAATGTTCACTGGAAG--CTG-   8711
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3808 CTTCCTGTAGCATTGTTTAAAGAACTTTAAGCTGCTGTATTTTTTGGTTA   3857
+                                                                                                                                                     | ||   | |   | ||||||        ||||||||  || 
+scaffold23396                                                                                                                           8712 --------AACAAGCTGT---GGACTTTA--------TATTTTTTTTTT-   8741
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3858 CATGAAAAGTTAATTTTATGAGTCCACTTAAATTGCATTCCTTTAGTGTA   3907
+                                                                                                                                               ||||| ||  |||   |  |||   |  ||   |||||||||||||||
+scaffold23396                                                                                                                           8742 --TGAAA-GTGCATTACCTTCGTCTCTTGTAA---CATTCCTTTAGTGTA   8785
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3908 ACAAGGCAAGGCAG--AGCTTGGGTGCGCTGTATATAGT--GGCTACACC   3953
+                                                                                                                                              ||||| | ||||   ||| ||||||     || || |   ||| | |||
+scaffold23396                                                                                                                           8786 GCAAGGTA-GGCATGCAGCCTGGGTG-----TAAATTGGAAGGCAA-ACC   8828
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3954 TCCTTGATACAC--AAAGTGAA--TAG------TGTTC-----GCAT---   3985
+                                                                                                                                              |||||||| ||  |||| |||  | |      |||||     ||||   
+scaffold23396                                                                                                                           8829 ACCTTGATATACTTAAAGAGAAACTTGCTTGTATGTTCAACCTGCATAAC   8878
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3986 ----------CT----------------CCAGTAA----------CAA--   3997
+                                                                                                                                                       ||                |||| ||          |||  
+scaffold23396                                                                                                                           8879 GGTATTTTTACTGTATGATGTAAATTACCCAGAAATAGACTCTCGCAAAC   8928
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3998 -TATCAGAA--GAAGTTCTT-AAAATGTTTGTTTATATTGTCCTTTTTTT   4043
+                                                                                                                                              || || ||  || |||||| ||||||||| |||||||||||||||||||
+scaffold23396                                                                                                                           8929 TTACCATAAAAGAGGTTCTTGAAAATGTTTATTTATATTGTCCTTTTTTT   8978
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4044 ACT-----AAACATGCAACT---------ATTGTACT-GAAGTGGCTAAG   4078
+                                                                                                                                             |||     ||| |||||  |         |||||| | |||||||  |||
+scaffold23396                                                                                                                           8979 ACTGGAAGAAATATGCATATTCCATTGATATTGTATTTGAAGTGGTAAAG   9028
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4079 GAAT--TGTATTCTACTTTTGATTGGCTTCACGAAGCCTATTAAAAAAAC   4126
+                                                                                                                                             || |  ||||| | | ||||  ||||||| |||||||||||||||| | |
+scaffold23396                                                                                                                           9029 GATTCTTGTATAC-AGTTTTCTTTGGCTTTACGAAGCCTATTAAAAGACC   9077
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4127 CAATGTGAAAAGAATTGCGCTCCTGATGTTTAAATTC---TGCACAACAT   4173
+                                                                                                                                                | ||||| ||| |  ||||||||  |||| |||    ||||||||| 
+scaffold23396                                                                                                                           9078 G--TCTGAAATGAACTCTGCTCCTGACATTTACATTTCATTGCACAACAC   9125
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4174 GGATGTATCTTATGCTAGGTGGGGACCATAGACCCAAGGGCTAATGGCTT   4223
+                                                                                                                                              |     || |     |  ||| || || |   |||||   ||| |    
+scaffold23396                                                                                                                           9126 AG-----TCCTTGAAGATCTGGTGAACAAA---CCAAGTAATAAGG----   9163
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4224 ATAAAGGGGAACTCATAAGATCCACTTACTGCAAACA-CCTGGCATTGAT   4272
+                                                                                                                                                 ||| | ||||   |||            | | | ||| |   ||||
+scaffold23396                                                                                                                           9164 ----AGGAGGACTCTAGAGA------------AGAGAGCCTAG---TGAT   9194
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4273 CACCTTGTTCAGGCTGGCTCCCAGCATTCATCTGTATTTTGCAATGCCAT   4322
+                                                                                                                                                  | || | ||  |||   ||  || | |||    ||| |  |  ||
+scaffold23396                                                                                                                           9195 AGGAGTATTAAAGCAAGCT---AGACTTAA-CTGACCATTGGAGAGA-AT   9239
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4323 GGTTTGAGTGTCTGCAGTGTTGGGGAAGAACTAAAACTGCCGTGCCAAAT   4372
+                                                                                                                                             |   | |   |||  |||| |   ||      || |||| |  |  |  |
+scaffold23396                                                                                                                           9240 G---TAA---TCTTAAGTGGTCTTGACATGTGAACACTGTCAAG--ATGT   9281
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4373 TTTTAAATA--AAT--TAAACCTTTTTTGTGAG-GATTAAGCATCAGTAG   4417
+                                                                                                                                             ||| | |||  |||  | ||  | | | ||||  || ||  ||  |||| 
+scaffold23396                                                                                                                           9282 TTTCACATACGAATAGTCAAATTGTCTAGTGACAGACTAC-CAAAAGTA-   9329
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4418 AATCTGCATGCTTTGCATTAAGCTACATTTTGAGTAGTTACTCTTGTTAA   4467
+                                                                                                                                                         |||   |||         ||| ||     |||||||| 
+scaffold23396                                                                                                                           9330 ------------TTG---TAA---------TGACTA-----TCTTGTTAT   9350
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4468 AGACCTCTAATTGCAGGTTTTGGCTAGGAGGCAAAGGTACTTGGCAGCAG   4517
+                                                                                                                                             |   ||  |||  |||               |||| ||    ||  | | 
+scaffold23396                                                                                                                           9351 A---CTTAAAT--CAG---------------CAAAAGT----GGAGGGA-   9375
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4518 TCAGTTTATAAAAGTAGCTATACACTTACAACTACAAATTTTACTAGATG   4567
+                                                                                                                                                      ||||  ||||   || ||     ||   |    || || | 
+scaffold23396                                                                                                                           9376 ---------AAAAACAGCTGGCCAGTT-----TAGTCAGAGGAC-AGTTC   9410
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4568 GGTGACTTTCCTAGTAAGTTTATGGGAAGTTTTTGTATGAAGAAAAAATT   4617
+                                                                                                                                              | || |||| ||  ||    ||  | ||   ||          ||||||
+scaffold23396                                                                                                                           9411 AG-GATTTTCATA--AA----ATAAGCAGACATT----------AAAATT   9443
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4618 TAGCCTCTAATATACAAGGTTATCCTGGGTGAGGGGTAATAACATGTGGT   4667
+                                                                                                                                             |    ||| |   |  ||  | |      ||||       |||| || ||
+scaffold23396                                                                                                                           9444 TGTAGTCTGA---ATCAGTCTTT------TGAG-------AACAAGTAGT   9477
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4668 CACTGAACTGCCTAGTTTACTTTTGCTGCTGTATGACAGTTTATATAAGT   4717
+                                                                                                                                              ||||                         || |||||         |||
+scaffold23396                                                                                                                           9478 TACTG-------------------------GTTTGACAC--------AGT   9494
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4718 ATAACTGCTGCCATGGAAGGGAAGCTGGACAGAACT---TAGTTTAGACA   4764
+                                                                                                                                              |        ||| || ||  ||  || ||  || |   ||| || | ||
+scaffold23396                                                                                                                           9495 GTT-------CCAAGGTAGACAAATTG-ACTTAATTAGCTAGCTTTGTCA   9536
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4765 AAACAATACTGGTTACCTTCTAAGAATCCTCTGCTAGAGTACCGAAGAGG   4814
+                                                                                                                                                |  |||  |||     |||||||| ||||||||| |||  |||   |
+scaffold23396                                                                                                                           9537 TTGCCTTACAAGTT-----CTAAGAATTCTCTGCTAGCGTATGGAAACTG   9581
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4815 CAGTCTCCTTGGA-AAATGAAGT-TTGTGCCTCCAGT-GAAACCT--GAG   4859
+                                                                                                                                             |||| |||||||| ||| ||||| |||||||||||   |||||||  |||
+scaffold23396                                                                                                                           9582 CAGTGTCCTTGGAGAAAAGAAGTGTTGTGCCTCCAACAGAAACCTCTGAG   9631
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4860 ACGAAAGCTGCT--CTTGGCTAGTTCATATGTGGAATTAGTCCAGTAATT   4907
+                                                                                                                                             ||||||||||||  || ||||||||||||||||||| |||||| ||||||
+scaffold23396                                                                                                                           9632 ACGAAAGCTGCTTTCTGGGCTAGTTCATATGTGGAAATAGTCCTGTAATT   9681
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4908 CGAGGTAACTC-TTTTGCTCCTGTCCACGTCCCTCCTCCTT----GAGCT   4952
+                                                                                                                                             ||||||||||| |||||||| ||||| | ||| ||||| |     |||||
+scaffold23396                                                                                                                           9682 CGAGGTAACTCCTTTTGCTCATGTCCGCATCCTTCCTCTTGTTGAGAGCT   9731
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4953 CATTTAACTTTTTATTTTTGTGCTTGTGAAATTTTGCTACTCCCAAAAAG   5002
+                                                                                                                                             ||||| |   | || |   || | |||||||| || || ||  ||     
+scaffold23396                                                                                                                           9732 CATTTGAAAGTCTAAT---GTACCTGTGAAATATTCCT-CTGACAGTTTT   9777
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5003 CTTAATATGAACCTTAGTTCTTCAGATCCACAAGATTTCTGTGCTTTAGT   5052
+                                                                                                                                               | |  | |     |  | || | |||||    ||  || || ||| ||
+scaffold23396                                                                                                                           9778 GGTCAACTAATGGAAAAATTTTAA-ATCCATGCCAT--CTTTGGTTT-GT   9823
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5053 TCCACTTCTATCAAAT--ACAGTATCAT-GTATACCATATTTTTTTTGTT   5099
+                                                                                                                                               |||  || |||  |  ||||  |||  ||    ||||   |  | || 
+scaffold23396                                                                                                                           9824 GGCACAACT-TCAGTTCCACAGG-TCAGAGTTGGGCATACAGTCAT-GTC   9870
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5100 TTGAACCTTATCACTTTTTGTGGAAACCAAGTTAATGACACTTGGCAGTG   5149
+                                                                                                                                             |||  |||    | |   | ||||| | ||| |   || ||     | | 
+scaffold23396                                                                                                                           9871 TTG--CCT----AGTAGGTATGGAAGC-AAGATGG-GAAACAG---AATT   9909
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5150 CCCTATAAACTTAATGGCCAAAAATGCAATGACCCAAGACATTGATGCAT   5199
+                                                                                                                                             |||||   |||| ||        ||  | |||  |    | | ||  |||
+scaffold23396                                                                                                                           9910 CCCTA---ACTTGATTTGTGTTCATCTATTGAGACTCTTCCTAGACTCAT   9956
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5200 CAGTACCAAATTCAC--AATTGTCCACACTGCTTT--CAGTTTGGTTGTT   5245
+                                                                                                                                              |       | ||||  ||||||  |   | ||||  ||  ||  |||||
+scaffold23396                                                                                                                           9957 TA-------AGTCACTTAATTGT--AGCTTTCTTTACCATCTTACTTGTT   9997
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5246 CTGATTTGATGACTA----ATCACATTATGTTTTACAGGCTGACCTTTTA   5291
+                                                                                                                                                |||   |  ||     | | ||   ||||    || | | | | | |
+scaffold23396                                                                                                                           9998 GCCATTAACTTTCTCCCATAGCCCACACTGTTCCTAAG-CAGCCATGTCA  10046
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5292 AAT--GCAAACAGTCTTAAAGAGGATTGATAGAACAGAATTGCATACTAC   5339
+                                                                                                                                             ||   |  ||| ||||       | || |  || || |||   ||| || 
+scaffold23396                                                                                                                          10047 AAGTGGTTAACTGTCTCT-----GCTTAAG-GATCA-AATGATATA-TAT  10088
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5340 AGGGTGGCTTTTGCAGTAA-CTGCAGGGTGTGTAAGACTTTCTGGTACTT   5388
+                                                                                                                                              || |||| | |  ||  | | ||  |   || ||   ||||    ||| 
+scaffold23396                                                                                                                          10089 TGGCTGGCATATCAAGGCATCAGCCAGCCCTGGAA---TTTCCCAGACTG  10135
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5389 TGTTTGGAAGTTTGATTTGAACG--TTCAACATTTTGTTAATTATCTTCC   5436
+                                                                                                                                             || ||     | |||| |||  |  |||| |   | | |  | |    | 
+scaffold23396                                                                                                                          10136 TGCTTC----TGTGATGTGATAGGGTTCAGCGAATGGCTTGTGAAACCCT  10181
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5437 TGTATTCTTTAGGAACTGGCT-GTGGAAGGCAAGATACAGGGATGCTGTT   5485
+                                                                                                                                             |||||     | ||  || || |||   ||  || |   |||| || || 
+scaffold23396                                                                                                                          10182 TGTAT-----ATGATGTGACTTGTGTTTGGGGAGGT---GGGAGGCAGTG  10223
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5486 TGAATTCGACTGCTGTATATTCACAAGACCTGGCTA--AAGACTTTTTTT   5533
+                                                                                                                                             | ||  |    | || ||||           |||||  || ||   ||| 
+scaffold23396                                                                                                                          10224 TAAACACCGTGGTTGGATAT-----------GGCTAGTAACACACATTTG  10262
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5534 TTTAATCAAATCAAACTTTATATGCTGACAACCCCTATACTATTTTTATC   5583
+                                                                                                                                              || | ||  |  ||    | |||  ||||          | |     | 
+scaffold23396                                                                                                                          10263 CTTTACCAGGTTGAAGAGAAGATG--GACA----------TTTGAGCCTG  10300
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5584 AAACTGTATTCACCAGTTTAGTTTCTTGATACCA-TATTAATATTTTAGT   5632
+                                                                                                                                             |||| | ||||   |||   ||||| ||| | || ||  || | |  | |
+scaffold23396                                                                                                                          10301 AAACAGCATTCCTGAGT---GTTTCATGAAAGCAGTACCAACAATCAACT  10347
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5633 TATGGAATGTAAGCAGTTAAACAGGCAACTTTTATCACTGAACTTCATTT   5682
+                                                                                                                                             |                ||| |||| | | | || || || | |||  ||
+scaffold23396                                                                                                                          10348 TC--------------CTAAGCAGGTACCATCTA-CAGTGCA-TTCCCTT  10381
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5683 ATATGTTGTGTACTTCATACAACCCAGGCATGTTCCTCTTCTGTCTACTC   5732
+                                                                                                                                              || |   | ||||  |      | |||   |  | | |||||   |   
+scaffold23396                                                                                                                          10382 GTAAGAAAT-TACTGGA------CTAGGGGAGAGCTTTTTCTGGAGAAGT  10424
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5733 TT-AGTTCAGGCCTGATTTACTTATCCTCCTTTGT-CCACCACTACACCA   5780
+                                                                                                                                             || | || |||  || | ||  |||       ||| |||  | || ||  
+scaffold23396                                                                                                                          10425 TTGATTTTAGGTTTGGTATATGTATATGTACATGTACCAGAATTA-ACGT  10473
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5781 TTCCACAGCATAAGGTGCTATATTCATACTTGATTATATTCTCATGTACC   5830
+                                                                                                                                             ||     || |   ||||||   || |    ||  |||     |||||  
+scaffold23396                                                                                                                          10474 TTT----GCCTT--GTGCTAATATCCTGAGAGAA-ATAA----ATGTATG  10512
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5831 ACACTTTCATACAGTAGACTGCTAACAAACTTGTGGAGATATTGTGTGAC   5880
+                                                                                                                                                  || |||      |||  | |||||||  |||   || |   ||  
+scaffold23396                                                                                                                          10513 -----TTGATA------ACT--TGACAAACTCTTGGT--TAGTAGTTG--  10545
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5881 CACCTCCCTGTCCCCTGATGCAGGGAAAATAAAGAGGAAGCAGACGGTTG   5930
+                                                                                                                                                           | | |  ||  ||  ||| | |    || | || | 
+scaffold23396                                                                                                                          10546 --------------CAGTTTTAGATAATTTAATGTG----CATATGGATC  10577
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5931 CAGGCCCAGTGGAGCACTAACTGAACAGTCTCAATATATCTTGTTAGAAA   5980
+                                                                                                                                                ||    || || ||| | ||    || |   ||| ||     || | 
+scaffold23396                                                                                                                          10578 T--GCTATTTGTAGAACTCATTGTCTTGTTT---TATTTC-----AGCAG  10617
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5981 TGGTTAACTTGGCAATGTTTTGCCATAAAT-TGTTTACTGTGGAATCCAG   6029
+                                                                                                                                             ||     | | | |  |  |||  ||| |  |||| |||| | |||  ||
+scaffold23396                                                                                                                          10618 TGAGCTGCATTGAAGAGGATTG--ATACAGCTGTTGACTGAGCAATGGAG  10665
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  6030 TAACCTAGTAAAACCATGGATTGTAGCAGAGAATAACTACAATA----AA   6075
+                                                                                                                                             |        || | | | ||  | ||   | |||| ||   |||    ||
+scaffold23396                                                                                                                          10666 T------TCAAGAGCTTTGA--GCAGTGTATAATATCTGATATAGATCAA  10707
+
+NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  6076 GGTTTTATTCTG-CTTGA   6092
+                                                                                                                                             |     | |||| |||| 
+scaffold23396                                                                                                                          10708 GTGAACAATCTGACTTGT  10725
+
+
+#---------------------------------------
+#---------------------------------------

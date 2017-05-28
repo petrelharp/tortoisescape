@@ -1,0 +1,53 @@
+
+To find CIRBP:
+
+Downloaded Xenopus CIRBP from NCBI Reference Sequence: NC_030677.1 to `CIRBP.fa`, which has 6181 bases.
+
+Set up BLAST:
+```
+# make blast db to blast against
+makeblastdb -in GopAga1.0.softmasked.fa -out GopAga1.0.softmasked.blastdb -input_type fasta -dbtype nucl
+# blast
+blastn -query CIRBP.fa -task blastn -db GopAga1.0.softmasked.blastdb -out CIRBP.blasted
+```
+
+Results:
+
+- `scaffold23396` - 90% identity,
+- `scaffold11893` - 83% identity
+- `scaffold_510` - 83% identity but shorter
+
+
+```
+mkdir CIRBP
+mv CIRBP.fa CIRBP
+cat GopAga1.0.softmasked.fa  | awk '/>scaffold23396/ { x=1 }; /^>/ { if (x>=1) { x+=1 } } x==2 { print } x==3 { exit }' > CIRBP/scaffold23396.fa
+cat GopAga1.0.softmasked.fa  | awk '/>scaffold11893/ { x=1 }; /^>/ { if (x>=1) { x+=1 } } x==2 { print } x==3 { exit }' > CIRBP/scaffold11893.fa
+cat GopAga1.0.softmasked.fa  | awk '/>scaffold_510/ { x=1 }; /^>/ { if (x>=1) { x+=1 } } x==2 { print } x==3 { exit }' > CIRBP/scaffold_510.fa
+
+cd CIRBP
+
+for SCAF in scaffold23396 scaffold11893 scaffold_510
+do
+   ../../../count-utils/plot-genotypes.R ../272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin ../272torts_snp1e6_minmapq20minq30_map2kenro.pos.gz $SCAF
+done
+
+```
+
+Look at alignment?
+```r
+library(Biostrings)
+cirbp <- readDNAStringSet("CIRBP.fa")
+scaf_names <- c("scaffold23396", "scaffold11893", "scaffold_510")
+scafs <- sapply(paste0(scaf_names,".fa"), readDNAStringSet)
+
+aligns <- lapply( scafs, function (x) pairwiseAlignment(pattern=cirbp, subject=x, type='global-local'))
+for (k in seq_along(aligns)) { writePairwiseAlignments(aligns[[k]], file=paste0(scaf_names[k], ".alignCIRBP.fa")) }
+```
+
+This gets
+
+- `scaffold23396` - 49% identity and 26.5% gaps from 5857 to 10725
+- `scaffold11893` - 45.5% identity and 21.7% gaps from 80 to 5121
+- `scaffold_510` - 47.3% identity and 20.9% gaps from 21286 to 26392
+
