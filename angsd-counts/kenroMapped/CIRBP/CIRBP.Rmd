@@ -2,6 +2,7 @@
 To find CIRBP:
 
 Downloaded Xenopus CIRBP from NCBI Reference Sequence: NC_030677.1 to `CIRBP.fa`, which has 6181 bases.
+- homologs: https://www.ncbi.nlm.nih.gov/homologene/980
 
 Set up BLAST:
 ```
@@ -38,16 +39,32 @@ Look at alignment?
 ```r
 library(Biostrings)
 cirbp <- readDNAStringSet("CIRBP.fa")
+names(cirbp) <- "Xenopus_CIRBP"
 scaf_names <- c("scaffold23396", "scaffold11893", "scaffold_510")
 scafs <- sapply(paste0(scaf_names,".fa"), readDNAStringSet)
 
 aligns <- lapply( scafs, function (x) pairwiseAlignment(pattern=cirbp, subject=x, type='global-local'))
 for (k in seq_along(aligns)) { writePairwiseAlignments(aligns[[k]], file=paste0(scaf_names[k], ".alignCIRBP.fa")) }
+
+# statistics:
+do.call(rbind, lapply( aligns, function (al) {
+    xy <- do.call(cbind, strsplit( c(as.character(al@pattern), as.character(al@subject) ), "" ))
+    xyt <- table(xy[,1],xy[,2])
+    c("CIRBP gap"=sum(xyt["-",])/sum(xyt[,-1]),
+      "scaffold gap"=sum(xyt[,"-"])/sum(xyt[-1,]),
+      "either gap"=(sum(xyt[,"-"])+sum(xyt["-",]))/sum(xyt),
+      "identity at nongap"=sum(diag(xyt))/sum(xyt[-1,-1]),
+      "identity to CIRBP"=sum(diag(xyt))/sum(xyt[,-1]))
+} ) )
+
+#                   CIRBP gap scaffold gap either gap identity at nongap identity to CIRBP
+# scaffold23396.fa 0.04641610    0.2378529  0.2651155          0.6689640         0.6379133
+# scaffold11893.fa 0.03034510    0.1974721  0.2171337          0.4244222         0.4115430
+# scaffold_510.fa  0.03152536    0.1881156  0.2090197          0.3869794         0.3747797
+
 ```
 
-This gets
-
-- `scaffold23396` - 49% identity and 26.5% gaps from 5857 to 10725
-- `scaffold11893` - 45.5% identity and 21.7% gaps from 80 to 5121
-- `scaffold_510` - 47.3% identity and 20.9% gaps from 21286 to 26392
-
+Get those haplotypes?
+```
+../../../count-utils/get-scaffold.R ../272torts_snp1e6_minmapq20minq30_map2kenro.counts.bin.gz scaffold23396 > scaffold23396.counts 
+```

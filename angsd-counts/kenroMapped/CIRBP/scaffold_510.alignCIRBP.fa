@@ -1,11 +1,11 @@
 ########################################
 # Program: Biostrings (version 2.42.1), a Bioconductor package
-# Rundate: Sat May 27 23:31:34 2017
+# Rundate: Tue May 30 11:34:28 2017
 ########################################
 #=======================================
 #
 # Aligned_sequences: 2
-# 1: NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence
+# 1: Xenopus_CIRBP
 # 2: scaffold_510
 # Matrix: NA
 # Gap_penalty: 14.0
@@ -20,509 +20,509 @@
 #
 #=======================================
 
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence     1 TCCCAGCGACAATATTCAGCCAATACCAGCAAATAAATCCCAAGAAGCGG     50
-                                                                                                                                             ||            ||||   || | |||    |||||    | |||  |
-scaffold_510                                                                                                                           21286 TCT-----------TTCA---AAAAGCAGATGTTAAATGTATAAAAGTTG  21321
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence    51 TCAGGCG-ACTGGA-TCGTCAATTCTAATATGACTCCTCCTCTGAGAAGC     98
-                                                                                                                                                 | | ||| |  | || | ||  ||  | |    | | |||| | ||
-scaffold_510                                                                                                                           21322 AGCTGTGTACTAGTGTTGTAACTTTCAAAGTAAAAGTTTCCCTGAAATGC  21371
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence    99 ATCCATTGGTATGAAATTATTGTACACTATGGTTATAG---TTC-AAGAA    144
-                                                                                                                                               |  ||   ||   ||| |  |     ||||    ||   ||| |||| 
-scaffold_510                                                                                                                           21372 CACACTTCCCATCTGATTTTCCTCATGAATGGAACAAGCAGTTCTAAGAT  21421
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   145 AATGAACAAAA-ATAAACACATC--ATGTGGTAATAGTTTTTAACTAACC    191
-                                                                                                                                               |  ||| || ||  |  ||||  |  |||  || | |  |  |||  |
-scaffold_510                                                                                                                           21422 CTTCCACACAACATCTAGCCATCTAAAATGGAGATGGATCGTT-CTACAC  21470
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   192 ACTGCAATACAAATAGTGAACTCTTTATTCATCCGCATTGCTCTGAATGA    241
-                                                                                                                                             | |  ||  |  ||  |||||   ||| | |   |   || | || | | 
-scaffold_510                                                                                                                           21471 ATTCAAACTCTCATTCTGAACAAATTAGTTACTTG---TGGTGTGGAGGG  21517
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   242 TCTTTTTTCAATATCGCGCTATCATCCAAATGGTGTCGCCC--GAACTGG    289
-                                                                                                                                             |  |       |  | | |||| ||   |   || ||  |   |  ||| 
-scaffold_510                                                                                                                           21518 TGGTGGGGATGTGCCACACTATAATTTCA---GTTTCCTCTTGGTTCTGA  21564
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   290 AATGAAATAA-ATTA----TTCATGATGTGGGCGGGGTTAGTCGTCGTAT    334
-                                                                                                                                             ||| | | |  |||     ||||  || |   | |      || | || |
-scaffold_510                                                                                                                           21565 AATCACACAGTATTCCCAGTTCAAAATTTCTTCAGA-----TCCTTGTGT  21609
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   335 AAATGACCAAGTTCCGGAGTGAATTGCGCACTTCGCATTCGGCTTCCAAC    384
-                                                                                                                                             |||  |  ||  |  ||| |  |||   || |   || |   |    |||
-scaffold_510                                                                                                                           21610 AAAGAAAAAA--TAAGGATTCCATT---CAGT---CACTAAACCAGAAAC  21651
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   385 TTGTGTTGTATCGTCCGAAGATCATAGAACGTAAGTGGGGTTTTTGGTTT    434
-                                                                                                                                                   || ||  | |   || ||||                ||||  ||
-scaffold_510                                                                                                                           21652 AGCAAATGGATAATGCT--GACCATAC---------------TTTGCCTT  21684
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   435 TCTTCTGGTTTCAGCGTGTGAATTGTGGAGGTTAGCTCATGTGTCAATTG    484
-                                                                                                                                              || ||| |||  || || |||||    |||  | ||| |    |||   
-scaffold_510                                                                                                                           21685 CCTACTGTTTT--GC-TGGGAATTTGCAAGG--ACCTC-TCCCCCAAAAT  21728
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   485 TTGCCCAATACATTGTAGGTATTCTG-TATACGTGGTCGCATTTAGTAG-    532
-                                                                                                                                                ||   ||||| |||   | |||| || |       | |  ||  || 
-scaffold_510                                                                                                                           21729 AAACCATTTACAT-GTAATAAGTCTGCTACAGAATACTGTAAATAAAAGG  21777
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   533 TTTAA--AATTCCTCGTTCTAAAACGCCTCAAATACCGTGTCATACTCGC    580
-                                                                                                                                             ||| |  ||||| ||     || | ||  |||| ||  || | |||||  
-scaffold_510                                                                                                                           21778 TTTGACCAATTCATCA----AAGAAGCTACAAA-ACGATG-CTTACTC--  21819
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   581 GCCTTCGCGGCAAAACTGGCACGAATCTACATGTGGCTTAAATTAATTTA    630
-                                                                                                                                                         | ||||   | ||| |     | ||  || |   | ||
-scaffold_510                                                                                                                           21820 ------------ATACTGTTTCAAATTT-----TTGC--AACTCTGTGTA  21850
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   631 TTGGAAGGCTCTTATTTAATTTATTGGAAGGCTCTTATTTTCTTCGTAGT    680
-                                                                                                                                              ||      ||| | ||   |||  ||||    | | |||  |||  |  
-scaffold_510                                                                                                                           21851 GTG------TCTCACTT---TTAAAGGAA----CATCTTTGATTCCAAAG  21887
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   681 GCTAGTCGAAGAGCTGTATATGAGCACAATTCATTATTTGGCGCGTAGTT    730
-                                                                                                                                             || | | ||  |  |  | || |||| |    | | |||  | |  | ||
-scaffold_510                                                                                                                           21888 GCAAATGGAGAAAATA-AGATAAGCAAAGA--AGTCTTTCTCTCCAACTT  21934
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   731 TTTTTTTTTTTTTTGTTTAATAAAA-CAA-TGAAACTGTCGAC--TGAAG    776
-                                                                                                                                              |       || |   || |||||| ||| |||| || ||  |  |  | 
-scaffold_510                                                                                                                           21935 CTCAAAGGCTTATGACTTCATAAAAACAAGTGAATCTTTCAGCATTCCAC  21984
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   777 AGTCGATGTAAAAATCCTAGCGATTGTGC----GTGTAGATGGCGAAATA    822
-                                                                                                                                             |   ||| ||||    | |  |  ||||     |   ||||||  ||  |
-scaffold_510                                                                                                                           21985 AACAGATTTAAAGCATCAAATGCCTGTGAAACAGCAAAGATGGGTAAGCA  22034
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   823 AATCCCTCACACGTTACCGTAAGTGACGTCATCCATGGGCTGAATTCCCG    872
-                                                                                                                                             || |    ||  |||    | |||   ||||    ||  |  |||| || 
-scaffold_510                                                                                                                           22035 AAGCAA--ACTAGTTTT--TCAGTCT-GTCAAAATTGAACCAAATTACCT  22079
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   873 CCTTCTATTGTGCTACTGCGGCAAGGCTCGGATCTCTACCACGTGG---T    919
-                                                                                                                                              | |||       || | | | ||| |  |   || |||  | |||   |
-scaffold_510                                                                                                                           22080 TCCTCT-------TAGTACAGTAAGACATG---CTGTACGTCATGGCAAT  22119
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   920 GGCGG------CCATATTGGAAAGCGCTTCATGTGGCTTTGTCGTCTTTC    963
-                                                                                                                                             ||  |      |  ||||  |||     || | |||    |  ||  |  
-scaffold_510                                                                                                                           22120 GGAAGTGCTTTCTGTATTTAAAACAATATCTTATGGAAAAGCAGTGCTGG  22169
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence   964 TTT--ATTAG--GTCT--------CACCATGTCTTGTGATGAAGGAAAAC   1001
-                                                                                                                                                  |||||  ||||        || ||| |||| | ||| |   ||| 
-scaffold_510                                                                                                                           22170 AAAGCATTAGAAGTCTTCCAAATTCAACATTTCTTCTTATGGATATAAAG  22219
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1002 TCTTTGTCGGTGGTCTGAATTTTGAAACCACAGAG-----GAA---AGCT   1043
-                                                                                                                                               | | |    ||  | ||||||||||| | || |     |||   ||||
-scaffold_510                                                                                                                           22220 CATGTAT----GGCATCAATTTTGAAACTAAAGCGTTTAAGAATGCAGCT  22265
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1044 TGGAGC--AAGTGTTTAGCAAA-TATGGACAGGTTGCTGAAGG-TATGCG   1089
-                                                                                                                                              | ||   || | | | ||||| || ||   ||  |  |||   ||||| 
-scaffold_510                                                                                                                           22266 CGTAGACAAAATATGTTGCAAAGTAGGGTTGGGAGGGGGAATTCTATGCT  22315
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1090 TGGGCCTTTTTTTTTATTTTTTTTAAAATTAGTTCTTAAGGTTTTTTTTT   1139
-                                                                                                                                               |    |||   | |      ||||||  ||  ||  |        | |
-scaffold_510                                                                                                                           22316 CAGTATGTTTCACTGAAGACACTTAAAACAAG--CTGCA--------TAT  22355
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1140 TTTGTTTTTTTTCCTCCTACTAAAGCAATGTGTGTTTTCAGTGGTTGTGG   1189
-                                                                                                                                               | | ||| |  |   || ||||    ||  ||   ||||   ||| | 
-scaffold_510                                                                                                                           22356 ACTATATTTCTAACAAATATTAAAATCCTGA-TGAAATCAGGAATTG-GC  22403
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1190 TGAAGGATCGGGAAAGCAAG-AGATCCAGAGGCTTTGGCTTTGTCA----   1234
-                                                                                                                                             | |  ||| |  |||   |  || ||  |    || ||| || |||    
-scaffold_510                                                                                                                           22404 TTA--GATTGCCAAATATATCAGCTC--GGATATTGGGCATTTTCAAGCA  22449
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1235 --CATTTGAGAATCCTGAAGATGCCAAGGATGCTATGATGGCAATGAATG   1282
-                                                                                                                                               |  |||  || | ||| | |     ||||||  |||    | |  |  
-scaffold_510                                                                                                                           22450 AGCCATTGCAAA-CTTGACGTTTAGTTGGATGCC-TGACTTTATTTTAGT  22497
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1283 GGAAGGTAAATGCACACATAGTAACAAATCCTTTTAGGTGTAAAGAGCAA   1332
-                                                                                                                                                  | || ||||   |||     |||| ||  ||   ||     ||| 
-scaffold_510                                                                                                                           22498 TTTGTGAAACTGCATT-ATATGGGGAAATTCTAGTACAAGTG----GCAG  22542
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1333 ATCTGATTCACTGTCTTAAGTTTATAACTGCCAGGAGGTTGGTGTTTATT   1382
-                                                                                                                                             | |       ||||  | ||||   |  | |||||           ||  
-scaffold_510                                                                                                                           22543 AAC-------CTGTGGTGAGTTGTCATGTCCCAGG-----------TAGA  22574
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1383 GCTGGGATATGTAACATATG---TGGCATATTGTCCTTGATATTTGCATA   1429
-                                                                                                                                             ||   ||  |  || | |||   | | |||| ||     | | ||| | |
-scaffold_510                                                                                                                           22575 GCCATGAAGTTCAAAAGATGCTCTTGAATATAGT-----AGACTTGAAGA  22619
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1430 CTACCA-CTAGATGGTCACTGTATTAATTAA-TAATGCTATGAAGGCACT   1477
-                                                                                                                                             || ||| ||| |     ||  | ||| |    || | ||  |||   | |
-scaffold_510                                                                                                                           22620 CTTCCAACTAAAAAAA-ACGTTGTTACTACTCTAGTCCTCAGAATAAATT  22668
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1478 AGGTAACCGCCTTGT--ATTTTGCAACCTCTAGATATAAACTTG--AGGT   1523
-                                                                                                                                              |     |  ||| |  ||||   ||| |     |  |   |||  | | 
-scaffold_510                                                                                                                           22669 TGCCGTTCATCTTATGGATTT---AACATGGCAGTGCACCATTGGAAAGG  22715
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1524 AAACTGCCTTTCTTGAACTGTGAAGGCCCTTTAATTTACTTATTCTAAGC   1573
-                                                                                                                                             ||   |  |  | | | |  || |   ||| | | | |   |||| |  |
-scaffold_510                                                                                                                           22716 AATGAGAATC-CATAAGCCATGCAA--CCTGTCACTAAGCCATTCCAGTC  22762
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1574 CAAAACA-GTAATTGAAATTAATAACATGTTCTAAAAAGGTGTATAGTTA   1622
-                                                                                                                                             ||   || |  | ||||  |   | ||  |   ||| ||  |||    ||
-scaffold_510                                                                                                                           22763 CATTCCAAGCCAGTGAACCTTCCACCACTT---AAAGAGAAGTAG---TA  22806
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1623 TAAATCATGACTAAACAAAGCACAAAGACAAG--TGTAA---TTCAGTGA   1667
-                                                                                                                                              || |    ||  |  ||    ||||  ||||  ||| |   ||| | ||
-scaffold_510                                                                                                                           22807 GAACTTGAAACACATTAATCTGCAAACCCAAGCTTGTGACTTTTCTGGGA  22856
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1668 ACAGTACACTGACTTAAATGGCTAAAAATGTCCATTAAACAGTAAATCTG   1717
-                                                                                                                                              | | ||| | | |    ||| |||      ||||| || |     ||| 
-scaffold_510                                                                                                                           22857 CCGGGACAGTTA-TAGGTTGGATAA------CCATTTAAAATCTGTTCTA  22899
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1718 ACAATATGGCTTAACTTTTTTAATTTTTTTTTTTTTATATATATAGTCTG   1767
-                                                                                                                                              |  | || | || || |||||||| ||                 |   |
-scaffold_510                                                                                                                           22900 GC--TCTGTCATATCTGTTTTAATTGTT-----------------GCAGG  22930
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1768 TAGATGGCCGTCAAATCCGTGTTGATCAGGCTGGCAAGTCCTCCAATGAT   1817
-                                                                                                                                             | |||  || |||||  |||| || | | | |||    ||          
-scaffold_510                                                                                                                           22931 TTGATTACCTTCAAAGGCGTGATGGTNATGATGG----TC----------  22966
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1818 AGGAGAGGTGGTTACAGAGGTGGCTCTTCTGGAGGCAGAGGGTTCTTCCG   1867
-                                                                                                                                                     ||  |||||   || | | |||| | | | | |   |  | |
-scaffold_510                                                                                                                           22967 --------TGAGTACAGTTCTGACACATCTGCATGGATAAGTGACAGCAG  23008
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1868 TGGAGGCAGAGGCCGAGGT---TGGTATACATACTTTAGTGACATTGCA-   1913
-                                                                                                                                               |   |||| |   ||||   |  |||| |||   | || || || || 
-scaffold_510                                                                                                                           23009 CTGTAACAGAAGGAAAGGTAAATTATATA-ATAGCATTGTAACTTTACAG  23057
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1914 ATATAGACTTGGAATATATATATGTTCTGGTAAACTTTTCCATAATACAA   1963
-                                                                                                                                             | ||   |||    | | |  ||| ||    ||||||||  ||   ||  
-scaffold_510                                                                                                                           23058 ACATTTCCTTTT--TTTTTCCATGCTC----AAACTTTTG-ATCTCACTT  23100
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  1964 AGGGAAGAGTTAGCTCCCAGTAGATCTCAGAATAACAATTAATAAGAA-G   2012
-                                                                                                                                                   | ||  | |    |  | |   | | |  |  ||  || |   |
-scaffold_510                                                                                                                           23101 TTTTGTGTGTGTGGTGGGGGATGGTGAGACAGTGCCTGTTTTTATGCTTG  23150
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2013 AAAGTCTAGCTTTGCACTAGTTACATGGGAGTAGGGGAAATGGGTTACTT   2062
-                                                                                                                                             |||| | |  |||       |||   ||  ||  |   ||  |  |||||
-scaffold_510                                                                                                                           23151 AAAG-CAAAATTT-------TTA---GGATGTTTG---AACAGAATACTT  23186
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2063 GAAAGCAGTTCTAGTGTAGTGCTGGCTCCTGAAAGCTCCGAATCGGGCAC   2112
-                                                                                                                                              |  |||| | ||| | ||||   ||    || | ||  | |  ||||  
-scaffold_510                                                                                                                           23187 CA--GCAGGT-TAG-GAAGTG---GCAAG-GATAACT--GGAAGGGGCTT  23226
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2113 AATGCACAGAGATGGCTGCCTACACACTAATAGTACAACTTTTATTTTTC   2162
-                                                                                                                                                 ||||        ||| ||||||          ||   || | | | 
-scaffold_510                                                                                                                           23227 GTACCACA--------TGCATACACAG---------AAGCCTTGTCTATG  23259
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2163 CTTGAGTGAATTTTAGATGGTGGTTCA---TTTGCTATGTAAACAGTAAT   2209
-                                                                                                                                               ||| || | |  || |  ||| | |   ||| |   ||||| |||| |
-scaffold_510                                                                                                                           23260 TGTGA-TGCACT--AGCT--TGGCTAAGAGTTTTCA--GTAAAGAGTAGT  23302
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2210 TTAGAAATAAGGTATACCATAAGAATC-ATGACTATATTGTTTAACCTTT   2258
-                                                                                                                                             |   |||  ||    | |    | ||  |||  ||| ||||||    |||
-scaffold_510                                                                                                                           23303 T---AAACTAGCCGAAACTGCTGTATGGATGCTTATTTTGTTT----TTT  23345
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2259 CCCGGTAGACAAATTGCAGACTGACATTCCCGTCCCTACCCATTTGAATT   2308
-                                                                                                                                                 || | |   ||  ||  | | |||  | |||  | | | |  |  |
-scaffold_510                                                                                                                           23346 GA--GTTGGCTTTTTT-AGCTTTAAATTTAC-TCCTGAGCTAATGAAGCT  23391
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2309 AACTATAAGGATACTTTTTGTAGCAGCTTTTAAAGGGTATGTCAACCCTC   2358
-                                                                                                                                             ||   |||  |||        |||   ||| ||||   ||| | |  || 
-scaffold_510                                                                                                                           23392 AAGCCTAA--ATA--------AGCCTGTTTGAAAGAAAATGGCCATGCT-  23430
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2359 ATAAAAGGCATTATTGCCTGATAGAGAACCATAATTTGTTATTTTTGGTA   2408
-                                                                                                                                                    || ||  |||    |||    |  |||||| | |    || ||
-scaffold_510                                                                                                                           23431 -------GCTTT--TGCAGTTTAG----CTTTAATTTTTAAGCAGTGCTA  23467
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2409 G-TGCTG---GGCGGTATGACCAAAAATTTATATCACGGTATTTTTTTTA   2454
-                                                                                                                                               | ||    || | | ||  | |||||  |||| ||     ||  ||||
-scaffold_510                                                                                                                           23468 CCTTCTTTATGGAGATTTGTTCCAAAATC-ATATGACTAAGCTTAATTTA  23516
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2455 TTATATCGGTATCACGGTATTTGACGGTATTTTTTTTCCCCATGCATGAT   2504
-                                                                                                                                              ||| |    |||   |  |||| |  | ||    ||| ||         
-scaffold_510                                                                                                                           23517 ATATCTAATGATCTTTGAGTTTGCCTTTGTTGAAGTTCTCC---------  23557
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2505 TACGTGACCACCCCAAACACCCCCAACCCCAAACACCCCCCCATCCCCTT   2554
-                                                                                                                                             ||| | | |     ||  ||     |  | ||||| | |    ||   | 
-scaffold_510                                                                                                                           23558 TAC-TAAACTGTGGAATAACAAATGAAGCAAAACAGCTCAAGTTC---TG  23603
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2555 CACATAAATAAACCTTACGGACCAGGCAGCCGCAGGCACCCCCGACAGCT   2604
-                                                                                                                                              |  | | |    ||||  |   ||     | ||  ||   || ||  ||
-scaffold_510                                                                                                                           23604 TAGGTCATTTG--CTTATTGTTTAG-----CACAA-CAAAACCTACCTCT  23645
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2605 CACAGAGCCTCCTGGCAATTTTTCTTACTATTTCCGGGTTGCGCGCGTGA   2654
-                                                                                                                                               || |   ||   |||           |||| ||   ||          
-scaffold_510                                                                                                                           23646 TTCACA---TCAGTGCA-----------TATTCCC---TT----------  23668
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2655 CGTCAGCGTGCGCGTGACGTCAGCGCGCACAACCCGGAAATAGTAAGAAA   2704
-                                                                                                                                               | | |  | ||       ||||  ||||           || || | |
-scaffold_510                                                                                                                           23669 --TAATCAAGGGC------CCAGCAGGCAC-----------AGGAACAGA  23699
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2705 AATTGCCAGGAGGCGCCCACACCGGTATGCCGGTAAGTTAAAATTTTTTA   2754
-                                                                                                                                               || ||||   ||    ||| | | ||      | | | |||      |
-scaffold_510                                                                                                                           23700 TGTTTCCAGTGTGCTGGGACAACTGAATA-----AGGATGAAAGG----A  23740
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2755 TCATCTTTTTTAAAAAAACCGGTGTTCGGTATATACCGGTATACCGCCCA   2804
-                                                                                                                                             ||||     | ||| |||           ||| | |      ||| ||||
-scaffold_510                                                                                                                           23741 TCAT-----TGAAACAAA-----------TATCTTC------ACCCCCCA  23768
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2805 GCACTAATTTTTGGTTAGGTTAACATGCCCTATAACCTGGGCTTTTATCT   2854
-                                                                                                                                               |  |      |  ||     | |||   |||    ||  || ||| | 
-scaffold_510                                                                                                                           23769 AAAAAA------GCATAAAAGCAGATGGATTAT----TGCTCTGTTAACA  23808
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2855 CTTTCCTGCACTAGAGTTGGGACAGGTTAACATTCGTGTAGTTTTATAAA   2904
-                                                                                                                                             |  |  | |   | ||      ||    |||| |  || |||   |  ||
-scaffold_510                                                                                                                           23809 CAATTTTACCAAAAAGCCTC--CAACCAAACAGT--TGCAGT---AGCAA  23851
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2905 ACACGAACTTTTTTTGTGCAGGTGGTGGTGGAGACAGAGGATATGGTGGA   2954
-                                                                                                                                             | | |   |   || |    | || |||  ||  |  |  |  |  |  |
-scaffold_510                                                                                                                           23852 AGATG---TGGGTTAGCTTGGATGTTGGGTGAACCTCAAAACCTAATA-A  23897
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  2955 AGCAGCCGCTTTGAAAACAGAAGTGGAGGTTACCAAAGCAGTGGATCCAG   3004
-                                                                                                                                             ||||      | ||||| ||| | |||  || |||    |  | | |   
-scaffold_510                                                                                                                           23898 AGCA------TAGAAAA-AGATG-GGACATTCCCATTTAAAAGAAACTGC  23939
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3005 G-GATTACTATGGCAGGTAAGTTTTGTGAATGCTCTGTAAGACTTCATTC   3053
-                                                                                                                                             | ||  | | |      |||     | |||    | |||| || |  |  
-scaffold_510                                                                                                                           23940 GTGAAAAATCTATACTCTAAAA---GAGAACTTGCAGTAAAACCTTGTCG  23986
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3054 TATTTTGATATTTGTTCTCCTGACATGGCCTGTGTCTCTCGTGGCAGGAG   3103
-                                                                                                                                             | || |     ||| | || | |  ||  |||  | |       | | | 
-scaffold_510                                                                                                                           23987 TCTTGT-----TTGCTTTC-TAAAGTG--CTGC-TATAAAAAAACTGAAA  24027
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3104 TCATGGAAGCTATGGTGAT-CGTTCCGGAGGATCCTA-CAGGGATAGTTA   3151
-                                                                                                                                             | | ||||||   |||  | | ||  | | |   ||  ||  | |  |||
-scaffold_510                                                                                                                           24028 T-AGGGAAGCA--GGTACTGCCTTGTGCATGTGACTTTCACTGTT--TTA  24072
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3152 TGACAGCTATAGTAAGTATGTGGGGAAGTTACTAGA-GAGGAGGGTGGAA   3200
-                                                                                                                                             |||          |||| | | ||  || |  |||  ||  | |||||| 
-scaffold_510                                                                                                                           24073 TGA----------AAGTTTTTTGGAGAGCTTTTAGCTGACAAAGGTGGAG  24112
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3201 AGGGTGGTACGTCAGTTGTGATCTTCGTGTTCCATCCAGTGATGGCTCTT   3250
-                                                                                                                                                ||   |   |||| ||||  ||         | | |||  || | ||
-scaffold_510                                                                                                                           24113 CATGTCACATACCAGT-GTGACTTT---------TACTGTGTGGGGTGTT  24152
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3251 AACTTCTCAATTTCTCAATTTGCCTCTAATGCATGTGTTGGTTCTGTCCT   3300
-                                                                                                                                                ||| || | |     ||||  |  |||   |||  |      || | 
-scaffold_510                                                                                                                           24153 ---TTCACATTATTG---TTTGGTTGGAAT---TGTCATTTAAAAGTACA  24193
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3301 GGCTACAGGCAATAAGTGTTGGGTAGACATAGCTGGGAAGGGTATGTAGT   3350
-                                                                                                                                             | |  ||||            ||   |||||||||        ||    |
-scaffold_510                                                                                                                           24194 GCCCCCAGG------------GGCTTACATAGCTGCTCG----ATTCCCT  24227
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3351 ACCAGTTTAGGGGAGGTGATGCTGGAATCTGTGCCTTTACAACTGTGCCT   3400
-                                                                                                                                             | |||  |    |   | ||  ||   | |||  |||    |||||  ||
-scaffold_510                                                                                                                           24228 ATCAGAAT----GTTATAATATTGC--TTTGTAACTT----ACTGTAACT  24267
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3401 GCTTCTTG-TCCTCAGCTACACAAGAGTAAAATCCATTCCTGACTCAAGA   3449
-                                                                                                                                              |||   | |  |  | ||   | ||| ||||    || || ||| | ||
-scaffold_510                                                                                                                           24268 ACTTAAAGCTATTTTGATAGG-AGGAGGAAAAATATTTACTAACT-AGGA  24315
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3450 TCGTCCTTCCAATGGCTGTATTTATAAAGATTTTTGGAGCTTCGCCGAAT   3499
-                                                                                                                                             |             || ||||| ||  |||    ||    ||        
-scaffold_510                                                                                                                           24316 T-------------GCAGTATTAATTTAGAACACTG----TT--------  24340
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3500 CGTTTGTGTAGTATATCTACTTGTGTTCACTTTTTTTTTTAATAGACCTA   3549
-                                                                                                                                               ||  | ||| || | | | ||    ||||  |||       | ||   
-scaffold_510                                                                                                                           24341 --TTACTCTAGGATTTGTTCCTG----CACTAATTT-------ACAC---  24374
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3550 GTTAGCCTGACAGCTTCTCTAATAAGTGGGACAGCTGTGTTTCAAAGGCT   3599
-                                                                                                                                              ||  ||  ||  | | ||||       ||||||         | ||   
-scaffold_510                                                                                                                           24375 -TTTCCC--ACTACATATCTA-------GGACAGT--------ATAG---  24403
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3600 TTATCTTTGGACACCTAATCTCATTCTTAAAGTTACTGTGTTCTGCAAGG   3649
-                                                                                                                                                    ||||  |  ||       |  ||||||    ||  | |||   
-scaffold_510                                                                                                                           24404 -------TGGATGC--AA-------CAGAAAGTTT---TGGCCAGCAT--  24432
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3650 ATATTCCTATCCTACTATGCTGTTCCATTCAAGCTGATCAGGTGGGGCTG   3699
-                                                                                                                                             | ||||||||             ||| |   || | || | |||  | ||
-scaffold_510                                                                                                                           24433 ACATTCCTAT-------------TCCTTATCAG-TAAT-ACGTGACGTTG  24467
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3700 CTCCCCCTTCTGGTTAAGTAGTGCTAGGAAGTAACTTCCTAAGCGGATGG   3749
-                                                                                                                                                         |  |||||            || ||  | |   |||  
-scaffold_510                                                                                                                           24468 ------------GAAAAGTA------------AAATTAATTAAAAGAT--  24491
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3750 GTGCTGTTGGTTGATGGGCAGAGAAGCACCTGTATTAGTAGCAGACTGCT   3799
-                                                                                                                                                ||     | |||  || |  ||| |   ||||||  | |      ||
-scaffold_510                                                                                                                           24492 ---CTCCATCTCGATTTGCCGTTAAGGATTAGTATTAACATCT-----CT  24533
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3800 AGGCCTGTCTTCCTGTAGCATTGTTTAAAGAACTTTAAGCTGCTGTATTT   3849
-                                                                                                                                             |  || ||  | ||  | | ||    |    |||| | |   |||  || 
-scaffold_510                                                                                                                           24534 AAACCAGTGGTTCTCAACCTTTCC--ACGTTACTTCAGGTGTCTGATTTG  24581
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3850 TTTGGTTACATGAAAAGTTAATTTTATGAGTCCACTTAAATTGCATTCCT   3899
-                                                                                                                                             | | |  | ||   |||||  |  | ||| |  |   ||| | | || ||
-scaffold_510                                                                                                                           24582 TCTTGC-ATATTCCAAGTT--TCATCTGACTTAA---AAACTAC-TTGCT  24624
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3900 TTAGTGTAACAAGGCAAGGCAGAGCTTGGGTGCGCTGTATATAGTGGCTA   3949
-                                                                                                                                             |       ||||    |  ||||               ||| |       
-scaffold_510                                                                                                                           24625 T-------ACAA----AATCAGAC--------------ATAAAA------  24643
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  3950 CACCTCCTTGATACACAAAGTGAATAGTGTTCGCATCTCCAGTAACAATA   3999
-                                                                                                                                                       ||||| ||||||        || || | |  |  | | ||
-scaffold_510                                                                                                                           24644 ----------ATACA-AAAGTG--------TCTCAGCACACGATATATTA  24674
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4000 TCAGAAGAAGTTCTTAAAATGTTTGTTTATATTGTCCTTTTTTTACTAAA   4049
-                                                                                                                                              | ||| || | ||||     ||| |    |||| | | |  ||| ||||
-scaffold_510                                                                                                                           24675 -CTGAAAAATTGCTTAC----TTTCTC---ATTGCCATATAATTA-TAAA  24715
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4050 CATGCAACTATTGTACTGAAGTGGCTAAGGAATTGTATTCTACTTTTGAT   4099
-                                                                                                                                                  | | |||    ||||     |||       |||| ||| ||| | 
-scaffold_510                                                                                                                           24716 -----ATCAATT----TGAATA---TAAA------TATTTTACATTTCAG  24747
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4100 TGGCTTCACGAAGCCTATTAAAAAAACCAATGTGAAAAG--AATTGCGCT   4147
-                                                                                                                                             |                  | | | | |||| | || ||  |||||    
-scaffold_510                                                                                                                           24748 T------------------ATATAGAGCAATATAAACAGGTAATTGTCTG  24779
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4148 CCTGATGTTTAAA-TTCTGC--ACAACATGGATGTATCTTATGCTAGGTG   4194
-                                                                                                                                               ||| |||| |  || | |  ||  ||    ||  | ||||  |||   
-scaffold_510                                                                                                                           24780 TATGAAGTTTTAGCTTGTACTGACTTCACTAGTGCTTTTTATA-TAGCCT  24828
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4195 GGGACCATAGACCCAAGGGCTAATGGCTTATAAAGGGGAACTCATAAGAT   4244
-                                                                                                                                             |   |  || | | |  | | |||  ||     ||  ||  |     |||
-scaffold_510                                                                                                                           24829 G---CTGTAAAACTA--GCCAAATACCT-----AGATGACTT-----GAT  24863
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4245 CCACTTACTGCAA-ACACCTGGCATTGATCACCTTGTTCAGGCTGGCTCC   4293
-                                                                                                                                               ||   ||| || ||  |||   |  ||| ||| ||| ||     || |
-scaffold_510                                                                                                                           24864 GTACCCCCTGGAAGACCTCTG---TGTATC-CCTGGTTGAGAACCACTGC  24909
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4294 CAGCATTCATCTGTATTTTGCAATGCCATGGTTTGAGTGTCTGCAGTGTT   4343
-                                                                                                                                                 |  || |  ||  | |  |  ||| |||           ||| |||
-scaffold_510                                                                                                                           24910 GCTAAACCACCACTAACTGG--AGCCCAGGGT-----------CAGGGTT  24946
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4344 GGGGAAGAACT-AAAACTGCCGTGCCAAATTTT-TAAATAAATT----AA   4387
-                                                                                                                                               |||  | ||   |||||    ||| | |||| | |  | |||    | 
-scaffold_510                                                                                                                           24947 AAGGACCATCTGGGAACTGGGAGGCCCAGTTTTATTACCAGATTGGCTAC  24996
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4388 ACCT--TTTTTGTGAGGATTAAGCATCAGTAGAATCTGCATGCTTTGCAT   4435
-                                                                                                                                             |  |  |||||||| | ||||        || || |  |          |
-scaffold_510                                                                                                                           24997 AGGTGATTTTTGTG-GCATTA--------TACAAACCAC----------T  25027
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4436 TAAGCTACA-TTTTGAGTAGTTACTCTTGTTAAAGACCTCTAATTGCAGG   4484
-                                                                                                                                             ||| || || |||||  |  ||||   | | ||||     |||   || |
-scaffold_510                                                                                                                           25028 TAATCTCCACTTTTGTTTCCTTACC--TATAAAAGT----TAACCTCATG  25071
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4485 TTTTGGCTAGGAGGCAAAGGTACTTGGCAGCAGTCAGTTTATAAAAGTAG   4534
-                                                                                                                                                 ||  |   | ||||| |  ||| |   |||    || | |||    
-scaffold_510                                                                                                                           25072 ----GGGGAAATGACAAAGCTGTTTGTCG--AGTG---TTCTGAAA----  25108
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4535 CTATACACTTACAACTACAAATTTTACTAGATGGGTGACTTTCCTAGTAA   4584
-                                                                                                                                                | | || |    |  ||  |||| || |     || ||       ||
-scaffold_510                                                                                                                           25109 ---TCCTCTCA----TGGAAGGTTTAGTACA-----GAATT-------AA  25139
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4585 GTTTATGGGAAGTTTTTGTATGAAGAAAAAATTTAGCCTCTAATATACAA   4634
-                                                                                                                                              |||||  || || |  |  | || ||||||| | |||  |         
-scaffold_510                                                                                                                           25140 CTTTATCTGA-GTCTAGGGCTCAA-AAAAAATCTTGCCAGT---------  25178
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4635 GGTTATCCTGGGTGAGGGGTAATAACATGTGGTCACTGAACTGCCTAGTT   4684
-                                                                                                                                                             ||  ||||  | |     || ||  | |||||  
-scaffold_510                                                                                                                           25179 ----------------GGCAAATACGAAG-----ACAGA--TTCCTAG--  25203
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4685 TACTTTTGCTGCTGT-ATGACAGTTTATATAAGTATAACTGCTGCCATGG   4733
-                                                                                                                                               ||||  | ||||| |  ||||     | ||||| | |           
-scaffold_510                                                                                                                           25204 --CTTTAACGGCTGTTAATACAGCCATCAAAAGTAAATC-----------  25240
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4734 AAGGGAAGCTGGACAGAACTTAGTTTAG-ACAAAACAATACTGGTTACCT   4782
-                                                                                                                                              || | || |   |||||  | |   || ||  |||  | ||| |  | |
-scaffold_510                                                                                                                           25241 -AGAGTAGGTTTGCAGAATCTGGAGAAGTACTCAAC--TGCTGCTC-CAT  25286
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4783 TCTAAGAATCCTCTGCTAGAGTACCGAAGAGGCAGTCTCCTTGGAAAATG   4832
-                                                                                                                                             | |  |   | ||| |||| ||           || ||     || | | 
-scaffold_510                                                                                                                           25287 TTTGCGGTGCATCT-CTAGTGTG----------AGACT-----GACATTT  25320
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4833 AAGTTTGTGCCTCCAGTGAAACCTGAGACGAAAGCTGCTCTTGGCTAGTT   4882
-                                                                                                                                             || | |||   | |||||| |  | |  | ||| ||  ||| ||| |   
-scaffold_510                                                                                                                           25321 AAATATGT---TTCAGTGACAG-TAATTCCAAACCT--TCTGGGCGAA--  25362
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4883 CATA-TGTGGAATTAGTCCAGTAATTCGAGGTAACTCTTTTGCTCCTGTC   4931
-                                                                                                                                             || | | |  ||||    ||||  ||  ||| ||  |||           
-scaffold_510                                                                                                                           25363 CAAACTCTTAAATTGA--CAGTGTTT--AGGAAAG-CTT-----------  25396
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4932 CACGTCCCTCCTCCTTGAGCTCATTTAACTTTTTATTTTTGTGCTTGTGA   4981
-                                                                                                                                              ||   | ||       |||  |  ||    || ||  ||   | | | |
-scaffold_510                                                                                                                           25397 -ACAAACATC-------AGCAAAAGTAGACATTGATCCTTC--CCTAT-A  25435
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  4982 AATTTTGCTACTCCCAAAAAGCTTAATATGAACCTTAGTTCTTCAGATCC   5031
-                                                                                                                                             ||||   || |||||      ||   || ||| |  |  ||||    |||
-scaffold_510                                                                                                                           25436 AATTACTCT-CTCCC------CTCCTTAAGAAGCAAATGTCTT----TCC  25474
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5032 ACAAGATTTCTGTGCTTTAGTTCC-ACTTCTATCA-----AATACAGTAT   5075
-                                                                                                                                                   || ||| |   |  |||| ||||  ||||     || || | | 
-scaffold_510                                                                                                                           25475 ------TTGCTGAGTCGTCTTTCCCACTTGCATCAGTGAGAAGACTGGA-  25517
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5076 CATGTATACCATATTTTTTTTGTTTTGAACCTTATCACTTTTTGTGGAAA   5125
-                                                                                                                                              | ||  |  | ||  | | | | ||   |||  | |      ||| |  
-scaffold_510                                                                                                                           25518 -AAGTTGAAGAGATGGTATGTTTATT---CCTGCT-AGGGAAGGTGAAGC  25562
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5126 CCAAGTTAATGACACTTGGCAGTGCCCT----ATAAACTTAATGGCCAAA   5171
-                                                                                                                                               || |||   | |   | ||| ||| |    | ||  | |||  || ||
-scaffold_510                                                                                                                           25563 TTAATTTACAAAAA---GCCAGAGCCTTGATCAGAACGTGAATTCCCCAA  25609
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5172 ---AATGCAATGACCCAAGACAT-TGATGCATCAGTACCAAATTCACAA-   5216
-                                                                                                                                                |  | || || |||||  |  || |||| |     |   ||  ||  
-scaffold_510                                                                                                                           25610 TCAAGAGGAAAGAGCCAAGTTAAGTGGTGCAGCTTGGACTGCTTGCCAGG  25659
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5217 ---TTGTCCACACTGCTTTCAGTTTGGTTGTTCTGATTTGATGACTAATC   5263
-                                                                                                                                                ||| | |  |  ||| |    |||| |  || ||||     ||  ||
-scaffold_510                                                                                                                           25660 CTTTTGCCAAGGCATCTTGC----TGGTAGAGCTCATTT-----CTCTTC  25700
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5264 ACATTATGTTTTACAGGCTGACCTTTTAAATGCAAACAGTCT-TAAAGAG   5312
-                                                                                                                                             |  ||   | | |    ||| | |  || ||| ||    ||| ||   | 
-scaffold_510                                                                                                                           25701 ATCTTTCATATAATCATCTGGCTTAATAGATGTAAT---TCTCTAGCTAC  25747
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5313 GATTGATAGA--ACAGAA-TTG-CATACTACAGGGTGGCTTTTGCAGTAA   5358
-                                                                                                                                             | |  ||| |  ||| || ||| ||| |  |  ||| |  ||  |||| |
-scaffold_510                                                                                                                           25748 GTTAAATATATTACAAAAATTGTCATGC--CCTGGTAGAATT--CAGTTA  25793
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5359 CTGCAGGGTGTGTAAGACTTTCTGGTACTTTGTTTGGAAGTTTGATTTGA   5408
-                                                                                                                                             |||||   || | |          ||  ||   |||  |    || |  |
-scaffold_510                                                                                                                           25794 CTGCAA--TGAGCA----------GTTGTTCAATTGCCAA---GAGTATA  25828
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5409 ACGTTCAACATTTTGTTAATTATCTTCCTGTATTCTTTAGGAACTGGCTG   5458
-                                                                                                                                             ||    ||  |||||   || ||    | | || |||  || | |     
-scaffold_510                                                                                                                           25829 ACTCCTAATGTTTTGG--ATAATGGAGCCG-ATGCTTATGGCAAT-----  25870
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5459 TGGAAGGCAAGATACAGGGATGCTGTTTGAATTCGACTGCTGTATATTCA   5508
-                                                                                                                                                     ||  | |     ||  || | |  || |||| ||||  |  |
-scaffold_510                                                                                                                           25871 --------AAATTTCT----TGACGTGTCA--TCTACTG-TGTAC-TGGA  25904
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5509 CAAGACCTGGCT--AAAGACTTTTTTTTTTAATCAAATCAAACTTTA---   5553
-                                                                                                                                             | ||   | | |  |||||      | ||  ||  || ||   | |    
-scaffold_510                                                                                                                           25905 CCAGTTGTAGTTCAAAAGA------TGTTACATGTAAGCATTGTGTGAGG  25948
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5554 TATGCTGACAACCCCTATACTATTTTTATCAAACTGTATTCACCAGTTTA   5603
-                                                                                                                                             | ||||| |||||  || |    ||| ||        || |||     | 
-scaffold_510                                                                                                                           25949 TCTGCTG-CAACCTGTAGA----TTTAAT--------ATACAC-----TC  25980
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5604 GTTTCTTGATACCATATTAATATTTTAGTTATGGAATGTAAGCAGT--TA   5651
-                                                                                                                                             ||  |||  |    |  ||||  |||  |    |||||  ||| ||  ||
-scaffold_510                                                                                                                           25981 GTGCCTTATTT---TTCTAATTCTTTCCTCCAAGAATGGCAGCTGTGCTA  26027
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5652 AA-CAGGCAACTTTTATCACTGAACTTCATTT--ATATGTTGTGTACTTC   5698
-                                                                                                                                             |   ||  |||  ||  || ||  | | | |   | | ||||| | | ||
-scaffold_510                                                                                                                           26028 ATGGAGTAAACCATTG-CAATGGGCATTAATGCAACAAGTTGTTTGCCTC  26076
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5699 ATACAACCCAGGCATGTTCCTCTT--CTGTCTACTCTTAGTTCAGGCCTG   5746
-                                                                                                                                              |||     |  | | ||| | |   | || |  |  |  | |||  |||
-scaffold_510                                                                                                                           26077 -TACTTGAAAC-CGTTTTCTTATAAACAGTGTCTTGATGATCCAG--CTG  26122
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5747 ATTTACTTATC-CTCCTTTGTCCACCACTACACCATTCCACAGCATAAGG   5795
-                                                                                                                                             || |||| ||| |||||| ||     | | ||  |||   |  || || |
-scaffold_510                                                                                                                           26123 ATATACTCATCACTCCTT-GT-----AGT-CATGATTGTCC--CAGAATG  26163
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5796 TGCTA-TATTCATACTTGATTATATTCTCATGTACCACACTTTCATACAG   5844
-                                                                                                                                               ||  |||||||| | |      | || |||  |  ||  |   |   |
-scaffold_510                                                                                                                           26164 CACTGGTATTCATAATGG------TCCTAATGATCAGCAAGTGACTTTGG  26207
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5845 TAGACTGCTAACAAACTTGTGGAGATATTGTGTGACCACCTCCCTGTCCC   5894
-                                                                                                                                             |   |||| ||||||  || |||    ||             | |||   
-scaffold_510                                                                                                                           26208 TTCCCTGC-AACAAA--TGCGGATCATTT-------------CATGT---  26238
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5895 CTGATGCAGGGAAAATAAAGAGGAAGCAGACGGTTGCAGGCCCAGTGGAG   5944
-                                                                                                                                                  || ||||       ||   ||||||               |||| 
-scaffold_510                                                                                                                           26239 -----GCGGGGAGT-----GAATTAGCAGA---------------TGGAC  26263
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5945 CACTAACTGAACAGTCTCAATATATCTTGTTAGAAATGGTTAACTTGGCA   5994
-                                                                                                                                                |||||        | ||| | | |||||   |  | |  | |  |||
-scaffold_510                                                                                                                           26264 ATGTAACT--------TTAATGTTT-TTGTTCCCACAGTTGTA-TCAGCA  26303
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  5995 AT---GTTTTGCCATAAATTGTT-TACTGTGGAATCCAGTAACCT-AGTA   6039
-                                                                                                                                              |   |||| | |  |||   || | |||||   |  ||| |  | ||||
-scaffold_510                                                                                                                           26304 GTTCAGTTTGGTCTGAAAGCTTTGTGCTGTGTCTT--AGTTAATTCAGTA  26351
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  6040 AAACCATGGATTGTAGCAGAGAATAACTACAATAAAGGTTTTATTCTGCT   6089
-                                                                                                                                              |  |||    | | ||| |    | ||||||| |           ||| 
-scaffold_510                                                                                                                           26352 -AGTCATAACGTTT-GCACATTCCAGCTACAATTAG----------TGCA  26389
-
-NC_030677.1:c81005135-80999044 Xenopus tropicalis strain Nigerian chromosome 1, Xenopus_tropicalis_v9.1, whole genome shotgun sequence  6090 TGA   6092
-                                                                                                                                              ||
-scaffold_510                                                                                                                           26390 AGA  26392
+Xenopus_CIRBP      1 TCCCAGCGACAATATTCAGCCAATACCAGCAAATAAATCCCAAGAAGCGG     50
+                     ||            ||||   || | |||    |||||    | |||  |
+scaffold_510   21286 TCT-----------TTCA---AAAAGCAGATGTTAAATGTATAAAAGTTG  21321
+
+Xenopus_CIRBP     51 TCAGGCG-ACTGGA-TCGTCAATTCTAATATGACTCCTCCTCTGAGAAGC     98
+                         | | ||| |  | || | ||  ||  | |    | | |||| | ||
+scaffold_510   21322 AGCTGTGTACTAGTGTTGTAACTTTCAAAGTAAAAGTTTCCCTGAAATGC  21371
+
+Xenopus_CIRBP     99 ATCCATTGGTATGAAATTATTGTACACTATGGTTATAG---TTC-AAGAA    144
+                       |  ||   ||   ||| |  |     ||||    ||   ||| |||| 
+scaffold_510   21372 CACACTTCCCATCTGATTTTCCTCATGAATGGAACAAGCAGTTCTAAGAT  21421
+
+Xenopus_CIRBP    145 AATGAACAAAA-ATAAACACATC--ATGTGGTAATAGTTTTTAACTAACC    191
+                       |  ||| || ||  |  ||||  |  |||  || | |  |  |||  |
+scaffold_510   21422 CTTCCACACAACATCTAGCCATCTAAAATGGAGATGGATCGTT-CTACAC  21470
+
+Xenopus_CIRBP    192 ACTGCAATACAAATAGTGAACTCTTTATTCATCCGCATTGCTCTGAATGA    241
+                     | |  ||  |  ||  |||||   ||| | |   |   || | || | | 
+scaffold_510   21471 ATTCAAACTCTCATTCTGAACAAATTAGTTACTTG---TGGTGTGGAGGG  21517
+
+Xenopus_CIRBP    242 TCTTTTTTCAATATCGCGCTATCATCCAAATGGTGTCGCCC--GAACTGG    289
+                     |  |       |  | | |||| ||   |   || ||  |   |  ||| 
+scaffold_510   21518 TGGTGGGGATGTGCCACACTATAATTTCA---GTTTCCTCTTGGTTCTGA  21564
+
+Xenopus_CIRBP    290 AATGAAATAA-ATTA----TTCATGATGTGGGCGGGGTTAGTCGTCGTAT    334
+                     ||| | | |  |||     ||||  || |   | |      || | || |
+scaffold_510   21565 AATCACACAGTATTCCCAGTTCAAAATTTCTTCAGA-----TCCTTGTGT  21609
+
+Xenopus_CIRBP    335 AAATGACCAAGTTCCGGAGTGAATTGCGCACTTCGCATTCGGCTTCCAAC    384
+                     |||  |  ||  |  ||| |  |||   || |   || |   |    |||
+scaffold_510   21610 AAAGAAAAAA--TAAGGATTCCATT---CAGT---CACTAAACCAGAAAC  21651
+
+Xenopus_CIRBP    385 TTGTGTTGTATCGTCCGAAGATCATAGAACGTAAGTGGGGTTTTTGGTTT    434
+                           || ||  | |   || ||||                ||||  ||
+scaffold_510   21652 AGCAAATGGATAATGCT--GACCATAC---------------TTTGCCTT  21684
+
+Xenopus_CIRBP    435 TCTTCTGGTTTCAGCGTGTGAATTGTGGAGGTTAGCTCATGTGTCAATTG    484
+                      || ||| |||  || || |||||    |||  | ||| |    |||   
+scaffold_510   21685 CCTACTGTTTT--GC-TGGGAATTTGCAAGG--ACCTC-TCCCCCAAAAT  21728
+
+Xenopus_CIRBP    485 TTGCCCAATACATTGTAGGTATTCTG-TATACGTGGTCGCATTTAGTAG-    532
+                        ||   ||||| |||   | |||| || |       | |  ||  || 
+scaffold_510   21729 AAACCATTTACAT-GTAATAAGTCTGCTACAGAATACTGTAAATAAAAGG  21777
+
+Xenopus_CIRBP    533 TTTAA--AATTCCTCGTTCTAAAACGCCTCAAATACCGTGTCATACTCGC    580
+                     ||| |  ||||| ||     || | ||  |||| ||  || | |||||  
+scaffold_510   21778 TTTGACCAATTCATCA----AAGAAGCTACAAA-ACGATG-CTTACTC--  21819
+
+Xenopus_CIRBP    581 GCCTTCGCGGCAAAACTGGCACGAATCTACATGTGGCTTAAATTAATTTA    630
+                                 | ||||   | ||| |     | ||  || |   | ||
+scaffold_510   21820 ------------ATACTGTTTCAAATTT-----TTGC--AACTCTGTGTA  21850
+
+Xenopus_CIRBP    631 TTGGAAGGCTCTTATTTAATTTATTGGAAGGCTCTTATTTTCTTCGTAGT    680
+                      ||      ||| | ||   |||  ||||    | | |||  |||  |  
+scaffold_510   21851 GTG------TCTCACTT---TTAAAGGAA----CATCTTTGATTCCAAAG  21887
+
+Xenopus_CIRBP    681 GCTAGTCGAAGAGCTGTATATGAGCACAATTCATTATTTGGCGCGTAGTT    730
+                     || | | ||  |  |  | || |||| |    | | |||  | |  | ||
+scaffold_510   21888 GCAAATGGAGAAAATA-AGATAAGCAAAGA--AGTCTTTCTCTCCAACTT  21934
+
+Xenopus_CIRBP    731 TTTTTTTTTTTTTTGTTTAATAAAA-CAA-TGAAACTGTCGAC--TGAAG    776
+                      |       || |   || |||||| ||| |||| || ||  |  |  | 
+scaffold_510   21935 CTCAAAGGCTTATGACTTCATAAAAACAAGTGAATCTTTCAGCATTCCAC  21984
+
+Xenopus_CIRBP    777 AGTCGATGTAAAAATCCTAGCGATTGTGC----GTGTAGATGGCGAAATA    822
+                     |   ||| ||||    | |  |  ||||     |   ||||||  ||  |
+scaffold_510   21985 AACAGATTTAAAGCATCAAATGCCTGTGAAACAGCAAAGATGGGTAAGCA  22034
+
+Xenopus_CIRBP    823 AATCCCTCACACGTTACCGTAAGTGACGTCATCCATGGGCTGAATTCCCG    872
+                     || |    ||  |||    | |||   ||||    ||  |  |||| || 
+scaffold_510   22035 AAGCAA--ACTAGTTTT--TCAGTCT-GTCAAAATTGAACCAAATTACCT  22079
+
+Xenopus_CIRBP    873 CCTTCTATTGTGCTACTGCGGCAAGGCTCGGATCTCTACCACGTGG---T    919
+                      | |||       || | | | ||| |  |   || |||  | |||   |
+scaffold_510   22080 TCCTCT-------TAGTACAGTAAGACATG---CTGTACGTCATGGCAAT  22119
+
+Xenopus_CIRBP    920 GGCGG------CCATATTGGAAAGCGCTTCATGTGGCTTTGTCGTCTTTC    963
+                     ||  |      |  ||||  |||     || | |||    |  ||  |  
+scaffold_510   22120 GGAAGTGCTTTCTGTATTTAAAACAATATCTTATGGAAAAGCAGTGCTGG  22169
+
+Xenopus_CIRBP    964 TTT--ATTAG--GTCT--------CACCATGTCTTGTGATGAAGGAAAAC   1001
+                          |||||  ||||        || ||| |||| | ||| |   ||| 
+scaffold_510   22170 AAAGCATTAGAAGTCTTCCAAATTCAACATTTCTTCTTATGGATATAAAG  22219
+
+Xenopus_CIRBP   1002 TCTTTGTCGGTGGTCTGAATTTTGAAACCACAGAG-----GAA---AGCT   1043
+                       | | |    ||  | ||||||||||| | || |     |||   ||||
+scaffold_510   22220 CATGTAT----GGCATCAATTTTGAAACTAAAGCGTTTAAGAATGCAGCT  22265
+
+Xenopus_CIRBP   1044 TGGAGC--AAGTGTTTAGCAAA-TATGGACAGGTTGCTGAAGG-TATGCG   1089
+                      | ||   || | | | ||||| || ||   ||  |  |||   ||||| 
+scaffold_510   22266 CGTAGACAAAATATGTTGCAAAGTAGGGTTGGGAGGGGGAATTCTATGCT  22315
+
+Xenopus_CIRBP   1090 TGGGCCTTTTTTTTTATTTTTTTTAAAATTAGTTCTTAAGGTTTTTTTTT   1139
+                       |    |||   | |      ||||||  ||  ||  |        | |
+scaffold_510   22316 CAGTATGTTTCACTGAAGACACTTAAAACAAG--CTGCA--------TAT  22355
+
+Xenopus_CIRBP   1140 TTTGTTTTTTTTCCTCCTACTAAAGCAATGTGTGTTTTCAGTGGTTGTGG   1189
+                       | | ||| |  |   || ||||    ||  ||   ||||   ||| | 
+scaffold_510   22356 ACTATATTTCTAACAAATATTAAAATCCTGA-TGAAATCAGGAATTG-GC  22403
+
+Xenopus_CIRBP   1190 TGAAGGATCGGGAAAGCAAG-AGATCCAGAGGCTTTGGCTTTGTCA----   1234
+                     | |  ||| |  |||   |  || ||  |    || ||| || |||    
+scaffold_510   22404 TTA--GATTGCCAAATATATCAGCTC--GGATATTGGGCATTTTCAAGCA  22449
+
+Xenopus_CIRBP   1235 --CATTTGAGAATCCTGAAGATGCCAAGGATGCTATGATGGCAATGAATG   1282
+                       |  |||  || | ||| | |     ||||||  |||    | |  |  
+scaffold_510   22450 AGCCATTGCAAA-CTTGACGTTTAGTTGGATGCC-TGACTTTATTTTAGT  22497
+
+Xenopus_CIRBP   1283 GGAAGGTAAATGCACACATAGTAACAAATCCTTTTAGGTGTAAAGAGCAA   1332
+                          | || ||||   |||     |||| ||  ||   ||     ||| 
+scaffold_510   22498 TTTGTGAAACTGCATT-ATATGGGGAAATTCTAGTACAAGTG----GCAG  22542
+
+Xenopus_CIRBP   1333 ATCTGATTCACTGTCTTAAGTTTATAACTGCCAGGAGGTTGGTGTTTATT   1382
+                     | |       ||||  | ||||   |  | |||||           ||  
+scaffold_510   22543 AAC-------CTGTGGTGAGTTGTCATGTCCCAGG-----------TAGA  22574
+
+Xenopus_CIRBP   1383 GCTGGGATATGTAACATATG---TGGCATATTGTCCTTGATATTTGCATA   1429
+                     ||   ||  |  || | |||   | | |||| ||     | | ||| | |
+scaffold_510   22575 GCCATGAAGTTCAAAAGATGCTCTTGAATATAGT-----AGACTTGAAGA  22619
+
+Xenopus_CIRBP   1430 CTACCA-CTAGATGGTCACTGTATTAATTAA-TAATGCTATGAAGGCACT   1477
+                     || ||| ||| |     ||  | ||| |    || | ||  |||   | |
+scaffold_510   22620 CTTCCAACTAAAAAAA-ACGTTGTTACTACTCTAGTCCTCAGAATAAATT  22668
+
+Xenopus_CIRBP   1478 AGGTAACCGCCTTGT--ATTTTGCAACCTCTAGATATAAACTTG--AGGT   1523
+                      |     |  ||| |  ||||   ||| |     |  |   |||  | | 
+scaffold_510   22669 TGCCGTTCATCTTATGGATTT---AACATGGCAGTGCACCATTGGAAAGG  22715
+
+Xenopus_CIRBP   1524 AAACTGCCTTTCTTGAACTGTGAAGGCCCTTTAATTTACTTATTCTAAGC   1573
+                     ||   |  |  | | | |  || |   ||| | | | |   |||| |  |
+scaffold_510   22716 AATGAGAATC-CATAAGCCATGCAA--CCTGTCACTAAGCCATTCCAGTC  22762
+
+Xenopus_CIRBP   1574 CAAAACA-GTAATTGAAATTAATAACATGTTCTAAAAAGGTGTATAGTTA   1622
+                     ||   || |  | ||||  |   | ||  |   ||| ||  |||    ||
+scaffold_510   22763 CATTCCAAGCCAGTGAACCTTCCACCACTT---AAAGAGAAGTAG---TA  22806
+
+Xenopus_CIRBP   1623 TAAATCATGACTAAACAAAGCACAAAGACAAG--TGTAA---TTCAGTGA   1667
+                      || |    ||  |  ||    ||||  ||||  ||| |   ||| | ||
+scaffold_510   22807 GAACTTGAAACACATTAATCTGCAAACCCAAGCTTGTGACTTTTCTGGGA  22856
+
+Xenopus_CIRBP   1668 ACAGTACACTGACTTAAATGGCTAAAAATGTCCATTAAACAGTAAATCTG   1717
+                      | | ||| | | |    ||| |||      ||||| || |     ||| 
+scaffold_510   22857 CCGGGACAGTTA-TAGGTTGGATAA------CCATTTAAAATCTGTTCTA  22899
+
+Xenopus_CIRBP   1718 ACAATATGGCTTAACTTTTTTAATTTTTTTTTTTTTATATATATAGTCTG   1767
+                      |  | || | || || |||||||| ||                 |   |
+scaffold_510   22900 GC--TCTGTCATATCTGTTTTAATTGTT-----------------GCAGG  22930
+
+Xenopus_CIRBP   1768 TAGATGGCCGTCAAATCCGTGTTGATCAGGCTGGCAAGTCCTCCAATGAT   1817
+                     | |||  || |||||  |||| || | | | |||    ||          
+scaffold_510   22931 TTGATTACCTTCAAAGGCGTGATGGTNATGATGG----TC----------  22966
+
+Xenopus_CIRBP   1818 AGGAGAGGTGGTTACAGAGGTGGCTCTTCTGGAGGCAGAGGGTTCTTCCG   1867
+                             ||  |||||   || | | |||| | | | | |   |  | |
+scaffold_510   22967 --------TGAGTACAGTTCTGACACATCTGCATGGATAAGTGACAGCAG  23008
+
+Xenopus_CIRBP   1868 TGGAGGCAGAGGCCGAGGT---TGGTATACATACTTTAGTGACATTGCA-   1913
+                       |   |||| |   ||||   |  |||| |||   | || || || || 
+scaffold_510   23009 CTGTAACAGAAGGAAAGGTAAATTATATA-ATAGCATTGTAACTTTACAG  23057
+
+Xenopus_CIRBP   1914 ATATAGACTTGGAATATATATATGTTCTGGTAAACTTTTCCATAATACAA   1963
+                     | ||   |||    | | |  ||| ||    ||||||||  ||   ||  
+scaffold_510   23058 ACATTTCCTTTT--TTTTTCCATGCTC----AAACTTTTG-ATCTCACTT  23100
+
+Xenopus_CIRBP   1964 AGGGAAGAGTTAGCTCCCAGTAGATCTCAGAATAACAATTAATAAGAA-G   2012
+                           | ||  | |    |  | |   | | |  |  ||  || |   |
+scaffold_510   23101 TTTTGTGTGTGTGGTGGGGGATGGTGAGACAGTGCCTGTTTTTATGCTTG  23150
+
+Xenopus_CIRBP   2013 AAAGTCTAGCTTTGCACTAGTTACATGGGAGTAGGGGAAATGGGTTACTT   2062
+                     |||| | |  |||       |||   ||  ||  |   ||  |  |||||
+scaffold_510   23151 AAAG-CAAAATTT-------TTA---GGATGTTTG---AACAGAATACTT  23186
+
+Xenopus_CIRBP   2063 GAAAGCAGTTCTAGTGTAGTGCTGGCTCCTGAAAGCTCCGAATCGGGCAC   2112
+                      |  |||| | ||| | ||||   ||    || | ||  | |  ||||  
+scaffold_510   23187 CA--GCAGGT-TAG-GAAGTG---GCAAG-GATAACT--GGAAGGGGCTT  23226
+
+Xenopus_CIRBP   2113 AATGCACAGAGATGGCTGCCTACACACTAATAGTACAACTTTTATTTTTC   2162
+                         ||||        ||| ||||||          ||   || | | | 
+scaffold_510   23227 GTACCACA--------TGCATACACAG---------AAGCCTTGTCTATG  23259
+
+Xenopus_CIRBP   2163 CTTGAGTGAATTTTAGATGGTGGTTCA---TTTGCTATGTAAACAGTAAT   2209
+                       ||| || | |  || |  ||| | |   ||| |   ||||| |||| |
+scaffold_510   23260 TGTGA-TGCACT--AGCT--TGGCTAAGAGTTTTCA--GTAAAGAGTAGT  23302
+
+Xenopus_CIRBP   2210 TTAGAAATAAGGTATACCATAAGAATC-ATGACTATATTGTTTAACCTTT   2258
+                     |   |||  ||    | |    | ||  |||  ||| ||||||    |||
+scaffold_510   23303 T---AAACTAGCCGAAACTGCTGTATGGATGCTTATTTTGTTT----TTT  23345
+
+Xenopus_CIRBP   2259 CCCGGTAGACAAATTGCAGACTGACATTCCCGTCCCTACCCATTTGAATT   2308
+                         || | |   ||  ||  | | |||  | |||  | | | |  |  |
+scaffold_510   23346 GA--GTTGGCTTTTTT-AGCTTTAAATTTAC-TCCTGAGCTAATGAAGCT  23391
+
+Xenopus_CIRBP   2309 AACTATAAGGATACTTTTTGTAGCAGCTTTTAAAGGGTATGTCAACCCTC   2358
+                     ||   |||  |||        |||   ||| ||||   ||| | |  || 
+scaffold_510   23392 AAGCCTAA--ATA--------AGCCTGTTTGAAAGAAAATGGCCATGCT-  23430
+
+Xenopus_CIRBP   2359 ATAAAAGGCATTATTGCCTGATAGAGAACCATAATTTGTTATTTTTGGTA   2408
+                            || ||  |||    |||    |  |||||| | |    || ||
+scaffold_510   23431 -------GCTTT--TGCAGTTTAG----CTTTAATTTTTAAGCAGTGCTA  23467
+
+Xenopus_CIRBP   2409 G-TGCTG---GGCGGTATGACCAAAAATTTATATCACGGTATTTTTTTTA   2454
+                       | ||    || | | ||  | |||||  |||| ||     ||  ||||
+scaffold_510   23468 CCTTCTTTATGGAGATTTGTTCCAAAATC-ATATGACTAAGCTTAATTTA  23516
+
+Xenopus_CIRBP   2455 TTATATCGGTATCACGGTATTTGACGGTATTTTTTTTCCCCATGCATGAT   2504
+                      ||| |    |||   |  |||| |  | ||    ||| ||         
+scaffold_510   23517 ATATCTAATGATCTTTGAGTTTGCCTTTGTTGAAGTTCTCC---------  23557
+
+Xenopus_CIRBP   2505 TACGTGACCACCCCAAACACCCCCAACCCCAAACACCCCCCCATCCCCTT   2554
+                     ||| | | |     ||  ||     |  | ||||| | |    ||   | 
+scaffold_510   23558 TAC-TAAACTGTGGAATAACAAATGAAGCAAAACAGCTCAAGTTC---TG  23603
+
+Xenopus_CIRBP   2555 CACATAAATAAACCTTACGGACCAGGCAGCCGCAGGCACCCCCGACAGCT   2604
+                      |  | | |    ||||  |   ||     | ||  ||   || ||  ||
+scaffold_510   23604 TAGGTCATTTG--CTTATTGTTTAG-----CACAA-CAAAACCTACCTCT  23645
+
+Xenopus_CIRBP   2605 CACAGAGCCTCCTGGCAATTTTTCTTACTATTTCCGGGTTGCGCGCGTGA   2654
+                       || |   ||   |||           |||| ||   ||          
+scaffold_510   23646 TTCACA---TCAGTGCA-----------TATTCCC---TT----------  23668
+
+Xenopus_CIRBP   2655 CGTCAGCGTGCGCGTGACGTCAGCGCGCACAACCCGGAAATAGTAAGAAA   2704
+                       | | |  | ||       ||||  ||||           || || | |
+scaffold_510   23669 --TAATCAAGGGC------CCAGCAGGCAC-----------AGGAACAGA  23699
+
+Xenopus_CIRBP   2705 AATTGCCAGGAGGCGCCCACACCGGTATGCCGGTAAGTTAAAATTTTTTA   2754
+                       || ||||   ||    ||| | | ||      | | | |||      |
+scaffold_510   23700 TGTTTCCAGTGTGCTGGGACAACTGAATA-----AGGATGAAAGG----A  23740
+
+Xenopus_CIRBP   2755 TCATCTTTTTTAAAAAAACCGGTGTTCGGTATATACCGGTATACCGCCCA   2804
+                     ||||     | ||| |||           ||| | |      ||| ||||
+scaffold_510   23741 TCAT-----TGAAACAAA-----------TATCTTC------ACCCCCCA  23768
+
+Xenopus_CIRBP   2805 GCACTAATTTTTGGTTAGGTTAACATGCCCTATAACCTGGGCTTTTATCT   2854
+                       |  |      |  ||     | |||   |||    ||  || ||| | 
+scaffold_510   23769 AAAAAA------GCATAAAAGCAGATGGATTAT----TGCTCTGTTAACA  23808
+
+Xenopus_CIRBP   2855 CTTTCCTGCACTAGAGTTGGGACAGGTTAACATTCGTGTAGTTTTATAAA   2904
+                     |  |  | |   | ||      ||    |||| |  || |||   |  ||
+scaffold_510   23809 CAATTTTACCAAAAAGCCTC--CAACCAAACAGT--TGCAGT---AGCAA  23851
+
+Xenopus_CIRBP   2905 ACACGAACTTTTTTTGTGCAGGTGGTGGTGGAGACAGAGGATATGGTGGA   2954
+                     | | |   |   || |    | || |||  ||  |  |  |  |  |  |
+scaffold_510   23852 AGATG---TGGGTTAGCTTGGATGTTGGGTGAACCTCAAAACCTAATA-A  23897
+
+Xenopus_CIRBP   2955 AGCAGCCGCTTTGAAAACAGAAGTGGAGGTTACCAAAGCAGTGGATCCAG   3004
+                     ||||      | ||||| ||| | |||  || |||    |  | | |   
+scaffold_510   23898 AGCA------TAGAAAA-AGATG-GGACATTCCCATTTAAAAGAAACTGC  23939
+
+Xenopus_CIRBP   3005 G-GATTACTATGGCAGGTAAGTTTTGTGAATGCTCTGTAAGACTTCATTC   3053
+                     | ||  | | |      |||     | |||    | |||| || |  |  
+scaffold_510   23940 GTGAAAAATCTATACTCTAAAA---GAGAACTTGCAGTAAAACCTTGTCG  23986
+
+Xenopus_CIRBP   3054 TATTTTGATATTTGTTCTCCTGACATGGCCTGTGTCTCTCGTGGCAGGAG   3103
+                     | || |     ||| | || | |  ||  |||  | |       | | | 
+scaffold_510   23987 TCTTGT-----TTGCTTTC-TAAAGTG--CTGC-TATAAAAAAACTGAAA  24027
+
+Xenopus_CIRBP   3104 TCATGGAAGCTATGGTGAT-CGTTCCGGAGGATCCTA-CAGGGATAGTTA   3151
+                     | | ||||||   |||  | | ||  | | |   ||  ||  | |  |||
+scaffold_510   24028 T-AGGGAAGCA--GGTACTGCCTTGTGCATGTGACTTTCACTGTT--TTA  24072
+
+Xenopus_CIRBP   3152 TGACAGCTATAGTAAGTATGTGGGGAAGTTACTAGA-GAGGAGGGTGGAA   3200
+                     |||          |||| | | ||  || |  |||  ||  | |||||| 
+scaffold_510   24073 TGA----------AAGTTTTTTGGAGAGCTTTTAGCTGACAAAGGTGGAG  24112
+
+Xenopus_CIRBP   3201 AGGGTGGTACGTCAGTTGTGATCTTCGTGTTCCATCCAGTGATGGCTCTT   3250
+                        ||   |   |||| ||||  ||         | | |||  || | ||
+scaffold_510   24113 CATGTCACATACCAGT-GTGACTTT---------TACTGTGTGGGGTGTT  24152
+
+Xenopus_CIRBP   3251 AACTTCTCAATTTCTCAATTTGCCTCTAATGCATGTGTTGGTTCTGTCCT   3300
+                        ||| || | |     ||||  |  |||   |||  |      || | 
+scaffold_510   24153 ---TTCACATTATTG---TTTGGTTGGAAT---TGTCATTTAAAAGTACA  24193
+
+Xenopus_CIRBP   3301 GGCTACAGGCAATAAGTGTTGGGTAGACATAGCTGGGAAGGGTATGTAGT   3350
+                     | |  ||||            ||   |||||||||        ||    |
+scaffold_510   24194 GCCCCCAGG------------GGCTTACATAGCTGCTCG----ATTCCCT  24227
+
+Xenopus_CIRBP   3351 ACCAGTTTAGGGGAGGTGATGCTGGAATCTGTGCCTTTACAACTGTGCCT   3400
+                     | |||  |    |   | ||  ||   | |||  |||    |||||  ||
+scaffold_510   24228 ATCAGAAT----GTTATAATATTGC--TTTGTAACTT----ACTGTAACT  24267
+
+Xenopus_CIRBP   3401 GCTTCTTG-TCCTCAGCTACACAAGAGTAAAATCCATTCCTGACTCAAGA   3449
+                      |||   | |  |  | ||   | ||| ||||    || || ||| | ||
+scaffold_510   24268 ACTTAAAGCTATTTTGATAGG-AGGAGGAAAAATATTTACTAACT-AGGA  24315
+
+Xenopus_CIRBP   3450 TCGTCCTTCCAATGGCTGTATTTATAAAGATTTTTGGAGCTTCGCCGAAT   3499
+                     |             || ||||| ||  |||    ||    ||        
+scaffold_510   24316 T-------------GCAGTATTAATTTAGAACACTG----TT--------  24340
+
+Xenopus_CIRBP   3500 CGTTTGTGTAGTATATCTACTTGTGTTCACTTTTTTTTTTAATAGACCTA   3549
+                       ||  | ||| || | | | ||    ||||  |||       | ||   
+scaffold_510   24341 --TTACTCTAGGATTTGTTCCTG----CACTAATTT-------ACAC---  24374
+
+Xenopus_CIRBP   3550 GTTAGCCTGACAGCTTCTCTAATAAGTGGGACAGCTGTGTTTCAAAGGCT   3599
+                      ||  ||  ||  | | ||||       ||||||         | ||   
+scaffold_510   24375 -TTTCCC--ACTACATATCTA-------GGACAGT--------ATAG---  24403
+
+Xenopus_CIRBP   3600 TTATCTTTGGACACCTAATCTCATTCTTAAAGTTACTGTGTTCTGCAAGG   3649
+                            ||||  |  ||       |  ||||||    ||  | |||   
+scaffold_510   24404 -------TGGATGC--AA-------CAGAAAGTTT---TGGCCAGCAT--  24432
+
+Xenopus_CIRBP   3650 ATATTCCTATCCTACTATGCTGTTCCATTCAAGCTGATCAGGTGGGGCTG   3699
+                     | ||||||||             ||| |   || | || | |||  | ||
+scaffold_510   24433 ACATTCCTAT-------------TCCTTATCAG-TAAT-ACGTGACGTTG  24467
+
+Xenopus_CIRBP   3700 CTCCCCCTTCTGGTTAAGTAGTGCTAGGAAGTAACTTCCTAAGCGGATGG   3749
+                                 |  |||||            || ||  | |   |||  
+scaffold_510   24468 ------------GAAAAGTA------------AAATTAATTAAAAGAT--  24491
+
+Xenopus_CIRBP   3750 GTGCTGTTGGTTGATGGGCAGAGAAGCACCTGTATTAGTAGCAGACTGCT   3799
+                        ||     | |||  || |  ||| |   ||||||  | |      ||
+scaffold_510   24492 ---CTCCATCTCGATTTGCCGTTAAGGATTAGTATTAACATCT-----CT  24533
+
+Xenopus_CIRBP   3800 AGGCCTGTCTTCCTGTAGCATTGTTTAAAGAACTTTAAGCTGCTGTATTT   3849
+                     |  || ||  | ||  | | ||    |    |||| | |   |||  || 
+scaffold_510   24534 AAACCAGTGGTTCTCAACCTTTCC--ACGTTACTTCAGGTGTCTGATTTG  24581
+
+Xenopus_CIRBP   3850 TTTGGTTACATGAAAAGTTAATTTTATGAGTCCACTTAAATTGCATTCCT   3899
+                     | | |  | ||   |||||  |  | ||| |  |   ||| | | || ||
+scaffold_510   24582 TCTTGC-ATATTCCAAGTT--TCATCTGACTTAA---AAACTAC-TTGCT  24624
+
+Xenopus_CIRBP   3900 TTAGTGTAACAAGGCAAGGCAGAGCTTGGGTGCGCTGTATATAGTGGCTA   3949
+                     |       ||||    |  ||||               ||| |       
+scaffold_510   24625 T-------ACAA----AATCAGAC--------------ATAAAA------  24643
+
+Xenopus_CIRBP   3950 CACCTCCTTGATACACAAAGTGAATAGTGTTCGCATCTCCAGTAACAATA   3999
+                               ||||| ||||||        || || | |  |  | | ||
+scaffold_510   24644 ----------ATACA-AAAGTG--------TCTCAGCACACGATATATTA  24674
+
+Xenopus_CIRBP   4000 TCAGAAGAAGTTCTTAAAATGTTTGTTTATATTGTCCTTTTTTTACTAAA   4049
+                      | ||| || | ||||     ||| |    |||| | | |  ||| ||||
+scaffold_510   24675 -CTGAAAAATTGCTTAC----TTTCTC---ATTGCCATATAATTA-TAAA  24715
+
+Xenopus_CIRBP   4050 CATGCAACTATTGTACTGAAGTGGCTAAGGAATTGTATTCTACTTTTGAT   4099
+                          | | |||    ||||     |||       |||| ||| ||| | 
+scaffold_510   24716 -----ATCAATT----TGAATA---TAAA------TATTTTACATTTCAG  24747
+
+Xenopus_CIRBP   4100 TGGCTTCACGAAGCCTATTAAAAAAACCAATGTGAAAAG--AATTGCGCT   4147
+                     |                  | | | | |||| | || ||  |||||    
+scaffold_510   24748 T------------------ATATAGAGCAATATAAACAGGTAATTGTCTG  24779
+
+Xenopus_CIRBP   4148 CCTGATGTTTAAA-TTCTGC--ACAACATGGATGTATCTTATGCTAGGTG   4194
+                       ||| |||| |  || | |  ||  ||    ||  | ||||  |||   
+scaffold_510   24780 TATGAAGTTTTAGCTTGTACTGACTTCACTAGTGCTTTTTATA-TAGCCT  24828
+
+Xenopus_CIRBP   4195 GGGACCATAGACCCAAGGGCTAATGGCTTATAAAGGGGAACTCATAAGAT   4244
+                     |   |  || | | |  | | |||  ||     ||  ||  |     |||
+scaffold_510   24829 G---CTGTAAAACTA--GCCAAATACCT-----AGATGACTT-----GAT  24863
+
+Xenopus_CIRBP   4245 CCACTTACTGCAA-ACACCTGGCATTGATCACCTTGTTCAGGCTGGCTCC   4293
+                       ||   ||| || ||  |||   |  ||| ||| ||| ||     || |
+scaffold_510   24864 GTACCCCCTGGAAGACCTCTG---TGTATC-CCTGGTTGAGAACCACTGC  24909
+
+Xenopus_CIRBP   4294 CAGCATTCATCTGTATTTTGCAATGCCATGGTTTGAGTGTCTGCAGTGTT   4343
+                         |  || |  ||  | |  |  ||| |||           ||| |||
+scaffold_510   24910 GCTAAACCACCACTAACTGG--AGCCCAGGGT-----------CAGGGTT  24946
+
+Xenopus_CIRBP   4344 GGGGAAGAACT-AAAACTGCCGTGCCAAATTTT-TAAATAAATT----AA   4387
+                       |||  | ||   |||||    ||| | |||| | |  | |||    | 
+scaffold_510   24947 AAGGACCATCTGGGAACTGGGAGGCCCAGTTTTATTACCAGATTGGCTAC  24996
+
+Xenopus_CIRBP   4388 ACCT--TTTTTGTGAGGATTAAGCATCAGTAGAATCTGCATGCTTTGCAT   4435
+                     |  |  |||||||| | ||||        || || |  |          |
+scaffold_510   24997 AGGTGATTTTTGTG-GCATTA--------TACAAACCAC----------T  25027
+
+Xenopus_CIRBP   4436 TAAGCTACA-TTTTGAGTAGTTACTCTTGTTAAAGACCTCTAATTGCAGG   4484
+                     ||| || || |||||  |  ||||   | | ||||     |||   || |
+scaffold_510   25028 TAATCTCCACTTTTGTTTCCTTACC--TATAAAAGT----TAACCTCATG  25071
+
+Xenopus_CIRBP   4485 TTTTGGCTAGGAGGCAAAGGTACTTGGCAGCAGTCAGTTTATAAAAGTAG   4534
+                         ||  |   | ||||| |  ||| |   |||    || | |||    
+scaffold_510   25072 ----GGGGAAATGACAAAGCTGTTTGTCG--AGTG---TTCTGAAA----  25108
+
+Xenopus_CIRBP   4535 CTATACACTTACAACTACAAATTTTACTAGATGGGTGACTTTCCTAGTAA   4584
+                        | | || |    |  ||  |||| || |     || ||       ||
+scaffold_510   25109 ---TCCTCTCA----TGGAAGGTTTAGTACA-----GAATT-------AA  25139
+
+Xenopus_CIRBP   4585 GTTTATGGGAAGTTTTTGTATGAAGAAAAAATTTAGCCTCTAATATACAA   4634
+                      |||||  || || |  |  | || ||||||| | |||  |         
+scaffold_510   25140 CTTTATCTGA-GTCTAGGGCTCAA-AAAAAATCTTGCCAGT---------  25178
+
+Xenopus_CIRBP   4635 GGTTATCCTGGGTGAGGGGTAATAACATGTGGTCACTGAACTGCCTAGTT   4684
+                                     ||  ||||  | |     || ||  | |||||  
+scaffold_510   25179 ----------------GGCAAATACGAAG-----ACAGA--TTCCTAG--  25203
+
+Xenopus_CIRBP   4685 TACTTTTGCTGCTGT-ATGACAGTTTATATAAGTATAACTGCTGCCATGG   4733
+                       ||||  | ||||| |  ||||     | ||||| | |           
+scaffold_510   25204 --CTTTAACGGCTGTTAATACAGCCATCAAAAGTAAATC-----------  25240
+
+Xenopus_CIRBP   4734 AAGGGAAGCTGGACAGAACTTAGTTTAG-ACAAAACAATACTGGTTACCT   4782
+                      || | || |   |||||  | |   || ||  |||  | ||| |  | |
+scaffold_510   25241 -AGAGTAGGTTTGCAGAATCTGGAGAAGTACTCAAC--TGCTGCTC-CAT  25286
+
+Xenopus_CIRBP   4783 TCTAAGAATCCTCTGCTAGAGTACCGAAGAGGCAGTCTCCTTGGAAAATG   4832
+                     | |  |   | ||| |||| ||           || ||     || | | 
+scaffold_510   25287 TTTGCGGTGCATCT-CTAGTGTG----------AGACT-----GACATTT  25320
+
+Xenopus_CIRBP   4833 AAGTTTGTGCCTCCAGTGAAACCTGAGACGAAAGCTGCTCTTGGCTAGTT   4882
+                     || | |||   | |||||| |  | |  | ||| ||  ||| ||| |   
+scaffold_510   25321 AAATATGT---TTCAGTGACAG-TAATTCCAAACCT--TCTGGGCGAA--  25362
+
+Xenopus_CIRBP   4883 CATA-TGTGGAATTAGTCCAGTAATTCGAGGTAACTCTTTTGCTCCTGTC   4931
+                     || | | |  ||||    ||||  ||  ||| ||  |||           
+scaffold_510   25363 CAAACTCTTAAATTGA--CAGTGTTT--AGGAAAG-CTT-----------  25396
+
+Xenopus_CIRBP   4932 CACGTCCCTCCTCCTTGAGCTCATTTAACTTTTTATTTTTGTGCTTGTGA   4981
+                      ||   | ||       |||  |  ||    || ||  ||   | | | |
+scaffold_510   25397 -ACAAACATC-------AGCAAAAGTAGACATTGATCCTTC--CCTAT-A  25435
+
+Xenopus_CIRBP   4982 AATTTTGCTACTCCCAAAAAGCTTAATATGAACCTTAGTTCTTCAGATCC   5031
+                     ||||   || |||||      ||   || ||| |  |  ||||    |||
+scaffold_510   25436 AATTACTCT-CTCCC------CTCCTTAAGAAGCAAATGTCTT----TCC  25474
+
+Xenopus_CIRBP   5032 ACAAGATTTCTGTGCTTTAGTTCC-ACTTCTATCA-----AATACAGTAT   5075
+                           || ||| |   |  |||| ||||  ||||     || || | | 
+scaffold_510   25475 ------TTGCTGAGTCGTCTTTCCCACTTGCATCAGTGAGAAGACTGGA-  25517
+
+Xenopus_CIRBP   5076 CATGTATACCATATTTTTTTTGTTTTGAACCTTATCACTTTTTGTGGAAA   5125
+                      | ||  |  | ||  | | | | ||   |||  | |      ||| |  
+scaffold_510   25518 -AAGTTGAAGAGATGGTATGTTTATT---CCTGCT-AGGGAAGGTGAAGC  25562
+
+Xenopus_CIRBP   5126 CCAAGTTAATGACACTTGGCAGTGCCCT----ATAAACTTAATGGCCAAA   5171
+                       || |||   | |   | ||| ||| |    | ||  | |||  || ||
+scaffold_510   25563 TTAATTTACAAAAA---GCCAGAGCCTTGATCAGAACGTGAATTCCCCAA  25609
+
+Xenopus_CIRBP   5172 ---AATGCAATGACCCAAGACAT-TGATGCATCAGTACCAAATTCACAA-   5216
+                        |  | || || |||||  |  || |||| |     |   ||  ||  
+scaffold_510   25610 TCAAGAGGAAAGAGCCAAGTTAAGTGGTGCAGCTTGGACTGCTTGCCAGG  25659
+
+Xenopus_CIRBP   5217 ---TTGTCCACACTGCTTTCAGTTTGGTTGTTCTGATTTGATGACTAATC   5263
+                        ||| | |  |  ||| |    |||| |  || ||||     ||  ||
+scaffold_510   25660 CTTTTGCCAAGGCATCTTGC----TGGTAGAGCTCATTT-----CTCTTC  25700
+
+Xenopus_CIRBP   5264 ACATTATGTTTTACAGGCTGACCTTTTAAATGCAAACAGTCT-TAAAGAG   5312
+                     |  ||   | | |    ||| | |  || ||| ||    ||| ||   | 
+scaffold_510   25701 ATCTTTCATATAATCATCTGGCTTAATAGATGTAAT---TCTCTAGCTAC  25747
+
+Xenopus_CIRBP   5313 GATTGATAGA--ACAGAA-TTG-CATACTACAGGGTGGCTTTTGCAGTAA   5358
+                     | |  ||| |  ||| || ||| ||| |  |  ||| |  ||  |||| |
+scaffold_510   25748 GTTAAATATATTACAAAAATTGTCATGC--CCTGGTAGAATT--CAGTTA  25793
+
+Xenopus_CIRBP   5359 CTGCAGGGTGTGTAAGACTTTCTGGTACTTTGTTTGGAAGTTTGATTTGA   5408
+                     |||||   || | |          ||  ||   |||  |    || |  |
+scaffold_510   25794 CTGCAA--TGAGCA----------GTTGTTCAATTGCCAA---GAGTATA  25828
+
+Xenopus_CIRBP   5409 ACGTTCAACATTTTGTTAATTATCTTCCTGTATTCTTTAGGAACTGGCTG   5458
+                     ||    ||  |||||   || ||    | | || |||  || | |     
+scaffold_510   25829 ACTCCTAATGTTTTGG--ATAATGGAGCCG-ATGCTTATGGCAAT-----  25870
+
+Xenopus_CIRBP   5459 TGGAAGGCAAGATACAGGGATGCTGTTTGAATTCGACTGCTGTATATTCA   5508
+                             ||  | |     ||  || | |  || |||| ||||  |  |
+scaffold_510   25871 --------AAATTTCT----TGACGTGTCA--TCTACTG-TGTAC-TGGA  25904
+
+Xenopus_CIRBP   5509 CAAGACCTGGCT--AAAGACTTTTTTTTTTAATCAAATCAAACTTTA---   5553
+                     | ||   | | |  |||||      | ||  ||  || ||   | |    
+scaffold_510   25905 CCAGTTGTAGTTCAAAAGA------TGTTACATGTAAGCATTGTGTGAGG  25948
+
+Xenopus_CIRBP   5554 TATGCTGACAACCCCTATACTATTTTTATCAAACTGTATTCACCAGTTTA   5603
+                     | ||||| |||||  || |    ||| ||        || |||     | 
+scaffold_510   25949 TCTGCTG-CAACCTGTAGA----TTTAAT--------ATACAC-----TC  25980
+
+Xenopus_CIRBP   5604 GTTTCTTGATACCATATTAATATTTTAGTTATGGAATGTAAGCAGT--TA   5651
+                     ||  |||  |    |  ||||  |||  |    |||||  ||| ||  ||
+scaffold_510   25981 GTGCCTTATTT---TTCTAATTCTTTCCTCCAAGAATGGCAGCTGTGCTA  26027
+
+Xenopus_CIRBP   5652 AA-CAGGCAACTTTTATCACTGAACTTCATTT--ATATGTTGTGTACTTC   5698
+                     |   ||  |||  ||  || ||  | | | |   | | ||||| | | ||
+scaffold_510   26028 ATGGAGTAAACCATTG-CAATGGGCATTAATGCAACAAGTTGTTTGCCTC  26076
+
+Xenopus_CIRBP   5699 ATACAACCCAGGCATGTTCCTCTT--CTGTCTACTCTTAGTTCAGGCCTG   5746
+                      |||     |  | | ||| | |   | || |  |  |  | |||  |||
+scaffold_510   26077 -TACTTGAAAC-CGTTTTCTTATAAACAGTGTCTTGATGATCCAG--CTG  26122
+
+Xenopus_CIRBP   5747 ATTTACTTATC-CTCCTTTGTCCACCACTACACCATTCCACAGCATAAGG   5795
+                     || |||| ||| |||||| ||     | | ||  |||   |  || || |
+scaffold_510   26123 ATATACTCATCACTCCTT-GT-----AGT-CATGATTGTCC--CAGAATG  26163
+
+Xenopus_CIRBP   5796 TGCTA-TATTCATACTTGATTATATTCTCATGTACCACACTTTCATACAG   5844
+                       ||  |||||||| | |      | || |||  |  ||  |   |   |
+scaffold_510   26164 CACTGGTATTCATAATGG------TCCTAATGATCAGCAAGTGACTTTGG  26207
+
+Xenopus_CIRBP   5845 TAGACTGCTAACAAACTTGTGGAGATATTGTGTGACCACCTCCCTGTCCC   5894
+                     |   |||| ||||||  || |||    ||             | |||   
+scaffold_510   26208 TTCCCTGC-AACAAA--TGCGGATCATTT-------------CATGT---  26238
+
+Xenopus_CIRBP   5895 CTGATGCAGGGAAAATAAAGAGGAAGCAGACGGTTGCAGGCCCAGTGGAG   5944
+                          || ||||       ||   ||||||               |||| 
+scaffold_510   26239 -----GCGGGGAGT-----GAATTAGCAGA---------------TGGAC  26263
+
+Xenopus_CIRBP   5945 CACTAACTGAACAGTCTCAATATATCTTGTTAGAAATGGTTAACTTGGCA   5994
+                        |||||        | ||| | | |||||   |  | |  | |  |||
+scaffold_510   26264 ATGTAACT--------TTAATGTTT-TTGTTCCCACAGTTGTA-TCAGCA  26303
+
+Xenopus_CIRBP   5995 AT---GTTTTGCCATAAATTGTT-TACTGTGGAATCCAGTAACCT-AGTA   6039
+                      |   |||| | |  |||   || | |||||   |  ||| |  | ||||
+scaffold_510   26304 GTTCAGTTTGGTCTGAAAGCTTTGTGCTGTGTCTT--AGTTAATTCAGTA  26351
+
+Xenopus_CIRBP   6040 AAACCATGGATTGTAGCAGAGAATAACTACAATAAAGGTTTTATTCTGCT   6089
+                      |  |||    | | ||| |    | ||||||| |           ||| 
+scaffold_510   26352 -AGTCATAACGTTT-GCACATTCCAGCTACAATTAG----------TGCA  26389
+
+Xenopus_CIRBP   6090 TGA   6092
+                      ||
+scaffold_510   26390 AGA  26392
 
 
 #---------------------------------------
