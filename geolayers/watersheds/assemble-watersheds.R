@@ -13,6 +13,10 @@ source("watersheds-fns.R")
 tort.coords.obj <- load("../../tort_272_info/geog_coords.RData")
 tort.coords <- get(tort.coords.obj)
 
+dem <- get_elev()
+conts <- get_contours(dem)
+shade <- get_shading(dem)
+counties <- get_counties(dem)
 
 # note this is not doing WBD 12, which needs more RAM
 wbd.list <- lapply( 2*(1:5), function (wbd_num) {
@@ -22,12 +26,6 @@ wbd.list <- lapply( 2*(1:5), function (wbd_num) {
                            CRS(proj4string(dem)) ), 
                      dem )
     } )
-
-dem <- get_elev()
-conts <- get_contours(dem)
-shade <- get_shading(dem)
-counties <- get_counties(dem)
-
 
 hierarchies <- c( list( rep(1,length(wbd.list[[1]])) ),
                   lapply( seq_along(wbd.list)[-1], function (k) {
