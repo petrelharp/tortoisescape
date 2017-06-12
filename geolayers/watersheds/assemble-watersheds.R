@@ -22,8 +22,8 @@ counties <- get_counties(dem)
 wbd.list <- lapply( 2*(1:5), function (wbd_num) {
             gClip( 
                   spTransform( 
-                               readOGR("WBD/WBD_National_931.gdb",paste0("WBDHU",wbd_num)), 
-                           CRS(proj4string(dem)) ), 
+                               readOGR("WBD/WBD",paste0("WBDHU",wbd_num)),
+			       CRS(proj4string(dem)) ),
                      dem )
     } )
 
