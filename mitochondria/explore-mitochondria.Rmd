@@ -321,6 +321,16 @@ of which `r sum(minors[c(goodregion,goodregion.2),])` did not agree with the maj
 
 Mean coverage across the mitochondria was `r mean(coverage)`.
 
+We will save a table of the per-individual results:
+```{r save_results}
+mt_error <- data.frame(
+        id=rownames(goodcounts),
+        minor=with(goodcounts+goodcounts.2,minor),
+        coverage=with(goodcounts+goodcounts.2,coverage),
+        error=with(goodcounts+goodcounts.2,minor/coverage))
+write.table(mt_error, file="mt_error_estimates.tsv", row.names=FALSE)
+```
+
 ```{r writeup_plot}
 # for writeup
 
@@ -351,5 +361,16 @@ plot( 1000*with(goodcounts,minor/coverage), 1000*with(goodcounts.2,minor/coverag
      )
 abline(0,1)
 
+dev.off()
+```
+
+```{r compare_nuc}
+nuc <- read.table("overlapErrorRates.txt")
+mt_error$id <- gsub(" .*", mt_error$id)
+mt_error$nuc <- nuc$V2[match(mt_error$id, nuc$V1)]
+pdf(file="nuc-mt_error_comparison.pdf", width=5, height=5, pointsize=10)
+with(mt_error, plot(error, nuc, xlab='mt error', ylab='afterQC-estimated error', 
+                    pch=20, main='estimated error rates', asp=1, ylim=c(0,0.0012)))
+abline(0,1)
 dev.off()
 ```
