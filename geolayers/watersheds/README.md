@@ -3,20 +3,15 @@
 ## Watershed Boundary Dataset (WBD)
 
 
-Downloaded national data from [rockyftp.usgs](ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/WBD/FileGDB931/),
-to file geodatabase (their shapefile was missing, grrr!!) [WBD_National_931.gdb/](WBD_National_931.gdb)
+Downloaded national data from [rockyftp.usgs](ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/National/GDB/),
+to file geodatabase (their shapefile was missing, grrr!!) [WBD_National_GDB.gdb/](WBD_National_GDB.gdb)
 What we want out of this are the layers named
 `WBDHUn`, where `n` is even and ranges from 2 (coarsest) to 12 (finest).
 This *can* be read with `readOGR()`.
 ```
-mkdir -p WBD; cd WBD
-BASEURL="ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/WBD/FileGDB931"
-wget ${BASEURL}/WBD_National_931.gdb.zip
-mkdir -p WBD_Metadata; cd WBD_Metadata
-for x in HU2 HU4 HU6 HU8 HU10 HU12 HU14 HU16 Line _FeatureDataset
-do
-    wget ${BASEURL}/WBD_Metadata/WBD${x}_FGDC.xml
-done
+BASEURL="ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/National/GDB"
+wget ${BASEURL}/WBD_National_GDB.zip
+unzip WBD_National_GDB.zip
 ```
 
 ## Hydrography
