@@ -128,6 +128,8 @@ sub_wbd8 <- merge_poly(sub_wbd8, c(9,15))
 sub_wbd8 <- sub_wbd8[-8]
 sub_wbd8 <- merge_poly(sub_wbd8, c(6,7))
 sub_wbd8 <- split_poly(sub_wbd8, wbd10[c(424,409)])
+sub_wbd8 <- split_poly(sub_wbd8, wbd10[c(773,373,374,798,375,376,377,778)])
+sub_wbd8 <- merge_poly(sub_wbd8, c(10,14))
 
 tort_handpicked <- apply(gCovers(sub_wbd8, tort.coords, byid=TRUE), 1, which)
 stopifnot(sort(unique(tort_handpicked)) == 1:length(sub_wbd8))
@@ -142,6 +144,7 @@ save(sub_wbd8, file="handpicked_WBD8.RData")
 write.csv(as.matrix(hp_adj), file="handpicked_WBD8_adjacency.csv")
 tort_wbd <- read.csv("watershed_assignments.csv", header=TRUE, row.names=1)
 tort_wbd[,"handpicked_WBD8"] <- tort_handpicked
+tort_wbd["etort-1",] <- NA
 write.csv(tort_wbd, file="watershed_assignments.csv")
 
 if (FALSE) {
