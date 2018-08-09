@@ -4,6 +4,7 @@ require(raster)
 require(maps)
 require(maptools)
 require(rgdal)
+require(rgeos)
 require(TeachingDemos)
 
 # elevation raster
@@ -14,6 +15,7 @@ shade <- get_shading(dem)
 contours <- get_contours(dem)
 states <- get_statelines(dem)
 counties <- get_counties(dem)
+ocean <- get_ocean(dem)
 
 dist1.file <- "../tort_272_info/geog_distance.csv"
 dist2.file <- "../tort_272_info/all_angsd_snps.pwp.csv"
@@ -139,6 +141,28 @@ for (tid in paste("etort-",c(285,78,240,283,35,273,253,57,71,229,27,191),sep='')
   dev.off()
 }
 
+# for erik
+tid <- "etort-285"
+png(file="etort-285-simple.png", width=5.5*155, height=3*144, pointsize=10, res=144)
+    layout(t(1:2))
+    par(mar=c(2.5,2.5,1.0,0.5))
+    usethese <- ( dist2$etort1 != dist2$etort2 ) & ( ( dist2$etort1 == tid ) | ( dist2$etort2 == tid ) ) & ( dist1$etort1 != "etort-1" ) & ( dist1$etort2 != "etort-1" )
+    otherone <- ifelse( dist2$etort1[usethese] == tid, dist2$etort2[usethese], dist2$etort1[usethese] )
+    badones <- (relatives | dist1$etort1 == "etort-1" | dist1$etort2 == "etort-1")
+    plot(shade, col=adjustcolor(grey(seq(0,1,length.out=101)),0.5), legend=FALSE,
+         xlim=c(-2000000,-1550000), ylim=c(-5e5, 0.5e5))
+    plot(ocean, add = TRUE, col = "light blue")
+    lines(contours,col=adjustcolor("black",0.2))
+    lines(counties, lwd=0.5, col=adjustcolor("red",0.75))
+    # player()
+    points(tort.coords[match(otherone,tort.ids)],pch=20,cex=1, col=ifelse(otherone=="etort-1", NA, 'black'))
+    points(tort.coords[match(tid,tort.ids)], pch=20, cex=2, col='blue' )
+    plot( dist1[!badones,3]/1000, 1000 * dist2[!badones,3], pch=20, cex=.5, 
+        col=adjustcolor("black",.25),
+       xlab="geog dist (km)", ylab="divergence (per Kb)",
+       mgp=c(1.6,0.75,0) )
+    points( dist1[,3][usethese]/1000, 1000 * dist2[,3][usethese], pch=20, col="blue", cex=1.5 )
+dev.off()
 
 ##########
 

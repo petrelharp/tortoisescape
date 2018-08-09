@@ -65,3 +65,31 @@ get_shading <- function (x) {
     the.proj4 <- proj4string(x)
     projectRaster(SR,to=raster(extent(x),res=500,crs=CRS(the.proj4)))
 }
+
+#' Get ocean to overlay
+#' @param x The spatial object
+#' plot(ocean, add = TRUE, col = "light blue")
+get_ocean <- function (x) {
+    the.proj4 <- if (missing(x)) { .raster.proj4 } else { proj4string(x) }
+    xbox <- as(extent(x),"SpatialPolygons")
+    crs(xbox) <- CRS( the.proj4 )
+    if (FALSE) {
+        # this is hella messy; gotta clean it up
+        land <- spTransform( readOGR(file.path(.thisdir,"natural_earth"),"ne_10m_land"), crs(the.proj4) )
+        tmp <- land
+        # this takes FOREVER
+        tmp@polygons <- lapply(land@polygons, checkPolygonsHoles)
+        tmp2 <- gBuffer(tmp, byid=TRUE, width=0)
+        bigbox <- SpatialPolygons(
+                    list(Polygons(list(
+                           Polygon(cbind(c(-4e6,-1e6)[c(1,1,2,2)],
+                                         c(-8e5,4e5)[c(1,2,2,1)]))), ID='box')),
+                    proj4string=CRS(the.proj4))
+        land <- crop(tmp2, bigbox)
+        save(land, file="natural_earth_cleaned.RData")
+    }
+    load(file.path(.thisdir, "natural_earth_cleaned.RData"))
+    landx <- rgeos::gDifference(xbox, crop(land, xbox))
+    return(landx)
+}
+

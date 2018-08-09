@@ -150,9 +150,9 @@ write.csv(tort_wbd, file="watershed_assignments.csv")
 sub_wbd8_coords <- coords(gCentroid(sub_wbd8, byid=TRUE))
 write.csv(sub_wbd8_coords, file="handpicked_WBD8_centroids.csv")
 
-load("handpicked_WBD8.RData")
 
 if (FALSE) {
+    load("handpicked_WBD8.RData")
     # sanity checks
     plot(sub_wbd8, col=adjustcolor(rainbow(length(sub_wbd8)), 0.2))
     points(tort.coords, pch=20)
