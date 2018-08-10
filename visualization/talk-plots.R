@@ -143,7 +143,7 @@ for (tid in paste("etort-",c(285,78,240,283,35,273,253,57,71,229,27,191),sep='')
 
 # for erik
 tid <- "etort-285"
-png(file="etort-285-simple.png", width=5.5*155, height=3*144, pointsize=10, res=144)
+png(file="etort-285-simple.png", width=5.5*288, height=3*288, pointsize=10, res=288)
     layout(t(1:2))
     par(mar=c(2.5,2.5,1.0,0.5))
     usethese <- ( dist2$etort1 != dist2$etort2 ) & ( ( dist2$etort1 == tid ) | ( dist2$etort2 == tid ) ) & ( dist1$etort1 != "etort-1" ) & ( dist1$etort2 != "etort-1" )
